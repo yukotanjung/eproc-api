@@ -1,0 +1,71 @@
+name: Build & Push to Amazon ECR
+
+on:
+  push:
+    branches: [ "development", "staging", "main" ]
+    paths:
+      - "Dockerfile"
+      - "**/*.php"
+      - "composer.*"
+      - "package*.json"
+      - "dockerfiles/**"
+      - ".github/workflows/main.yml"
+  workflow_dispatch: {}
+
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_REPO: attendance-api
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set tag based on branch
+        id: vars
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            main)        echo "tag=latest" >> "$GITHUB_OUTPUT" ;;
+            staging)     echo "tag=stag-latest" >> "$GITHUB_OUTPUT" ;;
+            development) echo "tag=dev-latest" >> "$GITHUB_OUTPUT" ;;
+            *) echo "Unsupported branch: ${GITHUB_REF_NAME}"; exit 1 ;;
+          esac
+          echo "branch=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPO }}
+          tags: |
+            type=raw,value=${{ steps.vars.outputs.tag }}
+
+      - name: Build & Push to ECR
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

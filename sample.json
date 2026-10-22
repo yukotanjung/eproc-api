@@ -1,0 +1,54 @@
+[
+    {
+        "campaign_id": "577f8d19-8754-4f85-8e9e-4e13a5b0240b",
+        "campaign_playlist_id": "28ef8066-b670-40ba-98e2-74193cddb24b",
+        "start_time": "2007-03-01T13:00:00Z",
+        "end_time": "2007-03-01T13:15:00Z",
+        "contents": [
+            {
+                "id": "af0a7037-8f59-43ec-981c-08fa8c03632e",
+                "duration": 15
+            },
+            {
+                "id": "30ae4577-3811-4198-8293-e5a540a33d39",
+                "duration": 15
+            },
+            {
+                "id": "b7833969-f923-4bcd-9956-5784a969e052",
+                "duration": 15
+            },
+            {
+                "id": "8f020e60-43c1-452b-84d0-e1c364e4c0ff",
+                "duration": 15
+            },
+            {
+                "id": "c70aaa8f-3f48-4fa8-8a80-94b9323d9a3a",
+                "duration": 15
+            }
+        ]
+    },
+    {
+        "campaign_id": "577f8d19-8754-4f85-8e9e-4e13a5b0240b",
+        "campaign_playlist_id": "28ef8066-b670-40ba-98e2-74193cddb24b",
+        "start_time": "2007-03-01T13:15:00Z",
+        "end_time": "2007-03-01T13:30:00Z",
+        "contents": [
+            {
+                "id": "af0a7037-8f59-43ec-981c-08fa8c03632e",
+                "duration": 15
+            },
+            {
+                "id": "30ae4577-3811-4198-8293-e5a540a33d39",
+                "duration": 15
+            },
+            {
+                "id": "b7833969-f923-4bcd-9956-5784a969e052",
+                "duration": 15
+            },
+            {
+                "id": "8f020e60-43c1-452b-84d0-e1c364e4c0ff",
+                "duration": 15
+            }
+        ]
+    }
+]

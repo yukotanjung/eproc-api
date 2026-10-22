@@ -1,0 +1,41 @@
+# Dependencies & Package Managers
+/vendor/
+/node_modules/
+/public/build/
+/public/hot
+
+# Storage & Temporary Files
+/storage/*.key
+/storage/app/*
+!/storage/app/public/
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/logs/*
+
+# Environment & Sensitive Credentials
+.env
+.env.*
+!.env.example
+!.env.testing
+
+# Cache, Build & Compiler Artifacts
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+.phpunit.result.cache
+.pest/
+
+# Version Control & Local IDEs
+.git/
+.github/
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Specific Files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
