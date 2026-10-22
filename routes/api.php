@@ -17,6 +17,8 @@ use App\Http\Controllers\MajorController;
 use App\Http\Controllers\JobTypeController;
 use App\Http\Controllers\JobFieldController;
 use App\Http\Controllers\ClassificationController;
+use App\Http\Controllers\ProcurementMethodController;
+use App\Http\Controllers\ProcurementMethodStageController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -141,6 +143,22 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/', [ClassificationController::class, 'store'])->middleware('permission:classification_create');
         Route::post('/{id}', [ClassificationController::class, 'update'])->middleware('permission:classification_update');
         Route::delete('/{id}', [ClassificationController::class, 'destroy'])->middleware('permission:classification_delete');
+    });
+
+    Route::prefix('procurement-method')->group(function () {
+        Route::get('/', [ProcurementMethodController::class, 'index'])->middleware('permission:procurement_method_read');
+        Route::get('/{id}', [ProcurementMethodController::class, 'show'])->middleware('permission:procurement_method_read');
+        Route::post('/', [ProcurementMethodController::class, 'store'])->middleware('permission:procurement_method_create');
+        Route::post('/{id}', [ProcurementMethodController::class, 'update'])->middleware('permission:procurement_method_update');
+        Route::delete('/{id}', [ProcurementMethodController::class, 'destroy'])->middleware('permission:procurement_method_delete');
+
+        Route::get('/{id}/stage', [ProcurementMethodStageController::class, 'index'])->middleware('permission:procurement_method_read');
+        Route::post('/{id}/stage', [ProcurementMethodStageController::class, 'store'])->middleware('permission:procurement_method_create');
+        // static segment before the dynamic one, otherwise "reorder" is read as a stage id
+        Route::post('/{id}/stage/reorder', [ProcurementMethodStageController::class, 'reorder'])->middleware('permission:procurement_method_update');
+        Route::post('/{id}/stage/{stageId}', [ProcurementMethodStageController::class, 'update'])->middleware('permission:procurement_method_update');
+        Route::delete('/{id}/stage/{stageId}', [ProcurementMethodStageController::class, 'destroy'])->middleware('permission:procurement_method_delete');
+        Route::post('/{id}/preview-schedule', [ProcurementMethodStageController::class, 'previewSchedule'])->middleware('permission:procurement_method_read');
     });
 
     Route::prefix('profile')->group(function () {

@@ -307,6 +307,30 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "classification_delete"
             ],
+            [
+                "name" => "Manage Procurement Method",
+                "subject" => "procurement_method",
+                "action" => "read",
+                "permission" => "procurement_method_read"
+            ],
+            [
+                "name" => "Manage Procurement Method",
+                "subject" => "procurement_method",
+                "action" => "create",
+                "permission" => "procurement_method_create"
+            ],
+            [
+                "name" => "Manage Procurement Method",
+                "subject" => "procurement_method",
+                "action" => "update",
+                "permission" => "procurement_method_update"
+            ],
+            [
+                "name" => "Manage Procurement Method",
+                "subject" => "procurement_method",
+                "action" => "delete",
+                "permission" => "procurement_method_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {
