@@ -329,6 +329,61 @@ trait RuleTrait
                 }
                 break;
 
+            case 'ProcurementMethodController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|unique:procurement_methods,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'description' => 'nullable|string|max:500',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => ['required', 'max:100', new IsUniqueOtherRule('procurement_methods', 'name', $params['own_id'])],
+                        'description' => 'nullable|string|max:500',
+                        'is_active'   => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementMethodStageController':
+                if ($method == 'store') {
+                    return [
+                        'name'          => 'required|string|max:150',
+                        'duration_days' => 'required|integer|min:1|max:3650',
+                        'day_type'      => 'required|in:calendar,working_day',
+                        'requires_file' => 'nullable|boolean',
+                        'page_key'      => 'required|string|max:100',
+                        'process_key'   => 'required|string|max:100',
+                        'description'   => 'nullable|string|max:500',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'          => 'required|string|max:150',
+                        'duration_days' => 'required|integer|min:1|max:3650',
+                        'day_type'      => 'required|in:calendar,working_day',
+                        'requires_file' => 'nullable|boolean',
+                        'page_key'      => 'required|string|max:100',
+                        'process_key'   => 'required|string|max:100',
+                        'description'   => 'nullable|string|max:500',
+                        'is_active'     => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'reorder') {
+                    return [
+                        'stage_ids'   => 'required|array|min:1',
+                        'stage_ids.*' => 'required|integer',
+                    ];
+                } elseif ($method == 'previewSchedule') {
+                    return [
+                        'start_date' => 'required|date_format:Y-m-d',
+                    ];
+                }
+                break;
+
             case 'PasswordActivateController':
                 if ($method == "activateAccount") {
                     return [

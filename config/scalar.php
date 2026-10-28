@@ -74,7 +74,7 @@ return [
     | the content and URL options above.
     |
     */
-    'file' => storage_path('app/public/openapi.yaml'),
+    'file' => resource_path('openapi/openapi.yaml'),
 
     /*
     |--------------------------------------------------------------------------
