@@ -1,0 +1,3933 @@
+openapi: 3.0.3
+info:
+  title: Eproc API
+  description: |
+    API documentation for the E-Procurement System.
+
+    **Authentication:** Use Bearer JWT token in the `Authorization` header:
+    `Authorization: Bearer <token>`
+    
+    Obtain a token via `/api/auth/login`.
+  version: 1.0.0
+  contact:
+    name: Eproc Team
+
+servers:
+  - url: /
+    description: Current server
+  - url: http://localhost:8000
+    description: Local development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 100
+        per_page:
+          type: integer
+          example: 10
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 10
+
+    BaseResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Success
+        result:
+          nullable: true
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: No data
+
+    ValidationError:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error Validation on name : The name field is required."
+        result:
+          type: object
+
+    # Auth Schemas
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: admin@eproc.com
+        password:
+          type: string
+          format: password
+          example: "secret123"
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Login successful
+        result:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              example: Administrator
+            username:
+              type: string
+              example: admin
+            employee_code:
+              type: string
+              nullable: true
+              example: EMP001
+            email:
+              type: string
+              example: admin@eproc.com
+            photo_url:
+              type: string
+              nullable: true
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            roles:
+              type: array
+              items:
+                type: object
+
+    # Permission Schemas
+    Permission:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Manage User
+        subject:
+          type: string
+          example: user
+        action:
+          type: string
+          example: read
+        permission:
+          type: string
+          example: user_read
+
+    # Role Schemas
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Admin
+        description:
+          type: string
+          nullable: true
+          example: System Administrator
+        total_permissions:
+          type: integer
+          example: 12
+        total_users:
+          type: integer
+          example: 4
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    RoleDetail:
+      allOf:
+        - $ref: '#/components/schemas/Role'
+        - type: object
+          properties:
+            permissions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Permission'
+
+    # User Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: John Doe
+        username:
+          type: string
+          example: johndoe
+        employee_code:
+          type: string
+          nullable: true
+          example: EMP001
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        photo_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        role:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              example: Admin
+            description:
+              type: string
+              nullable: true
+
+    # Funding Source Schemas
+    FundingSource:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: State Budget
+        description:
+          type: string
+          nullable: true
+          example: National state development budget
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Tax Schemas
+    Tax:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: PPN 11%
+        is_spt:
+          type: boolean
+          example: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Business Type Schemas
+    BusinessType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: General Trading
+        description:
+          type: string
+          nullable: true
+          example: Goods supply and trading services
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Work Unit Schemas
+    WorkUnit:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Procurement Division
+        code:
+          type: string
+          example: PROC-01
+        description:
+          type: string
+          nullable: true
+          example: Division in charge of procurement activities
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Qualification Schemas
+    Qualification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Small Enterprise (Kecil)
+        description:
+          type: string
+          nullable: true
+          example: Qualification criteria for small enterprise contractors
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Education Level Schemas
+    EducationLevel:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Bachelor Degree (S1)
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Major Schemas
+    Major:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Civil Engineering
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Job Type Schemas
+    JobType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Construction Work
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Job Field Schemas
+    JobField:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_type_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Civil Infrastructure
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Construction Work
+
+    # Classification Schemas
+    Classification:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_type_id:
+          type: integer
+          example: 1
+        job_field_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Road & Bridge Construction
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Construction Work
+        job_field:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Civil Infrastructure
+
+
+    # Procurement Method Schemas
+    ProcurementMethod:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Tender
+        description:
+          type: string
+          nullable: true
+          example: Open competitive selection method
+        is_active:
+          type: boolean
+          example: true
+        stages_count:
+          type: integer
+          example: 5
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementMethodDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProcurementMethod'
+        - type: object
+          properties:
+            stages:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProcurementMethodStage'
+
+    ProcurementMethodStage:
+      type: object
+      description: |
+        One step of a procurement method. `day_type` decides how `duration_days` is applied:
+        `calendar` adds literal days, `working_day` adds Mon-Fri days only.
+        `sequence` is 1-based and always contiguous per method.
+      properties:
+        id:
+          type: integer
+          example: 11
+        procurement_method_id:
+          type: integer
+          example: 1
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        duration_days:
+          type: integer
+          example: 5
+        day_type:
+          type: string
+          enum: [calendar, working_day]
+          example: calendar
+        requires_file:
+          type: boolean
+          description: When true the stage needs a file upload before it can be completed.
+          example: false
+        page_key:
+          type: string
+          description: Frontend page identifier rendered for this stage.
+          example: procurement/stage/announcement
+        process_key:
+          type: string
+          description: Backend process identifier executed for this stage.
+          example: stage.announcement
+        description:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementMethodStageInput:
+      type: object
+      required: [name, duration_days, day_type, page_key, process_key]
+      properties:
+        name:
+          type: string
+          maxLength: 150
+          example: Evaluasi
+        duration_days:
+          type: integer
+          minimum: 1
+          maximum: 3650
+          example: 3
+        day_type:
+          type: string
+          enum: [calendar, working_day]
+          example: working_day
+        requires_file:
+          type: boolean
+          example: true
+        page_key:
+          type: string
+          maxLength: 100
+          example: procurement/stage/evaluation
+        process_key:
+          type: string
+          maxLength: 100
+          example: stage.evaluation
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        is_active:
+          type: boolean
+          description: Update only. Create always stores the stage as active.
+          example: true
+
+    ProcurementMethodScheduleStage:
+      type: object
+      properties:
+        stage_id:
+          type: integer
+          example: 11
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        day_type:
+          type: string
+          enum: [calendar, working_day]
+          example: calendar
+        duration_days:
+          type: integer
+          example: 5
+        start_date:
+          type: string
+          format: date
+          example: '2026-01-05'
+        end_date:
+          type: string
+          format: date
+          description: Last day the stage is open.
+          example: '2026-01-09'
+        next_start_date:
+          type: string
+          format: date
+          description: When the following stage opens.
+          example: '2026-01-10'
+
+    ProcurementMethodSchedule:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+          example: '2026-01-05'
+        stages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementMethodScheduleStage'
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: page_size
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+    AllParam:
+      name: all
+      in: query
+      description: Retrieve all items without pagination
+      schema:
+        type: boolean
+        default: false
+    SearchParam:
+      name: search
+      in: query
+      description: Search query keyword
+      schema:
+        type: string
+    PathId:
+      name: id
+      in: path
+      required: true
+      description: Resource UUID
+      schema:
+        type: string
+        format: uuid
+    PathIntegerId:
+      name: id
+      in: path
+      required: true
+      description: Resource ID (autoincrement)
+      schema:
+        type: integer
+    PathStageId:
+      name: stageId
+      in: path
+      required: true
+      description: Stage ID (autoincrement)
+      schema:
+        type: integer
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Authentication, password management, and account activation
+  - name: Profile
+    description: Current user profile and account preferences
+  - name: Permission
+    description: Permission management
+  - name: Role
+    description: Role and access control management
+  - name: User
+    description: User account management
+  - name: Funding Source
+    description: Funding source management
+  - name: Tax
+    description: Tax management
+  - name: Business Type
+    description: Business type management
+  - name: Work Unit
+    description: Work unit management
+  - name: Qualification
+    description: Qualification management
+  - name: Education Level
+    description: Education level management
+  - name: Major
+    description: Major and study field management
+  - name: Job Type
+    description: Job type and work classification management
+  - name: Job Field
+    description: Job field and specialized work area management
+  - name: Classification
+    description: Classification and sub-specialization management
+  - name: Procurement Method
+    description: Procurement method (metode pengadaan) and its ordered stages
+  - name: Procurement Method Stage
+    description: Stages of a procurement method, including scheduling rules
+
+x-tagGroups:
+  - name: Authentication
+    tags:
+      - Auth
+      - Profile
+  - name: User Management
+    tags:
+      - User
+      - Role
+      - Permission
+  - name: Master
+    tags:
+      - Funding Source
+      - Tax
+      - Business Type
+      - Work Unit
+      - Qualification
+      - Education Level
+      - Major
+      - Job Type
+      - Job Field
+      - Classification
+      - Procurement Method
+      - Procurement Method Stage
+
+paths:
+
+  # ─── AUTH ───────────────────────────────────────────────────────────────────
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: User login
+      description: Authenticate user credentials and return JWT bearer token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '201':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Token creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user profile
+      description: Retrieve authenticated user profile information.
+      responses:
+        '201':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User profile
+                  result:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      last_login:
+                        type: string
+                        format: date-time
+                        nullable: true
+
+  /api/auth/logout:
+    get:
+      tags: [Auth]
+      summary: User logout
+      description: Invalidate active JWT token.
+      responses:
+        '201':
+          description: Successfully signed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User successfully signed out
+                  result:
+                    nullable: true
+
+  /api/auth/activate:
+    post:
+      tags: [Auth]
+      summary: Activate user account
+      description: Activate newly created user account using verification token and set account password.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Account activated successfully
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/auth/activate/check_token:
+    post:
+      tags: [Auth]
+      summary: Verify activation token
+      description: Check if account activation token is valid.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Token is valid
+        '400':
+          description: Token is invalid or expired
+
+  /api/auth/verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify email address
+      description: Confirm updated email address with token sent via email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Email verified successfully
+        '400':
+          description: Invalid verification token
+
+  /api/auth/forgot_password/send:
+    post:
+      tags: [Auth]
+      summary: Send password reset link
+      description: Send password reset token to registered email address.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '201':
+          description: Password reset email sent successfully
+        '400':
+          description: Validation error
+
+  /api/auth/forgot_password/check_token:
+    post:
+      tags: [Auth]
+      summary: Verify password reset token
+      description: Check if password reset token is valid.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Reset token is valid
+        '400':
+          description: Reset token is invalid or expired
+
+  /api/auth/forgot_password/update_password:
+    post:
+      tags: [Auth]
+      summary: Reset account password
+      description: Update user password using validated reset token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password reset successfully
+        '400':
+          description: Validation error
+
+  # ─── PERMISSION ─────────────────────────────────────────────────────────────
+
+  /api/permission:
+    get:
+      tags: [Permission]
+      summary: List permissions
+      description: Retrieve paginated list of permissions. Requires `permission_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: Permissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list permissions
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Permission'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/permission/group:
+    get:
+      tags: [Permission]
+      summary: Grouped permissions
+      description: Retrieve permissions grouped by module subject. Requires `permission_read` permission.
+      responses:
+        '201':
+          description: Grouped permissions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          example: user
+                        name:
+                          type: string
+                          example: Manage User
+                        actions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                              action:
+                                type: string
+                                example: read
+
+  /api/permission/{id}:
+    get:
+      tags: [Permission]
+      summary: Get permission details
+      description: Retrieve specific permission by ID. Requires `permission_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '201':
+          description: Permission retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Permission'
+        '403':
+          description: Permission not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── ROLE ───────────────────────────────────────────────────────────────────
+
+  /api/role:
+    get:
+      tags: [Role]
+      summary: List roles
+      description: Retrieve paginated list of user roles. Requires `role_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: Roles retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list role
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Role'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Role]
+      summary: Create role
+      description: Create a new role with assigned permissions. Requires `role_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, permission_ids]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Manager
+                description:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+                  example: Department manager role
+                permission_ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '201':
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create role
+                  result:
+                    $ref: '#/components/schemas/RoleDetail'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/role/{id}:
+    get:
+      tags: [Role]
+      summary: Get role details
+      description: Retrieve specific role and its permissions by ID. Requires `role_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '201':
+          description: Role retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/RoleDetail'
+        '403':
+          description: Role not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Role]
+      summary: Update role
+      description: Update role details and assigned permissions. Requires `role_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, permission_ids]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Senior Manager
+                description:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+                permission_ids:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '201':
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update role
+                  result:
+                    $ref: '#/components/schemas/RoleDetail'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Role not found
+
+    delete:
+      tags: [Role]
+      summary: Delete role
+      description: Soft delete role. Rejected if active users are still assigned. Requires `role_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '201':
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete role
+                  result:
+                    nullable: true
+        '403':
+          description: Cannot delete role with active users or role not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── USER ───────────────────────────────────────────────────────────────────
+
+  /api/user:
+    get:
+      tags: [User]
+      summary: List users
+      description: Retrieve paginated list of registered users. Requires `user_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list user
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [User]
+      summary: Create user
+      description: Create a new user and dispatch activation email. Requires `user_create` permission.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, username, email, role_id, callback_url]
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                username:
+                  type: string
+                  example: janedoe
+                employee_code:
+                  type: string
+                  nullable: true
+                  example: EMP002
+                email:
+                  type: string
+                  format: email
+                  example: jane@example.com
+                role_id:
+                  type: string
+                  format: uuid
+                callback_url:
+                  type: string
+                  description: Frontend activation page URL
+                  example: https://app.eproc.com/activate
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create user
+                  result:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Error occurred
+
+  /api/user/{id}:
+    get:
+      tags: [User]
+      summary: Get user details
+      description: Retrieve user details by ID. Requires `user_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '201':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/User'
+        '403':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [User]
+      summary: Update user
+      description: Update user profile and assigned role. Dispatches email verification if email changes. Requires `user_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, username, email, role_id]
+              properties:
+                name:
+                  type: string
+                  example: Jane Smith
+                username:
+                  type: string
+                  example: janesmith
+                employee_code:
+                  type: string
+                  nullable: true
+                  example: EMP002
+                email:
+                  type: string
+                  format: email
+                  example: jane.smith@example.com
+                role_id:
+                  type: string
+                  format: uuid
+                callback_url:
+                  type: string
+                  description: Required if changing email address
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update user
+                  result:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: User not found
+
+    delete:
+      tags: [User]
+      summary: Delete user
+      description: Soft delete user record and deactivate account. Requires `user_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathId'
+      responses:
+        '201':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete user
+                  result:
+                    nullable: true
+        '403':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/user/{user}/resend-activation:
+    get:
+      tags: [User]
+      summary: Resend account activation email
+      description: Re-dispatch account activation job to user email.
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: User UUID
+          schema:
+            type: string
+            format: uuid
+        - name: callback_url
+          in: query
+          required: true
+          description: Frontend activation URL
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Activation email resent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success resend
+                  result:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+        '403':
+          description: Failed to resend activation
+
+  # ─── FUNDING SOURCE ──────────────────────────────────────────────────────────
+
+  /api/funding-source:
+    get:
+      tags: [Funding Source]
+      summary: List
+      description: Retrieve paginated or full list of funding sources. Supports filtering and search. Requires `funding_source_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by funding source name
+          schema:
+            type: string
+        - name: filter[description]
+          in: query
+          description: Filter by description
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Funding sources retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list funding source
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FundingSource'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Funding Source]
+      summary: Create
+      description: Create a new funding source record. Requires `funding_source_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: State Budget (APBN)
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Central government annual state budget
+      responses:
+        '201':
+          description: Funding source created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create funding source
+                  result:
+                    $ref: '#/components/schemas/FundingSource'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/funding-source/{id}:
+    get:
+      tags: [Funding Source]
+      summary: Get details
+      description: Retrieve single funding source by ID. Requires `funding_source_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Funding source retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/FundingSource'
+        '403':
+          description: Funding source not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Funding Source]
+      summary: Update
+      description: Update existing funding source details. Requires `funding_source_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Regional Budget (APBD)
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Funding source updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update funding source
+                  result:
+                    $ref: '#/components/schemas/FundingSource'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Funding source not found
+
+    delete:
+      tags: [Funding Source]
+      summary: Delete
+      description: Soft delete funding source record. Requires `funding_source_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Funding source deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete funding source
+                  result:
+                    nullable: true
+        '403':
+          description: Funding source not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── TAX ────────────────────────────────────────────────────────────────────
+
+  /api/tax:
+    get:
+      tags: [Tax]
+      summary: List
+      description: Retrieve paginated or full list of taxes. Supports search and filter. Requires `tax_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by tax name
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Taxes retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list tax
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tax'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Tax]
+      summary: Create
+      description: Create a new tax record. Requires `tax_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: PPN 11%
+                is_spt:
+                  type: boolean
+                  default: false
+                  example: true
+      responses:
+        '201':
+          description: Tax created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create tax
+                  result:
+                    $ref: '#/components/schemas/Tax'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/tax/{id}:
+    get:
+      tags: [Tax]
+      summary: Get details
+      description: Retrieve single tax record by ID. Requires `tax_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Tax retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Tax'
+        '403':
+          description: Tax not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Tax]
+      summary: Update
+      description: Update existing tax details. Requires `tax_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: PPh 23
+                is_spt:
+                  type: boolean
+                  example: false
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Tax updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update tax
+                  result:
+                    $ref: '#/components/schemas/Tax'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Tax not found
+
+    delete:
+      tags: [Tax]
+      summary: Delete
+      description: Soft delete tax record. Requires `tax_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Tax deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete tax
+                  result:
+                    nullable: true
+        '403':
+          description: Tax not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── BUSINESS TYPE ──────────────────────────────────────────────────────────
+
+  /api/business-type:
+    get:
+      tags: [Business Type]
+      summary: List
+      description: Retrieve paginated or full list of business types. Supports search and filter. Requires `business_type_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by business type name
+          schema:
+            type: string
+        - name: filter[description]
+          in: query
+          description: Filter by description
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Business types retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list business type
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BusinessType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Business Type]
+      summary: Create
+      description: Create a new business type record. Requires `business_type_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: General Trading
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Goods supply and trading services
+      responses:
+        '201':
+          description: Business type created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create business type
+                  result:
+                    $ref: '#/components/schemas/BusinessType'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/business-type/{id}:
+    get:
+      tags: [Business Type]
+      summary: Get details
+      description: Retrieve single business type record by ID. Requires `business_type_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Business type retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/BusinessType'
+        '403':
+          description: Business type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Business Type]
+      summary: Update
+      description: Update existing business type details. Requires `business_type_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Construction Services
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Business type updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update business type
+                  result:
+                    $ref: '#/components/schemas/BusinessType'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Business type not found
+
+    delete:
+      tags: [Business Type]
+      summary: Delete
+      description: Soft delete business type record. Requires `business_type_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Business type deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete business type
+                  result:
+                    nullable: true
+        '403':
+          description: Business type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── WORK UNIT ──────────────────────────────────────────────────────────────
+
+  /api/work-unit:
+    get:
+      tags: [Work Unit]
+      summary: List
+      description: Retrieve paginated or full list of work units. Supports search and filter. Requires `work_unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by work unit name
+          schema:
+            type: string
+        - name: filter[code]
+          in: query
+          description: Filter by work unit code
+          schema:
+            type: string
+        - name: filter[description]
+          in: query
+          description: Filter by description
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Work units retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list work unit
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkUnit'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Work Unit]
+      summary: Create
+      description: Create a new work unit record. Requires `work_unit_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, code]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Procurement Division
+                code:
+                  type: string
+                  maxLength: 50
+                  example: PROC-01
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Division in charge of procurement activities
+      responses:
+        '201':
+          description: Work unit created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create work unit
+                  result:
+                    $ref: '#/components/schemas/WorkUnit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/work-unit/{id}:
+    get:
+      tags: [Work Unit]
+      summary: Get details
+      description: Retrieve single work unit record by ID. Requires `work_unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Work unit retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/WorkUnit'
+        '403':
+          description: Work unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Work Unit]
+      summary: Update
+      description: Update existing work unit details. Requires `work_unit_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, code]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: General Affairs Division
+                code:
+                  type: string
+                  maxLength: 50
+                  example: GA-02
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Work unit updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update work unit
+                  result:
+                    $ref: '#/components/schemas/WorkUnit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Work unit not found
+
+    delete:
+      tags: [Work Unit]
+      summary: Delete
+      description: Soft delete work unit record. Requires `work_unit_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Work unit deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete work unit
+                  result:
+                    nullable: true
+        '403':
+          description: Work unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── QUALIFICATION ──────────────────────────────────────────────────────────
+
+  /api/qualification:
+    get:
+      tags: [Qualification]
+      summary: List
+      description: Retrieve paginated or full list of qualifications. Supports search and filter. Requires `qualification_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by qualification name
+          schema:
+            type: string
+        - name: filter[description]
+          in: query
+          description: Filter by description
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Qualifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list qualification
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Qualification'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Qualification]
+      summary: Create
+      description: Create a new qualification record. Requires `qualification_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Small Enterprise (Kecil)
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Qualification criteria for small enterprise contractors
+      responses:
+        '201':
+          description: Qualification created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create qualification
+                  result:
+                    $ref: '#/components/schemas/Qualification'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/qualification/{id}:
+    get:
+      tags: [Qualification]
+      summary: Get details
+      description: Retrieve single qualification record by ID. Requires `qualification_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Qualification retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Qualification'
+        '403':
+          description: Qualification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Qualification]
+      summary: Update
+      description: Update existing qualification details. Requires `qualification_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Medium Enterprise (Menengah)
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Qualification updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update qualification
+                  result:
+                    $ref: '#/components/schemas/Qualification'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Qualification not found
+
+    delete:
+      tags: [Qualification]
+      summary: Delete
+      description: Soft delete qualification record. Requires `qualification_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Qualification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete qualification
+                  result:
+                    nullable: true
+        '403':
+          description: Qualification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── EDUCATION LEVEL ────────────────────────────────────────────────────────
+
+  /api/education-level:
+    get:
+      tags: [Education Level]
+      summary: List
+      description: Retrieve paginated or full list of education levels. Supports search and filter. Requires `education_level_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by education level name
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Education levels retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list education level
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EducationLevel'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Education Level]
+      summary: Create
+      description: Create a new education level record. Requires `education_level_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Bachelor Degree (S1)
+      responses:
+        '201':
+          description: Education level created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create education level
+                  result:
+                    $ref: '#/components/schemas/EducationLevel'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/education-level/{id}:
+    get:
+      tags: [Education Level]
+      summary: Get details
+      description: Retrieve single education level record by ID. Requires `education_level_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Education level retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/EducationLevel'
+        '403':
+          description: Education level not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Education Level]
+      summary: Update
+      description: Update existing education level details. Requires `education_level_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Master Degree (S2)
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Education level updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update education level
+                  result:
+                    $ref: '#/components/schemas/EducationLevel'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Education level not found
+
+    delete:
+      tags: [Education Level]
+      summary: Delete
+      description: Soft delete education level record. Requires `education_level_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Education level deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete education level
+                  result:
+                    nullable: true
+        '403':
+          description: Education level not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── MAJOR ──────────────────────────────────────────────────────────────────
+
+  /api/major:
+    get:
+      tags: [Major]
+      summary: List
+      description: Retrieve paginated or full list of majors. Supports search and filter. Requires `major_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by major name
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Majors retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list major
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Major'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Major]
+      summary: Create
+      description: Create a new major record. Requires `major_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Civil Engineering
+      responses:
+        '201':
+          description: Major created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create major
+                  result:
+                    $ref: '#/components/schemas/Major'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/major/{id}:
+    get:
+      tags: [Major]
+      summary: Get details
+      description: Retrieve single major record by ID. Requires `major_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Major retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Major'
+        '403':
+          description: Major not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Major]
+      summary: Update
+      description: Update existing major details. Requires `major_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Electrical Engineering
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Major updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update major
+                  result:
+                    $ref: '#/components/schemas/Major'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Major not found
+
+    delete:
+      tags: [Major]
+      summary: Delete
+      description: Soft delete major record. Requires `major_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Major deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete major
+                  result:
+                    nullable: true
+        '403':
+          description: Major not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── JOB TYPE ───────────────────────────────────────────────────────────────
+
+  /api/job-type:
+    get:
+      tags: [Job Type]
+      summary: List
+      description: Retrieve paginated or full list of job types. Supports search and filter. Requires `job_type_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by job type name
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Job types retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job type
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Job Type]
+      summary: Create
+      description: Create a new job type record. Requires `job_type_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Construction Work
+      responses:
+        '201':
+          description: Job type created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create job type
+                  result:
+                    $ref: '#/components/schemas/JobType'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/job-type/{id}:
+    get:
+      tags: [Job Type]
+      summary: Get details
+      description: Retrieve single job type record by ID. Requires `job_type_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job type retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/JobType'
+        '403':
+          description: Job type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Job Type]
+      summary: Update
+      description: Update existing job type details. Requires `job_type_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Consulting Services
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Job type updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update job type
+                  result:
+                    $ref: '#/components/schemas/JobType'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Job type not found
+
+    delete:
+      tags: [Job Type]
+      summary: Delete
+      description: Soft delete job type record. Requires `job_type_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job type deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete job type
+                  result:
+                    nullable: true
+        '403':
+          description: Job type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── JOB FIELD ──────────────────────────────────────────────────────────────
+
+  /api/job-field:
+    get:
+      tags: [Job Field]
+      summary: List
+      description: Retrieve paginated or full list of job fields with parent job type. Supports search and filter. Requires `job_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by job field name
+          schema:
+            type: string
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by job type ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Job fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job field
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobField'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Job Field]
+      summary: Create
+      description: Create a new job field record. Requires `job_field_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_type_id, name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Civil Infrastructure
+      responses:
+        '201':
+          description: Job field created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create job field
+                  result:
+                    $ref: '#/components/schemas/JobField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/job-field/{id}:
+    get:
+      tags: [Job Field]
+      summary: Get details
+      description: Retrieve single job field record by ID with parent job type. Requires `job_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job field retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/JobField'
+        '403':
+          description: Job field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Job Field]
+      summary: Update
+      description: Update existing job field details. Requires `job_field_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Civil Infrastructure and Transport
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Job field updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update job field
+                  result:
+                    $ref: '#/components/schemas/JobField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Job field not found
+
+    delete:
+      tags: [Job Field]
+      summary: Delete
+      description: Soft delete job field record. Requires `job_field_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job field deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete job field
+                  result:
+                    nullable: true
+        '403':
+          description: Job field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── CLASSIFICATION ─────────────────────────────────────────────────────────
+
+  /api/classification:
+    get:
+      tags: [Classification]
+      summary: List
+      description: Retrieve paginated or full list of classifications. Supports search and filter by job type, job field, or name. Requires `classification_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by classification name
+          schema:
+            type: string
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by parent job type ID
+          schema:
+            type: integer
+        - name: filter[job_field_id]
+          in: query
+          description: Filter by parent job field ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Classifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list classification
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Classification'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Classification]
+      summary: Create
+      description: Create a new classification record. Requires `classification_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_type_id, job_field_id, name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Road & Bridge Construction
+      responses:
+        '201':
+          description: Classification created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create classification
+                  result:
+                    $ref: '#/components/schemas/Classification'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/classification/{id}:
+    get:
+      tags: [Classification]
+      summary: Get details
+      description: Retrieve single classification record by ID with job type and job field relations. Requires `classification_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Classification retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Classification'
+        '403':
+          description: Classification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Classification]
+      summary: Update
+      description: Update existing classification details. Requires `classification_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Road, Highway & Bridge Construction
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Classification updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update classification
+                  result:
+                    $ref: '#/components/schemas/Classification'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Classification not found
+
+    delete:
+      tags: [Classification]
+      summary: Delete
+      description: Soft delete classification record. Requires `classification_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Classification deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete classification
+                  result:
+                    nullable: true
+        '403':
+          description: Classification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT METHOD ─────────────────────────────────────────────────────
+
+  /api/procurement-method:
+    get:
+      tags: [Procurement Method]
+      summary: List
+      description: Retrieve paginated or full list of procurement methods with stage counts. Supports filtering and search. Requires `procurement_method_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by method name
+          schema:
+            type: string
+        - name: filter[description]
+          in: query
+          description: Filter by description
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Procurement methods retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list procurement method
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementMethod'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Procurement Method]
+      summary: Create
+      description: Create a procurement method. A new method starts with zero stages. Requires `procurement_method_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Tender
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Open competitive selection method
+      responses:
+        '201':
+          description: Procurement method created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement method
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethod'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/procurement-method/{id}:
+    get:
+      tags: [Procurement Method]
+      summary: Get details
+      description: Retrieve a single procurement method with its full stage list ordered by `sequence`. Requires `procurement_method_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement method retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethodDetail'
+        '403':
+          description: Method not found
+
+    post:
+      tags: [Procurement Method]
+      summary: Update
+      description: Update a procurement method. Omitted `is_active` keeps the current value. Requires `procurement_method_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Tender
+                description:
+                  type: string
+                  maxLength: 500
+                  nullable: true
+                  example: Open competitive selection method
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Procurement method updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement method
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethod'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Method not found
+
+    delete:
+      tags: [Procurement Method]
+      summary: Delete
+      description: Soft delete a procurement method together with all of its stages. Requires `procurement_method_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement method deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement method
+                  result:
+                    nullable: true
+                    example: null
+        '403':
+          description: Method not found
+
+  /api/procurement-method/{id}/stage:
+    get:
+      tags: [Procurement Method Stage]
+      summary: List stages
+      description: Retrieve every stage of a method ordered by `sequence`. Requires `procurement_method_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Stages retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list procurement method stage
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementMethodStage'
+        '403':
+          description: Method not found
+
+    post:
+      tags: [Procurement Method Stage]
+      summary: Create stage
+      description: |
+        Append a stage to a method. `sequence` is assigned by the server as `max + 1`;
+        any client-sent `sequence` is ignored. Use the reorder endpoint to change the order.
+        Requires `procurement_method_create` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementMethodStageInput'
+      responses:
+        '201':
+          description: Stage created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement method stage
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethodStage'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Method not found
+
+  /api/procurement-method/{id}/stage/reorder:
+    post:
+      tags: [Procurement Method Stage]
+      summary: Reorder stages
+      description: |
+        Rewrite `sequence` to 1..N following the given id order. `stage_ids` must contain
+        exactly all stage ids of the method; an incomplete list is rejected with 400.
+        Requires `procurement_method_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stage_ids]
+              properties:
+                stage_ids:
+                  type: array
+                  minItems: 1
+                  description: Complete list of stage ids, first element becomes sequence 1.
+                  items:
+                    type: integer
+                  example: [3, 1, 2]
+      responses:
+        '201':
+          description: Stages reordered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success reorder procurement method stage
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementMethodStage'
+        '400':
+          description: Validation error or incomplete stage id list
+        '403':
+          description: Method not found
+
+  /api/procurement-method/{id}/stage/{stageId}:
+    post:
+      tags: [Procurement Method Stage]
+      summary: Update stage
+      description: Update a stage scoped to its method. `sequence` cannot be changed here. Requires `procurement_method_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathStageId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementMethodStageInput'
+      responses:
+        '201':
+          description: Stage updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement method stage
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethodStage'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Method or stage not found
+
+    delete:
+      tags: [Procurement Method Stage]
+      summary: Delete stage
+      description: |
+        Soft delete a stage and compact the remaining `sequence` values back to 1..N.
+        Requires `procurement_method_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathStageId'
+      responses:
+        '201':
+          description: Stage deleted successfully
+        '403':
+          description: Method or stage not found
+
+  /api/procurement-method/{id}/preview-schedule:
+    post:
+      tags: [Procurement Method Stage]
+      summary: Preview schedule
+      description: |
+        Derive the effective open window of every active stage from a start date.
+        Nothing is stored. `calendar` stages add literal days, `working_day` stages
+        add Mon-Fri days only. Requires `procurement_method_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [start_date]
+              properties:
+                start_date:
+                  type: string
+                  format: date
+                  example: '2026-01-05'
+      responses:
+        '201':
+          description: Schedule preview generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success preview procurement method schedule
+                  result:
+                    $ref: '#/components/schemas/ProcurementMethodSchedule'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Method not found
+
+  # ─── PROFILE ────────────────────────────────────────────────────────────────
+
+  /api/profile:
+    get:
+      tags: [Profile]
+      summary: Get personal profile
+      description: Retrieve authenticated user profile and account details.
+      responses:
+        '201':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get profile
+                  result:
+                    $ref: '#/components/schemas/User'
+
+  /api/profile/update-password:
+    post:
+      tags: [Profile]
+      summary: Change account password
+      description: Update password for currently authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password:
+                  type: string
+                  format: password
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update password
+        '400':
+          description: Validation error
+        '403':
+          description: Old password incorrect or account not found
+
+  /api/profile/update-profile:
+    post:
+      tags: [Profile]
+      summary: Update personal profile
+      description: Update profile name, photo, or email address. Dispatches verification email if email address changed.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, email, callback_url]
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                username:
+                  type: string
+                  example: janedoe
+                employee_code:
+                  type: string
+                  nullable: true
+                  example: EMP001
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@example.com
+                callback_url:
+                  type: string
+                  description: Frontend verification URL
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update profile
+                  result:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+        '403':
+          description: Account not found
+
+  /api/profile/update-notification-device:
+    post:
+      tags: [Profile]
+      summary: Update push notification device token
+      description: Register device token for receiving push notifications.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [notification_device]
+              properties:
+                notification_device:
+                  type: string
+                  example: fcm_token_string_here
+      responses:
+        '201':
+          description: Notification device updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update notification
+                  result:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error
+        '403':
+          description: Account not found
