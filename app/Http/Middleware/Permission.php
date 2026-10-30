@@ -18,7 +18,6 @@ class Permission extends Controller
      */
     public function handle(Request $request, Closure $next, ...$permissions): Response
     {
-        return $next($request);
         $user = Auth::user();
         $user = User::with('roles', 'roles.permissions')->where("id", "=", $user->id)->first();
         if ($user) {

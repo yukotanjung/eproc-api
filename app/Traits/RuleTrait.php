@@ -384,6 +384,52 @@ trait RuleTrait
                 }
                 break;
 
+            case 'ProcurementController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_number'            => 'required|unique:procurements,job_number,NULL,id,deleted_at,NULL|string|max:100',
+                        'name'                  => 'required|string|max:255',
+                        'budget_ceiling'        => 'required|numeric|min:0',
+                        'estimated_price'       => 'required|numeric|min:0',
+                        'planned_date'          => 'required|date_format:Y-m-d',
+                        'job_type_id'           => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'qualification_id'      => 'required|integer|exists:qualifications,id,deleted_at,NULL',
+                        'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
+                        'budget_year'           => 'required|integer|min:1900|max:2100',
+                        'project_location'      => 'required|string|max:255',
+                        'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
+                        'announcement_location' => 'required|string|max:255',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_number'            => ['required', 'string', 'max:100', new IsUniqueOtherRule('procurements', 'job_number', $params['own_id'])],
+                        'name'                  => 'required|string|max:255',
+                        'budget_ceiling'        => 'required|numeric|min:0',
+                        'estimated_price'       => 'required|numeric|min:0',
+                        'planned_date'          => 'required|date_format:Y-m-d',
+                        'job_type_id'           => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'qualification_id'      => 'required|integer|exists:qualifications,id,deleted_at,NULL',
+                        'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
+                        'budget_year'           => 'required|integer|min:1900|max:2100',
+                        'project_location'      => 'required|string|max:255',
+                        'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
+                        'announcement_location' => 'required|string|max:255',
+                        'is_active'             => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'cancel') {
+                    return [
+                        'reason'              => 'nullable|string|max:500',
+                        'cancellation_reason' => 'nullable|string|max:500',
+                    ];
+                }
+                break;
+
             case 'PasswordActivateController':
                 if ($method == "activateAccount") {
                     return [

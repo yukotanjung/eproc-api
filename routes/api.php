@@ -19,6 +19,7 @@ use App\Http\Controllers\JobFieldController;
 use App\Http\Controllers\ClassificationController;
 use App\Http\Controllers\ProcurementMethodController;
 use App\Http\Controllers\ProcurementMethodStageController;
+use App\Http\Controllers\ProcurementController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -159,6 +160,15 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/{id}/stage/{stageId}', [ProcurementMethodStageController::class, 'update'])->middleware('permission:procurement_method_update');
         Route::delete('/{id}/stage/{stageId}', [ProcurementMethodStageController::class, 'destroy'])->middleware('permission:procurement_method_delete');
         Route::post('/{id}/preview-schedule', [ProcurementMethodStageController::class, 'previewSchedule'])->middleware('permission:procurement_method_read');
+    });
+
+    Route::prefix('procurement')->group(function () {
+        Route::get('/', [ProcurementController::class, 'index'])->middleware('permission:procurement_read');
+        Route::get('/{id}', [ProcurementController::class, 'show'])->middleware('permission:procurement_read');
+        Route::post('/', [ProcurementController::class, 'store'])->middleware('permission:procurement_create');
+        Route::post('/{id}', [ProcurementController::class, 'update'])->middleware('permission:procurement_update');
+        Route::delete('/{id}', [ProcurementController::class, 'destroy'])->middleware('permission:procurement_delete');
+        Route::post('/{id}/cancel', [ProcurementController::class, 'cancel'])->middleware('permission:procurement_cancel');
     });
 
     Route::prefix('profile')->group(function () {

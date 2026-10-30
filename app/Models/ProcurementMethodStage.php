@@ -18,6 +18,30 @@ class ProcurementMethodStage extends Model
 
     protected $guarded = [];
 
+    public function __isset($key)
+    {
+        if ($key === 'sequence') {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1]['class'] ?? '';
+            if (str_contains($trace, 'Yajra')) {
+                return false;
+            }
+        }
+
+        return parent::__isset($key);
+    }
+
+    public function __get($key)
+    {
+        if ($key === 'sequence') {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1]['class'] ?? '';
+            if (str_contains($trace, 'Yajra')) {
+                return null;
+            }
+        }
+
+        return parent::__get($key);
+    }
+
     protected $casts = [
         'sequence'      => 'integer',
         'duration_days' => 'integer',
@@ -85,7 +109,7 @@ class ProcurementMethodStage extends Model
         static::withTrashed()
             ->where('procurement_method_id', $procurementMethodId)
             ->whereIn('id', $orderedIds)
-            ->update(['sequence' => DB::raw('-sequence')]);
+            ->update(['sequence' => DB::raw('-"sequence"')]);
 
         foreach ($orderedIds as $index => $id) {
             static::withTrashed()->where('id', $id)->update(['sequence' => $index + 1]);

@@ -655,6 +655,244 @@ components:
           items:
             $ref: '#/components/schemas/ProcurementMethodScheduleStage'
 
+    # Procurement Schemas
+    Procurement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_number:
+          type: string
+          example: PROC-2026-001
+        name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          format: float
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          format: float
+          example: 4750000000.00
+        planned_date:
+          type: string
+          format: date
+          example: '2026-11-15'
+        job_type_id:
+          type: integer
+          example: 1
+        qualification_id:
+          type: integer
+          example: 1
+        funding_source_id:
+          type: integer
+          example: 1
+        budget_year:
+          type: integer
+          example: 2026
+        project_location:
+          type: string
+          example: Jakarta Pusat
+        procurement_method_id:
+          type: integer
+          example: 1
+        announcement_location:
+          type: string
+          example: Portal E-Procurement
+        is_active:
+          type: boolean
+          example: true
+        status:
+          type: string
+          default: draft
+          example: draft
+        cancellation_reason:
+          type: string
+          nullable: true
+          example: Perubahan prioritas anggaran pemerintah
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-10-30T09:00:00Z'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        qualification:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Menengah
+        funding_source:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: APBN
+        procurement_method:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Tender
+
+    ProcurementListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          format: float
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          format: float
+          example: 4750000000.00
+        budget_year:
+          type: integer
+          example: 2026
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        procurement_method:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Tender
+        qualification:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Menengah
+        status:
+          type: string
+          example: draft
+
+    ProcurementInput:
+      type: object
+      required:
+        - job_number
+        - name
+        - budget_ceiling
+        - estimated_price
+        - planned_date
+        - job_type_id
+        - qualification_id
+        - funding_source_id
+        - budget_year
+        - project_location
+        - procurement_method_id
+        - announcement_location
+      properties:
+        job_number:
+          type: string
+          maxLength: 100
+          example: PROC-2026-001
+        name:
+          type: string
+          maxLength: 255
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          minimum: 0
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          minimum: 0
+          example: 4750000000.00
+        planned_date:
+          type: string
+          format: date
+          example: '2026-11-15'
+        job_type_id:
+          type: integer
+          example: 1
+        qualification_id:
+          type: integer
+          example: 1
+        funding_source_id:
+          type: integer
+          example: 1
+        budget_year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+          example: 2026
+        project_location:
+          type: string
+          maxLength: 255
+          example: Jakarta Pusat
+        procurement_method_id:
+          type: integer
+          example: 1
+        announcement_location:
+          type: string
+          maxLength: 255
+          example: Portal E-Procurement
+        is_active:
+          type: boolean
+          description: Update only. Create always stores procurement as active.
+          example: true
+
+    ProcurementCancelInput:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          description: Reason for cancellation.
+          example: Perubahan prioritas anggaran pemerintah
+
   parameters:
     PageParam:
       name: page
@@ -746,6 +984,8 @@ tags:
     description: Procurement method (metode pengadaan) and its ordered stages
   - name: Procurement Method Stage
     description: Stages of a procurement method, including scheduling rules
+  - name: Procurement
+    description: Procurement package management (daftar pekerjaan/pengadaan)
 
 x-tagGroups:
   - name: Authentication
@@ -771,6 +1011,9 @@ x-tagGroups:
       - Classification
       - Procurement Method
       - Procurement Method Stage
+  - name: Procurement
+    tags:
+      - Procurement
 
 paths:
 
@@ -3789,6 +4032,258 @@ paths:
                 $ref: '#/components/schemas/ValidationError'
         '403':
           description: Method not found
+
+  # ─── PROCUREMENT ────────────────────────────────────────────────────────────
+
+  /api/procurement:
+    get:
+      tags: [Procurement]
+      summary: List
+      description: Retrieve paginated or full list of procurements. Supports filtering and search. Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by procurement name
+          schema:
+            type: string
+        - name: filter[budget_year]
+          in: query
+          description: Filter by budget year (also accepts filter[tahun])
+          schema:
+            type: integer
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by job type ID or name (also accepts filter[jenis_pekerjaan])
+          schema:
+            type: string
+        - name: filter[procurement_method_id]
+          in: query
+          description: Filter by procurement method ID or name (also accepts filter[metode_pengadaan])
+          schema:
+            type: string
+        - name: filter[qualification_id]
+          in: query
+          description: Filter by qualification ID or name (also accepts filter[kualifikasi])
+          schema:
+            type: string
+        - name: filter[status]
+          in: query
+          description: Filter by status (draft, cancelled, etc.)
+          schema:
+            type: string
+        - name: filter[job_number]
+          in: query
+          description: Filter by job number
+          schema:
+            type: string
+        - name: filter[project_location]
+          in: query
+          description: Filter by project location
+          schema:
+            type: string
+        - name: filter[announcement_location]
+          in: query
+          description: Filter by announcement location
+          schema:
+            type: string
+        - name: filter[funding_source_id]
+          in: query
+          description: Filter by funding source ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Procurements retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list procurement
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementListItem'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Procurement]
+      summary: Create
+      description: Create a new procurement. Requires `procurement_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementInput'
+      responses:
+        '201':
+          description: Procurement created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}:
+    get:
+      tags: [Procurement]
+      summary: Get details
+      description: Retrieve details of a single procurement by ID with its relations. Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Procurement]
+      summary: Update
+      description: Update an existing procurement. Omitted `is_active` keeps the current value. Cannot update cancelled procurement. Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementInput'
+      responses:
+        '201':
+          description: Procurement updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error or cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Procurement]
+      summary: Delete
+      description: Soft delete a procurement. Requires `procurement_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement
+                  result:
+                    nullable: true
+                    example: null
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/cancel:
+    post:
+      tags: [Procurement]
+      summary: Cancel
+      description: Cancel an active procurement package. Sets status to cancelled and records optional cancellation reason and timestamp. Requires `procurement_cancel` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementCancelInput'
+      responses:
+        '201':
+          description: Procurement cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success cancel procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error or already cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ─── PROFILE ────────────────────────────────────────────────────────────────
 
