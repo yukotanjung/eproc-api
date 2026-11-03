@@ -361,4 +361,59 @@ class ProcurementTest extends ApiTestCase
             ->postJson("/api/procurement/{$proc->id}/cancel", ['reason' => 'Mau batal'])
             ->assertStatus(403);
     }
+
+    public function test_update_supports_optional_latitude_and_longitude(): void
+    {
+        $masters = $this->createMasterData();
+
+        $createPayload = [
+            'job_number'            => 'PROC-COORDINATE-001',
+            'name'                  => 'Paket Koordinat',
+            'budget_ceiling'        => 500000000,
+            'estimated_price'       => 450000000,
+            'planned_date'          => '2026-11-20',
+            'job_type_id'           => $masters['jobType']->id,
+            'qualification_id'      => $masters['qualification']->id,
+            'funding_source_id'     => $masters['fundingSource']->id,
+            'budget_year'           => 2026,
+            'project_location'      => 'Jakarta',
+            'procurement_method_id' => $masters['procurementMethod']->id,
+            'announcement_location' => 'Portal',
+        ];
+
+        $res = $this->actingAsApiUser()->postJson('/api/procurement', $createPayload);
+        $res->assertStatus(201)
+            ->assertJsonPath('result.latitude', null)
+            ->assertJsonPath('result.longitude', null);
+
+        $id = $res->json('result.id');
+
+        $updatePayload = array_merge($createPayload, [
+            'latitude'  => -6.2088,
+            'longitude' => 106.8456,
+        ]);
+
+        $updateRes = $this->actingAsApiUser()->postJson("/api/procurement/{$id}", $updatePayload);
+        $updateRes->assertStatus(201)
+            ->assertJsonPath('result.latitude', -6.2088)
+            ->assertJsonPath('result.longitude', 106.8456);
+
+        // Update without latitude and longitude retains existing values
+        $updateWithoutCoords = array_merge($createPayload, [
+            'name' => 'Paket Koordinat Diperbarui',
+        ]);
+        unset($updateWithoutCoords['latitude'], $updateWithoutCoords['longitude']);
+
+        $updateRetainRes = $this->actingAsApiUser()->postJson("/api/procurement/{$id}", $updateWithoutCoords);
+        $updateRetainRes->assertStatus(201)
+            ->assertJsonPath('result.name', 'Paket Koordinat Diperbarui')
+            ->assertJsonPath('result.latitude', -6.2088)
+            ->assertJsonPath('result.longitude', 106.8456);
+
+        // Invalid latitude returns 400
+        $invalidPayload = array_merge($createPayload, [
+            'latitude' => 150,
+        ]);
+        $this->actingAsApiUser()->postJson("/api/procurement/{$id}", $invalidPayload)->assertStatus(400);
+    }
 }

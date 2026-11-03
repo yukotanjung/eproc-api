@@ -14,6 +14,7 @@ class ProcurementMethodStageTest extends ApiTestCase
     private function stagePayload(array $overrides = []): array
     {
         return array_merge([
+            'sequence'      => 1,
             'name'          => 'Pengumuman',
             'duration_days' => 5,
             'day_type'      => 'calendar',
@@ -36,6 +37,7 @@ class ProcurementMethodStageTest extends ApiTestCase
 
         $this->actingAsApiUser()
             ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload([
+                'sequence'      => 2,
                 'name'          => 'Evaluasi',
                 'day_type'      => 'working_day',
                 'duration_days' => 3,
@@ -113,9 +115,10 @@ class ProcurementMethodStageTest extends ApiTestCase
         $methodId = $this->createMethod();
 
         $ids = [];
+        $seq = 1;
         foreach (['A', 'B', 'C'] as $name) {
             $ids[$name] = (int) $this->actingAsApiUser()
-                ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => $name]))
+                ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => $name, 'sequence' => $seq++]))
                 ->json('result.id');
         }
 
@@ -137,7 +140,7 @@ class ProcurementMethodStageTest extends ApiTestCase
         $second = $this->createMethod('Metode Dua');
 
         $stageId = (int) $this->actingAsApiUser()
-            ->postJson("/api/procurement-method/{$first}/stage", $this->stagePayload())
+            ->postJson("/api/procurement-method/{$first}/stage", $this->stagePayload(['sequence' => 1]))
             ->json('result.id');
 
         $this->actingAsApiUser()
@@ -150,9 +153,10 @@ class ProcurementMethodStageTest extends ApiTestCase
         $methodId = $this->createMethod();
 
         $ids = [];
+        $seq = 1;
         foreach (['A', 'B', 'C'] as $name) {
             $ids[$name] = (int) $this->actingAsApiUser()
-                ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => $name]))
+                ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => $name, 'sequence' => $seq++]))
                 ->json('result.id');
         }
 
@@ -179,15 +183,103 @@ class ProcurementMethodStageTest extends ApiTestCase
         $methodId = $this->createMethod();
 
         $first = (int) $this->actingAsApiUser()
-            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'A']))
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'A', 'sequence' => 1]))
             ->json('result.id');
 
         $this->actingAsApiUser()
-            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'B']))
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'B', 'sequence' => 2]))
             ->assertStatus(201);
 
         $this->actingAsApiUser()
             ->postJson("/api/procurement-method/{$methodId}/stage/reorder", ['stage_ids' => [$first]])
             ->assertStatus(400);
+    }
+
+    public function test_sequence_is_required_when_creating_stage(): void
+    {
+        $methodId = $this->createMethod();
+        $payload = $this->stagePayload();
+        unset($payload['sequence']);
+
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $payload)
+            ->assertStatus(400);
+    }
+
+    public function test_can_insert_stage_at_specific_sequence_and_shift_existing(): void
+    {
+        $methodId = $this->createMethod();
+
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'Tahap 1', 'sequence' => 1]))
+            ->assertStatus(201)
+            ->assertJsonPath('result.sequence', 1);
+
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'Tahap 3', 'sequence' => 2]))
+            ->assertStatus(201)
+            ->assertJsonPath('result.sequence', 2);
+
+        $insertResponse = $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'Tahap 2', 'sequence' => 2]))
+            ->assertStatus(201);
+
+        $insertResponse->assertJsonPath('result.sequence', 2)
+            ->assertJsonPath('result.name', 'Tahap 2');
+
+        $list = $this->actingAsApiUser()
+            ->getJson("/api/procurement-method/{$methodId}/stage")
+            ->assertStatus(201);
+
+        $this->assertSame(['Tahap 1', 'Tahap 2', 'Tahap 3'], array_column($list->json('result'), 'name'));
+        $this->assertSame([1, 2, 3], array_column($list->json('result'), 'sequence'));
+    }
+
+    public function test_can_update_stage_sequence(): void
+    {
+        $methodId = $this->createMethod();
+
+        $id1 = $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'A', 'sequence' => 1]))
+            ->json('result.id');
+
+        $id2 = $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'B', 'sequence' => 2]))
+            ->json('result.id');
+
+        $id3 = $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload(['name' => 'C', 'sequence' => 3]))
+            ->json('result.id');
+
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage/{$id3}", $this->stagePayload(['name' => 'C Pindah', 'sequence' => 1]))
+            ->assertStatus(201)
+            ->assertJsonPath('result.sequence', 1);
+
+        $list = $this->actingAsApiUser()
+            ->getJson("/api/procurement-method/{$methodId}/stage")
+            ->assertStatus(201);
+
+        $this->assertSame(['C Pindah', 'A', 'B'], array_column($list->json('result'), 'name'));
+        $this->assertSame([1, 2, 3], array_column($list->json('result'), 'sequence'));
+    }
+
+    public function test_accepts_order_or_position_alias_for_sequence(): void
+    {
+        $methodId = $this->createMethod();
+        $payload = $this->stagePayload();
+        unset($payload['sequence']);
+
+        $payloadWithOrder = array_merge($payload, ['order' => 1]);
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $payloadWithOrder)
+            ->assertStatus(201)
+            ->assertJsonPath('result.sequence', 1);
+
+        $payloadWithPosition = array_merge($payload, ['name' => 'Next', 'position' => 2]);
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $payloadWithPosition)
+            ->assertStatus(201)
+            ->assertJsonPath('result.sequence', 2);
     }
 }

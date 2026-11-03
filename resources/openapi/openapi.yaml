@@ -574,8 +574,13 @@ components:
 
     ProcurementMethodStageInput:
       type: object
-      required: [name, duration_days, day_type, page_key, process_key]
+      required: [sequence, name, duration_days, day_type, page_key, process_key]
       properties:
+        sequence:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Urutan atau posisi tahapan dalam metode pengadaan.
         name:
           type: string
           maxLength: 150
@@ -695,6 +700,16 @@ components:
         project_location:
           type: string
           example: Jakarta Pusat
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          example: -6.20880000
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          example: 106.84560000
         procurement_method_id:
           type: integer
           example: 1
@@ -872,6 +887,16 @@ components:
           type: string
           maxLength: 255
           example: Jakarta Pusat
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          example: -6.20880000
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          example: 106.84560000
         procurement_method_id:
           type: integer
           example: 1
@@ -3860,8 +3885,8 @@ paths:
       tags: [Procurement Method Stage]
       summary: Create stage
       description: |
-        Append a stage to a method. `sequence` is assigned by the server as `max + 1`;
-        any client-sent `sequence` is ignored. Use the reorder endpoint to change the order.
+        Create a stage for a method at the specified `sequence` position. If a stage with the same sequence
+        already exists, subsequent stages are shifted to preserve contiguous 1..N order.
         Requires `procurement_method_create` permission.
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'

@@ -13,6 +13,34 @@ trait RuleTrait
         $method = debug_backtrace()[1]['function'];
         $path = explode('\\', $controller);
         $controller = array_pop($path);
+
+        if ($controller === 'ProcurementMethodStageController') {
+            if (!request()->has('sequence')) {
+                if (request()->has('order')) {
+                    request()->merge(['sequence' => request()->order]);
+                } elseif (request()->has('position')) {
+                    request()->merge(['sequence' => request()->position]);
+                }
+            }
+        } elseif ($controller === 'ProcurementMethodController' && request()->has('stages') && is_array(request()->stages)) {
+            $stages = request()->stages;
+            $modified = false;
+            foreach ($stages as $k => $stg) {
+                if (is_array($stg) && !isset($stg['sequence'])) {
+                    if (isset($stg['order'])) {
+                        $stages[$k]['sequence'] = $stg['order'];
+                        $modified = true;
+                    } elseif (isset($stg['position'])) {
+                        $stages[$k]['sequence'] = $stg['position'];
+                        $modified = true;
+                    }
+                }
+            }
+            if ($modified) {
+                request()->merge(['stages' => $stages]);
+            }
+        }
+
         $datas = request()->all();
         $validator = Validator::make($datas, $this->rules_lists($controller, $method, $custom_var), $this->custom_messages());
         if ($validator->fails()) return $validator->getMessageBag();
@@ -338,14 +366,32 @@ trait RuleTrait
                     ];
                 } elseif ($method == 'store') {
                     return [
-                        'name'        => 'required|unique:procurement_methods,name,NULL,id,deleted_at,NULL|string|max:100',
-                        'description' => 'nullable|string|max:500',
+                        'name'                   => 'required|unique:procurement_methods,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'description'            => 'nullable|string|max:500',
+                        'stages'                 => 'nullable|array',
+                        'stages.*.sequence'      => 'required_with:stages|integer|min:1',
+                        'stages.*.name'          => 'required_with:stages|string|max:150',
+                        'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
+                        'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
+                        'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.page_key'      => 'required_with:stages|string|max:100',
+                        'stages.*.process_key'   => 'required_with:stages|string|max:100',
+                        'stages.*.description'   => 'nullable|string|max:500',
                     ];
                 } elseif ($method == 'update') {
                     return [
-                        'name'        => ['required', 'max:100', new IsUniqueOtherRule('procurement_methods', 'name', $params['own_id'])],
-                        'description' => 'nullable|string|max:500',
-                        'is_active'   => 'nullable|boolean',
+                        'name'                   => ['required', 'max:100', new IsUniqueOtherRule('procurement_methods', 'name', $params['own_id'])],
+                        'description'            => 'nullable|string|max:500',
+                        'is_active'              => 'nullable|boolean',
+                        'stages'                 => 'nullable|array',
+                        'stages.*.sequence'      => 'required_with:stages|integer|min:1',
+                        'stages.*.name'          => 'required_with:stages|string|max:150',
+                        'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
+                        'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
+                        'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.page_key'      => 'required_with:stages|string|max:100',
+                        'stages.*.process_key'   => 'required_with:stages|string|max:100',
+                        'stages.*.description'   => 'nullable|string|max:500',
                     ];
                 }
                 break;
@@ -353,6 +399,7 @@ trait RuleTrait
             case 'ProcurementMethodStageController':
                 if ($method == 'store') {
                     return [
+                        'sequence'      => 'required|integer|min:1',
                         'name'          => 'required|string|max:150',
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
@@ -363,6 +410,7 @@ trait RuleTrait
                     ];
                 } elseif ($method == 'update') {
                     return [
+                        'sequence'      => 'nullable|integer|min:1',
                         'name'          => 'required|string|max:150',
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
@@ -403,6 +451,8 @@ trait RuleTrait
                         'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
                         'budget_year'           => 'required|integer|min:1900|max:2100',
                         'project_location'      => 'required|string|max:255',
+                        'latitude'              => 'nullable|numeric|between:-90,90',
+                        'longitude'             => 'nullable|numeric|between:-180,180',
                         'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
                         'announcement_location' => 'required|string|max:255',
                     ];
@@ -418,6 +468,8 @@ trait RuleTrait
                         'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
                         'budget_year'           => 'required|integer|min:1900|max:2100',
                         'project_location'      => 'required|string|max:255',
+                        'latitude'              => 'nullable|numeric|between:-90,90',
+                        'longitude'             => 'nullable|numeric|between:-180,180',
                         'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
                         'announcement_location' => 'required|string|max:255',
                         'is_active'             => 'nullable|boolean',

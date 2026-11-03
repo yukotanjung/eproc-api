@@ -11,12 +11,12 @@ class ProcurementMethodScheduleTest extends ApiTestCase
             ->json('result.id');
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Pengumuman', 'duration_days' => 5, 'day_type' => 'calendar',
+            'sequence' => 1, 'name' => 'Pengumuman', 'duration_days' => 5, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/announcement', 'process_key' => 'stage.announcement',
         ])->assertStatus(201);
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Evaluasi', 'duration_days' => 3, 'day_type' => 'working_day',
+            'sequence' => 2, 'name' => 'Evaluasi', 'duration_days' => 3, 'day_type' => 'working_day',
             'page_key' => 'procurement/stage/evaluation', 'process_key' => 'stage.evaluation',
         ])->assertStatus(201);
 
@@ -40,7 +40,7 @@ class ProcurementMethodScheduleTest extends ApiTestCase
 
         // store() forces is_active = true, so deactivate through update
         $skippedId = (int) $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Dilewati', 'duration_days' => 9, 'day_type' => 'calendar',
+            'sequence' => 1, 'name' => 'Dilewati', 'duration_days' => 9, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/skipped', 'process_key' => 'stage.skipped',
         ])->json('result.id');
 
@@ -51,7 +51,7 @@ class ProcurementMethodScheduleTest extends ApiTestCase
         ])->assertStatus(201);
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Diproses', 'duration_days' => 2, 'day_type' => 'calendar',
+            'sequence' => 2, 'name' => 'Diproses', 'duration_days' => 2, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/processed', 'process_key' => 'stage.processed',
         ])->assertStatus(201);
 

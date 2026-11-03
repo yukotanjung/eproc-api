@@ -26,6 +26,8 @@ class Procurement extends Model
         'estimated_price' => 'float',
         'budget_year'     => 'integer',
         'planned_date'    => 'date:Y-m-d',
+        'latitude'        => 'float',
+        'longitude'       => 'float',
         'cancelled_at'    => 'datetime',
         'is_active'       => 'boolean',
     ];
@@ -174,6 +176,8 @@ class Procurement extends Model
             'funding_source_id'     => $this->funding_source_id,
             'budget_year'           => (int) $this->budget_year,
             'project_location'      => $this->project_location,
+            'latitude'              => $this->latitude !== null ? (float) $this->latitude : null,
+            'longitude'             => $this->longitude !== null ? (float) $this->longitude : null,
             'procurement_method_id' => $this->procurement_method_id,
             'announcement_location' => $this->announcement_location,
             'is_active'             => (bool) $this->is_active,

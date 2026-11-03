@@ -18,6 +18,11 @@ class ProcurementMethodStage extends Model
 
     protected $guarded = [];
 
+    public function getSequenceName(): string
+    {
+        return $this->getTable().'_'.$this->getKeyName().'_seq';
+    }
+
     public function __isset($key)
     {
         if ($key === 'sequence') {

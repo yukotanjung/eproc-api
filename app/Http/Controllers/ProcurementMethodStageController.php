@@ -35,9 +35,12 @@ class ProcurementMethodStageController extends Controller
 
             DB::beginTransaction();
 
+            $targetSequence = (int) $request->sequence;
+            $nextSeq = ProcurementMethodStage::nextSequence((int) $method->id);
+
             $result = ProcurementMethodStage::create([
                 'procurement_method_id' => $method->id,
-                'sequence'              => ProcurementMethodStage::nextSequence((int) $method->id),
+                'sequence'              => $nextSeq,
                 'name'                  => $request->name,
                 'duration_days'         => (int) $request->duration_days,
                 'day_type'              => $request->day_type,
@@ -48,8 +51,24 @@ class ProcurementMethodStageController extends Controller
                 'is_active'             => true,
             ]);
 
+            $existingIds = ProcurementMethodStage::where('procurement_method_id', $method->id)
+                ->where('id', '<>', $result->id)
+                ->orderBy('sequence')
+                ->pluck('id')
+                ->all();
+
+            $targetIndex = max(0, $targetSequence - 1);
+            if ($targetIndex >= count($existingIds)) {
+                $orderedIds = array_merge($existingIds, [(int) $result->id]);
+            } else {
+                $orderedIds = $existingIds;
+                array_splice($orderedIds, $targetIndex, 0, [(int) $result->id]);
+            }
+
+            ProcurementMethodStage::reorderWithin((int) $method->id, $orderedIds);
+
             DB::commit();
-            return $this->baseResponse('Success create procurement method stage', $result->toApiArray());
+            return $this->baseResponse('Success create procurement method stage', $result->fresh()->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
             return $this->invalidResponse($e->getMessage());
@@ -66,7 +85,10 @@ class ProcurementMethodStageController extends Controller
 
             DB::beginTransaction();
 
-            // sequence stays out of update: order changes go through reorder().
+            $targetSequence = $request->has('sequence') && $request->sequence !== null
+                ? (int) $request->sequence
+                : null;
+
             $data->update([
                 'name'          => $request->name,
                 'duration_days' => (int) $request->duration_days,
@@ -77,6 +99,23 @@ class ProcurementMethodStageController extends Controller
                 'description'   => $request->description,
                 'is_active'     => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $data->is_active,
             ]);
+
+            if ($targetSequence !== null && $targetSequence !== (int) $data->sequence) {
+                $orderedIds = ProcurementMethodStage::where('procurement_method_id', $id)
+                    ->where('id', '<>', $data->id)
+                    ->orderBy('sequence')
+                    ->pluck('id')
+                    ->all();
+
+                $targetIndex = max(0, $targetSequence - 1);
+                if ($targetIndex >= count($orderedIds)) {
+                    $orderedIds[] = (int) $data->id;
+                } else {
+                    array_splice($orderedIds, $targetIndex, 0, [(int) $data->id]);
+                }
+
+                ProcurementMethodStage::reorderWithin((int) $id, $orderedIds);
+            }
 
             DB::commit();
             return $this->baseResponse('Success update procurement method stage', $data->fresh()->toApiArray());
