@@ -39,6 +39,11 @@ trait RuleTrait
             if ($modified) {
                 request()->merge(['stages' => $stages]);
             }
+        } elseif ($controller === 'ProcurementDocumentController' && request()->has('is_public')) {
+            $rawPublic = request()->input('is_public');
+            if (is_string($rawPublic) && in_array(strtolower($rawPublic), ['true', 'false'], true)) {
+                request()->merge(['is_public' => strtolower($rawPublic) === 'true']);
+            }
         }
 
         $datas = request()->all();
@@ -555,6 +560,22 @@ trait RuleTrait
                     return [
                         'job_sub_field_ids'   => 'present|array',
                         'job_sub_field_ids.*' => 'required|integer|exists:job_sub_fields,id,deleted_at,NULL,is_active,1',
+                    ];
+                }
+                break;
+
+            case 'ProcurementDocumentController':
+                if ($method == 'store') {
+                    return [
+                        'name'      => 'required|string|max:255',
+                        'file'      => 'required|file|extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg|max:20480',
+                        'is_public' => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => 'required|string|max:255',
+                        'file'      => 'nullable|file|extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg|max:20480',
+                        'is_public' => 'nullable|boolean',
                     ];
                 }
                 break;

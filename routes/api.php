@@ -23,6 +23,7 @@ use App\Http\Controllers\ProcurementMethodStageController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProcurementScheduleController;
 use App\Http\Controllers\ProcurementJobSubFieldController;
+use App\Http\Controllers\ProcurementDocumentController;
 use App\Http\Controllers\HolidayController;
 
 Route::prefix('auth')->group(function () {
@@ -44,6 +45,9 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware(['throttle:600,1'])->prefix('public')->group(function () {
     Route::get('/procurement/{id}/schedule', [ProcurementScheduleController::class, 'publicShow']);
+    Route::get('/procurement/{id}/document', [ProcurementDocumentController::class, 'publicIndex']);
+    Route::get('/procurement/{id}/document/download-all', [ProcurementDocumentController::class, 'publicDownloadAll']);
+    Route::get('/procurement/{id}/document/{documentId}/download', [ProcurementDocumentController::class, 'publicDownload']);
 });
 
 Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
@@ -201,6 +205,13 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::get('/{id}/job-sub-field', [ProcurementJobSubFieldController::class, 'index'])->middleware('permission:procurement_read');
         Route::post('/{id}/job-sub-field', [ProcurementJobSubFieldController::class, 'store'])->middleware('permission:procurement_update');
         Route::delete('/{id}/job-sub-field/{jobSubFieldId}', [ProcurementJobSubFieldController::class, 'destroy'])->middleware('permission:procurement_update');
+
+        Route::get('/{id}/document', [ProcurementDocumentController::class, 'index'])->middleware('permission:procurement_document_read');
+        Route::post('/{id}/document', [ProcurementDocumentController::class, 'store'])->middleware('permission:procurement_document_create');
+        Route::get('/{id}/document/download-all', [ProcurementDocumentController::class, 'downloadAll'])->middleware('permission:procurement_document_read');
+        Route::get('/{id}/document/{documentId}/download', [ProcurementDocumentController::class, 'download'])->middleware('permission:procurement_document_read');
+        Route::post('/{id}/document/{documentId}', [ProcurementDocumentController::class, 'update'])->middleware('permission:procurement_document_update');
+        Route::delete('/{id}/document/{documentId}', [ProcurementDocumentController::class, 'destroy'])->middleware('permission:procurement_document_delete');
     });
 
     Route::prefix('profile')->group(function () {

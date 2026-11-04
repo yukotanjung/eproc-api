@@ -386,6 +386,30 @@ class PermissionSeeder extends Seeder
                 "permission" => "procurement_cancel"
             ],
             [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "read",
+                "permission" => "procurement_document_read"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "create",
+                "permission" => "procurement_document_create"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "update",
+                "permission" => "procurement_document_update"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "delete",
+                "permission" => "procurement_document_delete"
+            ],
+            [
                 "name" => "Manage Holiday",
                 "subject" => "holiday",
                 "action" => "read",

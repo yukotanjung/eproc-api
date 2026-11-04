@@ -76,6 +76,11 @@ class Procurement extends Model
             ->withTimestamps();
     }
 
+    public function documents()
+    {
+        return $this->hasMany(ProcurementDocument::class, 'procurement_id');
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;

@@ -8,6 +8,7 @@ use App\Services\ProcurementScheduleService;
 use App\Traits\RuleTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProcurementController extends Controller
 {
@@ -143,6 +144,14 @@ class ProcurementController extends Controller
             if ($data) {
                 DB::beginTransaction();
 
+                $disk = Storage::disk(config('filesystems.default', 'local'));
+                foreach ($data->documents as $document) {
+                    if ($document->file_path && $disk->exists($document->file_path)) {
+                        $disk->delete($document->file_path);
+                    }
+                }
+
+                $data->documents()->delete();
                 $data->jobSubFields()->detach();
                 $data->schedules()->delete();
                 $data->delete();

@@ -1237,6 +1237,103 @@ components:
           items:
             $ref: '#/components/schemas/PublicProcurementScheduleItem'
 
+    ProcurementDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Dokumen KAK & RKS
+        file_name:
+          type: string
+          example: kak-rks-2026.pdf
+        mime_type:
+          type: string
+          nullable: true
+          example: application/pdf
+        file_size:
+          type: integer
+          nullable: true
+          example: 245760
+        extension:
+          type: string
+          nullable: true
+          example: pdf
+        is_public:
+          type: boolean
+          example: true
+        download_url:
+          type: string
+          example: http://localhost:8000/api/procurement/1/document/1/download
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PublicProcurementDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Dokumen KAK & RKS
+        file_name:
+          type: string
+          example: kak-rks-2026.pdf
+        mime_type:
+          type: string
+          nullable: true
+          example: application/pdf
+        file_size:
+          type: integer
+          nullable: true
+          example: 245760
+        extension:
+          type: string
+          nullable: true
+          example: pdf
+        download_url:
+          type: string
+          example: http://localhost:8000/api/public/procurement/1/document/1/download
+        created_at:
+          type: string
+          format: date-time
+
+    PublicProcurementDocumentListResponse:
+      type: object
+      properties:
+        procurement:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            job_number:
+              type: string
+              example: PROC-2026-001
+            name:
+              type: string
+              example: Pembangunan Gedung Kantor
+            status:
+              type: string
+              example: draft
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProcurementDocument'
+        download_all_url:
+          type: string
+          example: http://localhost:8000/api/public/procurement/1/document/download-all
+
   parameters:
     PageParam:
       name: page
@@ -1289,6 +1386,13 @@ components:
       description: Stage ID (autoincrement)
       schema:
         type: integer
+    PathDocumentId:
+      name: documentId
+      in: path
+      required: true
+      description: Procurement Document ID (autoincrement)
+      schema:
+        type: integer
 
 security:
   - bearerAuth: []
@@ -1339,6 +1443,8 @@ tags:
   - name: Procurement Job Field
     x-displayName: Job Field
     description: Procurement job sub-field management
+  - name: Document
+    description: Procurement document upload and download management
 
 x-tagGroups:
   - name: Authentication
@@ -1371,6 +1477,7 @@ x-tagGroups:
       - Procurement
       - Schedule
       - Procurement Job Field
+      - Document
 
 paths:
 
@@ -5292,6 +5399,326 @@ paths:
                     $ref: '#/components/schemas/PublicProcurementScheduleResponse'
         '403':
           description: Procurement not found or inactive/cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT DOCUMENT ───────────────────────────────────────────────────
+
+  /api/procurement/{id}/document:
+    get:
+      tags: [Document]
+      summary: List procurement documents
+      description: |
+        Retrieve all documents uploaded to a procurement package (both public and non-public).
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement documents
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementDocument'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Document]
+      summary: Upload a procurement document
+      description: |
+        Upload a single document to a procurement package.
+        Allowed file extensions: `pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg` (max 20 MB).
+        Requires `procurement_document_create` permission. Cannot upload to a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, file]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Dokumen KAK & RKS
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: boolean
+                  default: true
+                  example: true
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement document
+                  result:
+                    $ref: '#/components/schemas/ProcurementDocument'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/download-all:
+    get:
+      tags: [Document]
+      summary: Download all procurement documents as ZIP
+      description: |
+        Bundle all documents of the procurement package into a single `.zip` archive on the fly and stream it as a download.
+        Duplicate document names inside the ZIP are automatically numbered (`Name (1).ext`).
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP archive stream
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: No documents available to download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or files not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/{documentId}:
+    post:
+      tags: [Document]
+      summary: Update a procurement document
+      description: |
+        Update document name, `is_public` visibility flag, or replace its file.
+        If a new `file` is uploaded, the previous file is deleted from storage.
+        Requires `procurement_document_update` permission. Cannot update a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Dokumen KAK Revisi 1
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Document updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement document
+                  result:
+                    $ref: '#/components/schemas/ProcurementDocument'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Document]
+      summary: Delete a procurement document
+      description: |
+        Delete a single procurement document and remove its file from storage.
+        Requires `procurement_document_delete` permission. Cannot delete from a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      responses:
+        '201':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement document
+                  result:
+                    nullable: true
+        '400':
+          description: Cannot update cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/{documentId}/download:
+    get:
+      tags: [Document]
+      summary: Download a single procurement document
+      description: |
+        Stream/download a single document from the procurement package.
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      responses:
+        '200':
+          description: Document binary file stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Procurement, document, or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document:
+    get:
+      tags: [Document]
+      summary: Public list of procurement documents
+      description: |
+        Public endpoint returning basic procurement details and only documents marked `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '201':
+          description: Public procurement documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get public procurement documents
+                  result:
+                    $ref: '#/components/schemas/PublicProcurementDocumentListResponse'
+        '403':
+          description: Procurement not found or inactive/cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document/download-all:
+    get:
+      tags: [Document]
+      summary: Public download all public procurement documents as ZIP
+      description: |
+        Public endpoint bundling only `is_public = true` documents into a `.zip` archive on the fly.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '200':
+          description: ZIP archive stream of public documents
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: No public documents available to download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found, inactive/cancelled, or files missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document/{documentId}/download:
+    get:
+      tags: [Document]
+      summary: Public download a single public procurement document
+      description: |
+        Public endpoint to download a single document if it belongs to an active procurement and has `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      security: []
+      responses:
+        '200':
+          description: Document binary file stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Procurement not found, inactive/cancelled, or document is not public
           content:
             application/json:
               schema:
