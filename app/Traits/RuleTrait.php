@@ -368,13 +368,13 @@ trait RuleTrait
                     return [
                         'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
                         'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
-                        'name'         => 'required|unique:job_sub_fields,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'name'         => 'required|unique:job_sub_fields,name,NULL,id,deleted_at,NULL|string|max:255',
                     ];
                 } elseif ($method == 'update') {
                     return [
                         'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
                         'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
-                        'name'         => ['required', 'max:100', new IsUniqueOtherRule('job_sub_fields', 'name', $params['own_id'])],
+                        'name'         => ['required', 'max:255', new IsUniqueOtherRule('job_sub_fields', 'name', $params['own_id'])],
                         'is_active'    => 'nullable|boolean',
                     ];
                 }

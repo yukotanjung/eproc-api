@@ -4072,7 +4072,7 @@ paths:
                   example: 1
                 name:
                   type: string
-                  maxLength: 100
+                  maxLength: 255
                   example: Konstruksi Bangunan Gedung
       responses:
         '201':
@@ -4145,7 +4145,7 @@ paths:
                   example: 1
                 name:
                   type: string
-                  maxLength: 100
+                  maxLength: 255
                   example: Konstruksi Bangunan Gedung Komersial
                 is_active:
                   type: boolean
