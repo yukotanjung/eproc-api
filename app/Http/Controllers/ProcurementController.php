@@ -96,6 +96,7 @@ class ProcurementController extends Controller
                 DB::beginTransaction();
 
                 $methodChanged = (int) $data->procurement_method_id !== (int) $request->procurement_method_id;
+                $jobTypeChanged = (int) $data->job_type_id !== (int) $request->job_type_id;
 
                 $data->update([
                     'job_number'            => $request->job_number,
@@ -119,6 +120,10 @@ class ProcurementController extends Controller
                     app(ProcurementScheduleService::class)->syncSnapshotStages($data);
                 }
 
+                if ($jobTypeChanged) {
+                    $data->jobSubFields()->detach();
+                }
+
                 $data->load(['jobType', 'qualification', 'fundingSource', 'procurementMethod']);
 
                 DB::commit();
@@ -138,6 +143,7 @@ class ProcurementController extends Controller
             if ($data) {
                 DB::beginTransaction();
 
+                $data->jobSubFields()->detach();
                 $data->schedules()->delete();
                 $data->delete();
 

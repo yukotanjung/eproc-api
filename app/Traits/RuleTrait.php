@@ -550,6 +550,15 @@ trait RuleTrait
                 }
                 break;
 
+            case 'ProcurementJobSubFieldController':
+                if ($method == 'store') {
+                    return [
+                        'job_sub_field_ids'   => 'present|array',
+                        'job_sub_field_ids.*' => 'required|integer|exists:job_sub_fields,id,deleted_at,NULL,is_active,1',
+                    ];
+                }
+                break;
+
             case 'PasswordActivateController':
                 if ($method == "activateAccount") {
                     return [

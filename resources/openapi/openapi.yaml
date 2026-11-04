@@ -5012,6 +5012,137 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/procurement/{id}/job-sub-field:
+    get:
+      tags: [Procurement]
+      summary: List procurement job sub-fields
+      description: |
+        Retrieve all job sub-fields assigned to a procurement package, including their parent `job_field` and `job_type`.
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement job sub-fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement job sub fields
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: PL001 (Pengerukan)
+                        job_type_id:
+                          type: integer
+                          example: 4
+                        job_field_id:
+                          type: integer
+                          example: 6
+                        is_active:
+                          type: boolean
+                          example: true
+                        job_type:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                        job_field:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Procurement]
+      summary: Sync procurement job sub-fields
+      description: |
+        Bulk sync/replace the job sub-fields assigned to a procurement package.
+        Every selected `job_sub_field_id` must be active and match the procurement's `job_type_id`.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_sub_field_ids]
+              properties:
+                job_sub_field_ids:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2]
+      responses:
+        '201':
+          description: Procurement job sub-fields synced successfully
+        '400':
+          description: Validation error (cancelled procurement or mismatched job_type_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/job-sub-field/{jobSubFieldId}:
+    delete:
+      tags: [Procurement]
+      summary: Remove a single job sub-field from procurement
+      description: |
+        Detach a single job sub-field from a procurement package.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: jobSubFieldId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Job sub-field removed from procurement successfully
+        '400':
+          description: Cannot update cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or assigned job sub-field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   # ─── PROCUREMENT SCHEDULE ───────────────────────────────────────────────────
 
   /api/procurement/{id}/schedule:

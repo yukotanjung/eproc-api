@@ -22,6 +22,7 @@ use App\Http\Controllers\ProcurementMethodController;
 use App\Http\Controllers\ProcurementMethodStageController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProcurementScheduleController;
+use App\Http\Controllers\ProcurementJobSubFieldController;
 use App\Http\Controllers\HolidayController;
 
 Route::prefix('auth')->group(function () {
@@ -196,6 +197,10 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::get('/{id}/schedule', [ProcurementScheduleController::class, 'index'])->middleware('permission:procurement_read');
         Route::post('/{id}/schedule/generate', [ProcurementScheduleController::class, 'generate'])->middleware('permission:procurement_read');
         Route::post('/{id}/schedule', [ProcurementScheduleController::class, 'save'])->middleware('permission:procurement_update');
+
+        Route::get('/{id}/job-sub-field', [ProcurementJobSubFieldController::class, 'index'])->middleware('permission:procurement_read');
+        Route::post('/{id}/job-sub-field', [ProcurementJobSubFieldController::class, 'store'])->middleware('permission:procurement_update');
+        Route::delete('/{id}/job-sub-field/{jobSubFieldId}', [ProcurementJobSubFieldController::class, 'destroy'])->middleware('permission:procurement_update');
     });
 
     Route::prefix('profile')->group(function () {

@@ -70,6 +70,41 @@ class Procurement extends Model
         return $this->hasMany(ProcurementSchedule::class, 'procurement_id');
     }
 
+    public function jobSubFields()
+    {
+        return $this->belongsToMany(JobSubField::class, 'procurement_job_sub_fields', 'procurement_id', 'job_sub_field_id')
+            ->withTimestamps();
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    public static function normalizeIds(array $ids): array
+    {
+        return array_values(array_unique(array_map('intval', $ids)));
+    }
+
+    public function matchesVendorJobSubFields(array $vendorJobSubFieldIds): bool
+    {
+        $vendorIds = self::normalizeIds($vendorJobSubFieldIds);
+        if (empty($vendorIds)) {
+            return false;
+        }
+
+        $requiredIds = $this->jobSubFields()
+            ->pluck('job_sub_fields.id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+
+        if (empty($requiredIds)) {
+            return false;
+        }
+
+        return count(array_intersect($requiredIds, $vendorIds)) > 0;
+    }
+
     public function scopeGetProcurement($query, $request, $page, $pageSize, $all)
     {
         $data = $query->with([
