@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Exception;
+use App\Models\Holiday;
 use App\Models\ProcurementMethod;
 use App\Models\ProcurementMethodStage;
 use App\Services\StageSchedule;
@@ -45,6 +46,7 @@ class ProcurementMethodStageController extends Controller
                 'duration_days'         => (int) $request->duration_days,
                 'day_type'              => $request->day_type,
                 'requires_file'         => filter_var($request->requires_file ?? false, FILTER_VALIDATE_BOOLEAN),
+                'is_public'             => filter_var($request->is_public ?? true, FILTER_VALIDATE_BOOLEAN),
                 'page_key'              => $request->page_key,
                 'process_key'           => $request->process_key,
                 'description'           => $request->description,
@@ -94,6 +96,7 @@ class ProcurementMethodStageController extends Controller
                 'duration_days' => (int) $request->duration_days,
                 'day_type'      => $request->day_type,
                 'requires_file' => filter_var($request->requires_file ?? false, FILTER_VALIDATE_BOOLEAN),
+                'is_public'     => $request->has('is_public') ? filter_var($request->is_public, FILTER_VALIDATE_BOOLEAN) : $data->is_public,
                 'page_key'      => $request->page_key,
                 'process_key'   => $request->process_key,
                 'description'   => $request->description,
@@ -199,7 +202,11 @@ class ProcurementMethodStageController extends Controller
 
             return $this->baseResponse('Success preview procurement method schedule', [
                 'start_date' => $request->start_date,
-                'stages'     => StageSchedule::build($stages, CarbonImmutable::parse($request->start_date)),
+                'stages'     => StageSchedule::build(
+                    $stages,
+                    CarbonImmutable::parse($request->start_date),
+                    Holiday::activeDateStrings()
+                ),
             ]);
         } catch (Exception $e) {
             return $this->invalidResponse($e->getMessage());

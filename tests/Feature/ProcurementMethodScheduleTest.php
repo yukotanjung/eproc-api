@@ -2,10 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\Holiday;
+
 class ProcurementMethodScheduleTest extends ApiTestCase
 {
-    public function test_preview_returns_effective_dates_for_each_stage(): void
+    public function test_preview_returns_effective_dates_for_each_stage_and_skips_holidays(): void
     {
+        Holiday::create([
+            'holiday_date' => '2026-01-13',
+            'name'         => 'Libur Uji',
+            'is_active'    => true,
+        ]);
+
         $methodId = (int) $this->actingAsApiUser()
             ->postJson('/api/procurement-method', ['name' => 'Tender Jadwal'])
             ->json('result.id');
@@ -20,6 +28,8 @@ class ProcurementMethodScheduleTest extends ApiTestCase
             'page_key' => 'procurement/stage/evaluation', 'process_key' => 'stage.evaluation',
         ])->assertStatus(201);
 
+        // Stage 1: Mon Jan 5 .. Fri Jan 9 (5 calendar days)
+        // Stage 2: snaps past weekend to Mon Jan 12; skips holiday Tue Jan 13 -> Mon 12, Wed 14, Thu 15 (3 working days)
         $this->actingAsApiUser()
             ->postJson("/api/procurement-method/{$methodId}/preview-schedule", ['start_date' => '2026-01-05'])
             ->assertStatus(201)
@@ -27,9 +37,9 @@ class ProcurementMethodScheduleTest extends ApiTestCase
             ->assertJsonPath('result.stages.0.start_date', '2026-01-05')
             ->assertJsonPath('result.stages.0.end_date', '2026-01-09')
             ->assertJsonPath('result.stages.0.next_start_date', '2026-01-10')
-            ->assertJsonPath('result.stages.1.start_date', '2026-01-10')
-            ->assertJsonPath('result.stages.1.end_date', '2026-01-13')
-            ->assertJsonPath('result.stages.1.next_start_date', '2026-01-14');
+            ->assertJsonPath('result.stages.1.start_date', '2026-01-12')
+            ->assertJsonPath('result.stages.1.end_date', '2026-01-15')
+            ->assertJsonPath('result.stages.1.next_start_date', '2026-01-16');
     }
 
     public function test_preview_ignores_inactive_stages(): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Procurement;
+use App\Services\ProcurementScheduleService;
 use App\Traits\RuleTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +55,8 @@ class ProcurementController extends Controller
                 'is_active'             => true,
             ]);
 
+            app(ProcurementScheduleService::class)->syncSnapshotStages($result);
+
             $result->load(['jobType', 'qualification', 'fundingSource', 'procurementMethod']);
 
             DB::commit();
@@ -92,6 +95,8 @@ class ProcurementController extends Controller
 
                 DB::beginTransaction();
 
+                $methodChanged = (int) $data->procurement_method_id !== (int) $request->procurement_method_id;
+
                 $data->update([
                     'job_number'            => $request->job_number,
                     'name'                  => $request->name,
@@ -109,6 +114,10 @@ class ProcurementController extends Controller
                     'announcement_location' => $request->announcement_location,
                     'is_active'             => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $data->is_active,
                 ]);
+
+                if ($methodChanged && $data->status === Procurement::STATUS_DRAFT) {
+                    app(ProcurementScheduleService::class)->syncSnapshotStages($data);
+                }
 
                 $data->load(['jobType', 'qualification', 'fundingSource', 'procurementMethod']);
 
@@ -129,6 +138,7 @@ class ProcurementController extends Controller
             if ($data) {
                 DB::beginTransaction();
 
+                $data->schedules()->delete();
                 $data->delete();
 
                 DB::commit();

@@ -308,6 +308,30 @@ class PermissionSeeder extends Seeder
                 "permission" => "classification_delete"
             ],
             [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "read",
+                "permission" => "job_sub_field_read"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "create",
+                "permission" => "job_sub_field_create"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "update",
+                "permission" => "job_sub_field_update"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "delete",
+                "permission" => "job_sub_field_delete"
+            ],
+            [
                 "name" => "Manage Procurement Method",
                 "subject" => "procurement_method",
                 "action" => "read",
@@ -360,6 +384,30 @@ class PermissionSeeder extends Seeder
                 "subject" => "procurement",
                 "action" => "cancel",
                 "permission" => "procurement_cancel"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "read",
+                "permission" => "holiday_read"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "create",
+                "permission" => "holiday_create"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "update",
+                "permission" => "holiday_update"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "delete",
+                "permission" => "holiday_delete"
             ],
         ];
 

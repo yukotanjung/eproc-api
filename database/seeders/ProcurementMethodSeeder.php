@@ -118,6 +118,7 @@ class ProcurementMethodSeeder extends Seeder
                 'duration_days'         => $stage['duration_days'],
                 'day_type'              => $stage['day_type'],
                 'requires_file'         => false,
+                'is_public'             => true,
                 'page_key'              => "procurement/stage/{$slug}",
                 'process_key'           => "stage.{$slug}",
                 'description'           => null,

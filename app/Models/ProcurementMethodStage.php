@@ -51,6 +51,7 @@ class ProcurementMethodStage extends Model
         'sequence'      => 'integer',
         'duration_days' => 'integer',
         'requires_file' => 'boolean',
+        'is_public'     => 'boolean',
         'is_active'     => 'boolean',
     ];
 
@@ -73,6 +74,7 @@ class ProcurementMethodStage extends Model
             'duration_days'         => (int) $this->duration_days,
             'day_type'              => $this->day_type,
             'requires_file'         => (bool) $this->requires_file,
+            'is_public'             => (bool) ($this->is_public ?? true),
             'page_key'              => $this->page_key,
             'process_key'           => $this->process_key,
             'description'           => $this->description,

@@ -17,9 +17,12 @@ use App\Http\Controllers\MajorController;
 use App\Http\Controllers\JobTypeController;
 use App\Http\Controllers\JobFieldController;
 use App\Http\Controllers\ClassificationController;
+use App\Http\Controllers\JobSubFieldController;
 use App\Http\Controllers\ProcurementMethodController;
 use App\Http\Controllers\ProcurementMethodStageController;
 use App\Http\Controllers\ProcurementController;
+use App\Http\Controllers\ProcurementScheduleController;
+use App\Http\Controllers\HolidayController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -37,6 +40,10 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+
+Route::middleware(['throttle:600,1'])->prefix('public')->group(function () {
+    Route::get('/procurement/{id}/schedule', [ProcurementScheduleController::class, 'publicShow']);
+});
 
 Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
 
@@ -146,6 +153,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}', [ClassificationController::class, 'destroy'])->middleware('permission:classification_delete');
     });
 
+    Route::prefix('job-sub-field')->group(function () {
+        Route::get('/', [JobSubFieldController::class, 'index'])->middleware('permission:job_sub_field_read');
+        Route::get('/{id}', [JobSubFieldController::class, 'show'])->middleware('permission:job_sub_field_read');
+        Route::post('/', [JobSubFieldController::class, 'store'])->middleware('permission:job_sub_field_create');
+        Route::post('/{id}', [JobSubFieldController::class, 'update'])->middleware('permission:job_sub_field_update');
+        Route::delete('/{id}', [JobSubFieldController::class, 'destroy'])->middleware('permission:job_sub_field_delete');
+    });
+
     Route::prefix('procurement-method')->group(function () {
         Route::get('/', [ProcurementMethodController::class, 'index'])->middleware('permission:procurement_method_read');
         Route::get('/{id}', [ProcurementMethodController::class, 'show'])->middleware('permission:procurement_method_read');
@@ -162,6 +177,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/{id}/preview-schedule', [ProcurementMethodStageController::class, 'previewSchedule'])->middleware('permission:procurement_method_read');
     });
 
+    Route::prefix('holiday')->group(function () {
+        Route::get('/', [HolidayController::class, 'index'])->middleware('permission:holiday_read');
+        Route::get('/{id}', [HolidayController::class, 'show'])->middleware('permission:holiday_read');
+        Route::post('/', [HolidayController::class, 'store'])->middleware('permission:holiday_create');
+        Route::post('/{id}', [HolidayController::class, 'update'])->middleware('permission:holiday_update');
+        Route::delete('/{id}', [HolidayController::class, 'destroy'])->middleware('permission:holiday_delete');
+    });
+
     Route::prefix('procurement')->group(function () {
         Route::get('/', [ProcurementController::class, 'index'])->middleware('permission:procurement_read');
         Route::get('/{id}', [ProcurementController::class, 'show'])->middleware('permission:procurement_read');
@@ -169,6 +192,10 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/{id}', [ProcurementController::class, 'update'])->middleware('permission:procurement_update');
         Route::delete('/{id}', [ProcurementController::class, 'destroy'])->middleware('permission:procurement_delete');
         Route::post('/{id}/cancel', [ProcurementController::class, 'cancel'])->middleware('permission:procurement_cancel');
+
+        Route::get('/{id}/schedule', [ProcurementScheduleController::class, 'index'])->middleware('permission:procurement_read');
+        Route::post('/{id}/schedule/generate', [ProcurementScheduleController::class, 'generate'])->middleware('permission:procurement_read');
+        Route::post('/{id}/schedule', [ProcurementScheduleController::class, 'save'])->middleware('permission:procurement_update');
     });
 
     Route::prefix('profile')->group(function () {

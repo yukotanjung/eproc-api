@@ -28,6 +28,11 @@ class JobField extends Model
         return $this->hasMany(Classification::class, 'job_field_id');
     }
 
+    public function jobSubFields()
+    {
+        return $this->hasMany(JobSubField::class, 'job_field_id');
+    }
+
     public function scopeGetJobField($query, $request, $page, $pageSize, $all)
     {
         $data = $query->with('jobType')->filter()->order();

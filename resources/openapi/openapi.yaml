@@ -483,6 +483,100 @@ components:
               type: string
               example: Civil Infrastructure
 
+    # Job Sub Field Schemas
+    JobSubField:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_type_id:
+          type: integer
+          example: 1
+        job_field_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Konstruksi Bangunan Gedung
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        job_field:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Bangunan Gedung
+
+    # Holiday Schemas
+    Holiday:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        holiday_date:
+          type: string
+          format: date
+          example: '2026-08-17'
+        name:
+          type: string
+          example: Hari Kemerdekaan RI
+        description:
+          type: string
+          nullable: true
+          example: Libur Nasional
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    HolidayInput:
+      type: object
+      required: [holiday_date, name]
+      properties:
+        holiday_date:
+          type: string
+          format: date
+          example: '2026-08-17'
+        name:
+          type: string
+          maxLength: 150
+          example: Hari Kemerdekaan RI
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: Libur Nasional
+        is_active:
+          type: boolean
+          example: true
 
     # Procurement Method Schemas
     ProcurementMethod:
@@ -551,6 +645,10 @@ components:
           type: boolean
           description: When true the stage needs a file upload before it can be completed.
           example: false
+        is_public:
+          type: boolean
+          description: When true the stage is exposed on public endpoints. Default true.
+          example: true
         page_key:
           type: string
           description: Frontend page identifier rendered for this stage.
@@ -597,6 +695,10 @@ components:
         requires_file:
           type: boolean
           example: true
+        is_public:
+          type: boolean
+          description: Opsi tayang publik (default true)
+          example: true
         page_key:
           type: string
           maxLength: 100
@@ -633,6 +735,9 @@ components:
         duration_days:
           type: integer
           example: 5
+        is_public:
+          type: boolean
+          example: true
         start_date:
           type: string
           format: date
@@ -918,6 +1023,220 @@ components:
           description: Reason for cancellation.
           example: Perubahan prioritas anggaran pemerintah
 
+    # Procurement Schedule Schemas
+    ProcurementSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        procurement_method_stage_id:
+          type: integer
+          nullable: true
+          example: 10
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        duration_days:
+          type: integer
+          example: 5
+        actual_duration_days:
+          type: integer
+          nullable: true
+          example: 5
+        day_type:
+          type: string
+          enum: [calendar, working_day]
+          example: calendar
+        requires_file:
+          type: boolean
+          example: false
+        is_public:
+          type: boolean
+          example: true
+        page_key:
+          type: string
+          example: procurement/stage/announcement
+        process_key:
+          type: string
+          example: stage.announcement
+        description:
+          type: string
+          nullable: true
+        start_at:
+          type: string
+          nullable: true
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          example: '2026-01-09 16:00'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementScheduleItemInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID baris jadwal (opsional jika sequence diberikan)
+          example: 1
+        sequence:
+          type: integer
+          description: Urutan tahapan (opsional jika id diberikan)
+          example: 1
+        start_at:
+          type: string
+          nullable: true
+          description: Format Y-m-d H:i atau Y-m-d H:i:s
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          description: Format Y-m-d H:i atau Y-m-d H:i:s
+          example: '2026-01-09 16:00'
+        is_public:
+          type: boolean
+          example: true
+
+    ProcurementScheduleSaveInput:
+      type: object
+      required: [schedules]
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementScheduleItemInput'
+
+    ProcurementScheduleGenerateInput:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Tanggal mulai generate (default planned_date paket)
+          example: '2026-01-05'
+        from_sequence:
+          type: integer
+          minimum: 1
+          description: Generate mulai dari tahapan tertentu (default 1)
+          example: 1
+        start_time:
+          type: string
+          description: Format H:i atau H:i:s (default 08:00)
+          example: '08:00'
+        end_time:
+          type: string
+          description: Format H:i atau H:i:s (default 16:00)
+          example: '16:00'
+        save:
+          type: boolean
+          description: Bila true langsung simpan ke DB; bila false murni preview
+          default: false
+          example: false
+
+    ProcurementScheduleGenerateResponse:
+      type: object
+      properties:
+        procurement_id:
+          type: integer
+          example: 1
+        start_date:
+          type: string
+          format: date
+          example: '2026-01-05'
+        from_sequence:
+          type: integer
+          example: 1
+        saved:
+          type: boolean
+          example: false
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementSchedule'
+
+    PublicProcurementScheduleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        duration_days:
+          type: integer
+          example: 5
+        actual_duration_days:
+          type: integer
+          nullable: true
+          example: 5
+        day_type:
+          type: string
+          example: calendar
+        description:
+          type: string
+          nullable: true
+        start_at:
+          type: string
+          nullable: true
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          example: '2026-01-09 16:00'
+
+    PublicProcurementScheduleResponse:
+      type: object
+      properties:
+        procurement:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            job_number:
+              type: string
+              example: PROC-2026-001
+            name:
+              type: string
+              example: Pembangunan Gedung Kantor
+            planned_date:
+              type: string
+              format: date
+              nullable: true
+              example: '2026-11-15'
+            budget_year:
+              type: integer
+              example: 2026
+            project_location:
+              type: string
+              example: Jakarta Pusat
+            announcement_location:
+              type: string
+              example: Portal E-Procurement
+            status:
+              type: string
+              example: draft
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProcurementScheduleItem'
+
   parameters:
     PageParam:
       name: page
@@ -1003,14 +1322,20 @@ tags:
     description: Job type and work classification management
   - name: Job Field
     description: Job field and specialized work area management
+  - name: Job Sub Field
+    description: Job sub field management (sub bidang pekerjaan)
   - name: Classification
     description: Classification and sub-specialization management
   - name: Procurement Method
     description: Procurement method (metode pengadaan) and its ordered stages
   - name: Procurement Method Stage
     description: Stages of a procurement method, including scheduling rules
+  - name: Holiday
+    description: Master national holidays management for working day calculation
   - name: Procurement
     description: Procurement package management (daftar pekerjaan/pengadaan)
+  - name: Schedule
+    description: Procurement stage schedule management and auto-generation
 
 x-tagGroups:
   - name: Authentication
@@ -1033,12 +1358,15 @@ x-tagGroups:
       - Major
       - Job Type
       - Job Field
+      - Job Sub Field
       - Classification
       - Procurement Method
       - Procurement Method Stage
+      - Holiday
   - name: Procurement
     tags:
       - Procurement
+      - Schedule
 
 paths:
 
@@ -3673,6 +4001,380 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  # ─── JOB SUB FIELD ──────────────────────────────────────────────────────────
+
+  /api/job-sub-field:
+    get:
+      tags: [Job Sub Field]
+      summary: List
+      description: Retrieve paginated or full list of job sub fields. Supports search and filter by job type, job field, or name. Requires `job_sub_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by job sub field name
+          schema:
+            type: string
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by parent job type ID
+          schema:
+            type: integer
+        - name: filter[job_field_id]
+          in: query
+          description: Filter by parent job field ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Job sub fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job sub field
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobSubField'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Job Sub Field]
+      summary: Create
+      description: Create a new job sub field record. Requires `job_sub_field_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_type_id, job_field_id, name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Konstruksi Bangunan Gedung
+      responses:
+        '201':
+          description: Job sub field created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create job sub field
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/job-sub-field/{id}:
+    get:
+      tags: [Job Sub Field]
+      summary: Get details
+      description: Retrieve single job sub field record by ID with job type and job field relations. Requires `job_sub_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job sub field retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '403':
+          description: Job sub field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Job Sub Field]
+      summary: Update
+      description: Update existing job sub field details. Requires `job_sub_field_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Konstruksi Bangunan Gedung Komersial
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Job sub field updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update job sub field
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Job sub field not found
+
+    delete:
+      tags: [Job Sub Field]
+      summary: Delete
+      description: Soft delete job sub field record. Requires `job_sub_field_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job sub field deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete job sub field
+                  result:
+                    nullable: true
+        '403':
+          description: Job sub field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── HOLIDAY ────────────────────────────────────────────────────────────────
+
+  /api/holiday:
+    get:
+      tags: [Holiday]
+      summary: List
+      description: Retrieve paginated or full list of holidays. Supports filtering by year or exact date. Requires `holiday_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[year]
+          in: query
+          description: Filter holidays by year (also accepts filter[tahun] or year query)
+          schema:
+            type: integer
+            example: 2026
+        - name: filter[holiday_date]
+          in: query
+          description: Filter by exact holiday date (Y-m-d)
+          schema:
+            type: string
+            format: date
+            example: '2026-08-17'
+      responses:
+        '201':
+          description: Holidays retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list holiday
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Holiday'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Holiday]
+      summary: Create
+      description: Create a new national holiday. Requires `holiday_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayInput'
+      responses:
+        '201':
+          description: Holiday created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create holiday
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '400':
+          description: Validation error or duplicate holiday date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/holiday/{id}:
+    get:
+      tags: [Holiday]
+      summary: Get details
+      description: Retrieve details of a single holiday by ID. Requires `holiday_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Holiday retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '403':
+          description: Holiday not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Holiday]
+      summary: Update
+      description: Update an existing holiday. Requires `holiday_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayInput'
+      responses:
+        '201':
+          description: Holiday updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update holiday
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '400':
+          description: Validation error or duplicate holiday date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Holiday not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Holiday]
+      summary: Delete
+      description: Soft delete a holiday record. Requires `holiday_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Holiday deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete holiday
+                  result:
+                    nullable: true
+                    example: null
+        '403':
+          description: Holiday not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   # ─── PROCUREMENT METHOD ─────────────────────────────────────────────────────
 
   /api/procurement-method:
@@ -4305,6 +5007,156 @@ paths:
                 $ref: '#/components/schemas/ValidationError'
         '403':
           description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT SCHEDULE ───────────────────────────────────────────────────
+
+  /api/procurement/{id}/schedule:
+    get:
+      tags: [Schedule]
+      summary: Get schedule
+      description: |
+        Retrieve all stage schedules of a procurement package ordered by sequence.
+        Calculates `actual_duration_days` considering working days and holidays.
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement schedule retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement schedule
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementSchedule'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Schedule]
+      summary: Save schedule
+      description: |
+        Bulk save and validate stage schedules for a procurement.
+        Supports contiguous partial scheduling starting from stage 1.
+        Validates date order, working days, maximum stage duration, and intra/cross-procurement non-overlapping time windows.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementScheduleSaveInput'
+      responses:
+        '201':
+          description: Procurement schedule saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success save procurement schedule
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementSchedule'
+        '400':
+          description: Validation error or schedule conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found or cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/schedule/generate:
+    post:
+      tags: [Schedule]
+      summary: Generate schedule
+      description: |
+        Auto-generate stage schedules starting from start_date (or procurement planned_date).
+        Automatically skips weekends and holidays for working-day stages, and shifts past any overlapping active procurement schedules.
+        Supports preview mode (default `save: false`) or direct persistence (`save: true`, requiring `procurement_update` permission).
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementScheduleGenerateInput'
+      responses:
+        '201':
+          description: Procurement schedule generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success generate procurement schedule
+                  result:
+                    $ref: '#/components/schemas/ProcurementScheduleGenerateResponse'
+        '400':
+          description: Validation error or generation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found, cancelled, or unauthorized to save
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/schedule:
+    get:
+      tags: [Schedule]
+      summary: Public procurement schedule
+      description: |
+        Public endpoint returning basic procurement package details and only stages marked `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '201':
+          description: Public schedule retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get public procurement schedule
+                  result:
+                    $ref: '#/components/schemas/PublicProcurementScheduleResponse'
+        '403':
+          description: Procurement not found or inactive/cancelled
           content:
             application/json:
               schema:

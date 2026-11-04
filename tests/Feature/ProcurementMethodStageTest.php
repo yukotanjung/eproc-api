@@ -282,4 +282,20 @@ class ProcurementMethodStageTest extends ApiTestCase
             ->assertStatus(201)
             ->assertJsonPath('result.sequence', 2);
     }
+
+    public function test_stage_supports_is_public_default_and_override(): void
+    {
+        $methodId = $this->createMethod();
+
+        $stageId = (int) $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage", $this->stagePayload())
+            ->assertStatus(201)
+            ->assertJsonPath('result.is_public', true)
+            ->json('result.id');
+
+        $this->actingAsApiUser()
+            ->postJson("/api/procurement-method/{$methodId}/stage/{$stageId}", $this->stagePayload(['is_public' => false]))
+            ->assertStatus(201)
+            ->assertJsonPath('result.is_public', false);
+    }
 }

@@ -357,6 +357,29 @@ trait RuleTrait
                 }
                 break;
 
+            case 'JobSubFieldController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'boolean|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
+                        'name'         => 'required|unique:job_sub_fields,name,NULL,id,deleted_at,NULL|string|max:100',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
+                        'name'         => ['required', 'max:100', new IsUniqueOtherRule('job_sub_fields', 'name', $params['own_id'])],
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                }
+                break;
+
             case 'ProcurementMethodController':
                 if ($method == 'index') {
                     return [
@@ -374,6 +397,7 @@ trait RuleTrait
                         'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
                         'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
                         'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.is_public'     => 'nullable|boolean',
                         'stages.*.page_key'      => 'required_with:stages|string|max:100',
                         'stages.*.process_key'   => 'required_with:stages|string|max:100',
                         'stages.*.description'   => 'nullable|string|max:500',
@@ -389,6 +413,7 @@ trait RuleTrait
                         'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
                         'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
                         'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.is_public'     => 'nullable|boolean',
                         'stages.*.page_key'      => 'required_with:stages|string|max:100',
                         'stages.*.process_key'   => 'required_with:stages|string|max:100',
                         'stages.*.description'   => 'nullable|string|max:500',
@@ -404,6 +429,7 @@ trait RuleTrait
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
                         'requires_file' => 'nullable|boolean',
+                        'is_public'     => 'nullable|boolean',
                         'page_key'      => 'required|string|max:100',
                         'process_key'   => 'required|string|max:100',
                         'description'   => 'nullable|string|max:500',
@@ -415,6 +441,7 @@ trait RuleTrait
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
                         'requires_file' => 'nullable|boolean',
+                        'is_public'     => 'nullable|boolean',
                         'page_key'      => 'required|string|max:100',
                         'process_key'   => 'required|string|max:100',
                         'description'   => 'nullable|string|max:500',
@@ -478,6 +505,47 @@ trait RuleTrait
                     return [
                         'reason'              => 'nullable|string|max:500',
                         'cancellation_reason' => 'nullable|string|max:500',
+                    ];
+                }
+                break;
+
+            case 'HolidayController':
+                if ($method == 'index') {
+                    return [
+                        'page'         => 'integer|min:1|nullable',
+                        'page_size'    => 'integer|min:1|nullable',
+                        'all'          => 'nullable',
+                        'year'         => 'nullable|integer|min:1900|max:2100',
+                        'tahun'        => 'nullable|integer|min:1900|max:2100',
+                        'holiday_date' => 'nullable|date_format:Y-m-d',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'holiday_date' => 'required|date_format:Y-m-d',
+                        'name'         => 'required|string|max:150',
+                        'description'  => 'nullable|string|max:500',
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementScheduleController':
+                if ($method == 'generate') {
+                    return [
+                        'start_date'    => 'nullable|date_format:Y-m-d',
+                        'from_sequence' => 'nullable|integer|min:1',
+                        'start_time'    => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'end_time'      => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'save'          => 'nullable',
+                    ];
+                } elseif ($method == 'save') {
+                    return [
+                        'schedules'            => 'required|array|min:1',
+                        'schedules.*.id'       => 'nullable|integer',
+                        'schedules.*.sequence' => 'nullable|integer|min:1',
+                        'schedules.*.start_at' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'schedules.*.end_at'   => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'schedules.*.is_public' => 'nullable|boolean',
                     ];
                 }
                 break;

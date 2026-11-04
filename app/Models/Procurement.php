@@ -65,6 +65,11 @@ class Procurement extends Model
         return $this->belongsTo(ProcurementMethod::class, 'procurement_method_id');
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(ProcurementSchedule::class, 'procurement_id');
+    }
+
     public function scopeGetProcurement($query, $request, $page, $pageSize, $all)
     {
         $data = $query->with([
