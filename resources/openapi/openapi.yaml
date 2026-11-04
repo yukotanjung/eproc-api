@@ -1336,6 +1336,9 @@ tags:
     description: Procurement package management (daftar pekerjaan/pengadaan)
   - name: Schedule
     description: Procurement stage schedule management and auto-generation
+  - name: Procurement Job Field
+    x-displayName: Job Field
+    description: Procurement job sub-field management
 
 x-tagGroups:
   - name: Authentication
@@ -1367,6 +1370,7 @@ x-tagGroups:
     tags:
       - Procurement
       - Schedule
+      - Procurement Job Field
 
 paths:
 
@@ -5014,7 +5018,7 @@ paths:
 
   /api/procurement/{id}/job-sub-field:
     get:
-      tags: [Procurement]
+      tags: [Procurement Job Field]
       summary: List procurement job sub-fields
       description: |
         Retrieve all job sub-fields assigned to a procurement package, including their parent `job_field` and `job_type`.
@@ -5076,7 +5080,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
 
     post:
-      tags: [Procurement]
+      tags: [Procurement Job Field]
       summary: Sync procurement job sub-fields
       description: |
         Bulk sync/replace the job sub-fields assigned to a procurement package.
@@ -5115,7 +5119,7 @@ paths:
 
   /api/procurement/{id}/job-sub-field/{jobSubFieldId}:
     delete:
-      tags: [Procurement]
+      tags: [Procurement Job Field]
       summary: Remove a single job sub-field from procurement
       description: |
         Detach a single job sub-field from a procurement package.
