@@ -24,6 +24,7 @@ use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\ProcurementScheduleController;
 use App\Http\Controllers\ProcurementJobSubFieldController;
 use App\Http\Controllers\ProcurementDocumentController;
+use App\Http\Controllers\ProcurementChecklistFileController;
 use App\Http\Controllers\HolidayController;
 
 Route::prefix('auth')->group(function () {
@@ -212,6 +213,12 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::get('/{id}/document/{documentId}/download', [ProcurementDocumentController::class, 'download'])->middleware('permission:procurement_document_read');
         Route::post('/{id}/document/{documentId}', [ProcurementDocumentController::class, 'update'])->middleware('permission:procurement_document_update');
         Route::delete('/{id}/document/{documentId}', [ProcurementDocumentController::class, 'destroy'])->middleware('permission:procurement_document_delete');
+
+        Route::get('/{id}/checklist-file', [ProcurementChecklistFileController::class, 'index'])->middleware('permission:procurement_checklist_file_read');
+        Route::get('/{id}/checklist-file/{checklistFileId}', [ProcurementChecklistFileController::class, 'show'])->middleware('permission:procurement_checklist_file_read');
+        Route::post('/{id}/checklist-file', [ProcurementChecklistFileController::class, 'store'])->middleware('permission:procurement_checklist_file_create');
+        Route::post('/{id}/checklist-file/{checklistFileId}', [ProcurementChecklistFileController::class, 'update'])->middleware('permission:procurement_checklist_file_update');
+        Route::delete('/{id}/checklist-file/{checklistFileId}', [ProcurementChecklistFileController::class, 'destroy'])->middleware('permission:procurement_checklist_file_delete');
     });
 
     Route::prefix('profile')->group(function () {

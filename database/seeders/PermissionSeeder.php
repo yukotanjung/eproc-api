@@ -410,6 +410,30 @@ class PermissionSeeder extends Seeder
                 "permission" => "procurement_document_delete"
             ],
             [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "read",
+                "permission" => "procurement_checklist_file_read"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "create",
+                "permission" => "procurement_checklist_file_create"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "update",
+                "permission" => "procurement_checklist_file_update"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "delete",
+                "permission" => "procurement_checklist_file_delete"
+            ],
+            [
                 "name" => "Manage Holiday",
                 "subject" => "holiday",
                 "action" => "read",

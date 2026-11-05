@@ -582,6 +582,34 @@ trait RuleTrait
                 }
                 break;
 
+            case 'ProcurementChecklistFileController':
+                if ($method == 'index') {
+                    return [
+                        'procurement_schedule_id' => 'nullable|integer',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'procurement_schedule_id' => 'required|integer',
+                        'name'                    => 'required|string|max:255',
+                        'max_size'                => 'required|integer|min:1|max:102400',
+                        'file_types'              => 'required|array|min:1',
+                        'file_types.*'            => 'required|string|in:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,CSV,TXT,JPG,JPEG,PNG,ZIP,RAR,DWG',
+                        'is_required'             => 'nullable|boolean',
+                        'description'             => 'nullable|string|max:1000',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'procurement_schedule_id' => 'nullable|integer',
+                        'name'                    => 'required|string|max:255',
+                        'max_size'                => 'required|integer|min:1|max:102400',
+                        'file_types'              => 'required|array|min:1',
+                        'file_types.*'            => 'required|string|in:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,CSV,TXT,JPG,JPEG,PNG,ZIP,RAR,DWG',
+                        'is_required'             => 'nullable|boolean',
+                        'description'             => 'nullable|string|max:1000',
+                    ];
+                }
+                break;
+
             case 'PasswordActivateController':
                 if ($method == "activateAccount") {
                     return [

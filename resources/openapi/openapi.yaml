@@ -1334,6 +1334,130 @@ components:
           type: string
           example: http://localhost:8000/api/public/procurement/1/document/download-all
 
+    ProcurementChecklistFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        procurement_schedule_id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          description: Max file size in KB
+          example: 5120
+        file_types:
+          type: array
+          items:
+            type: string
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          example: true
+        description:
+          type: string
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+        schedule:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 2
+            sequence:
+              type: integer
+              example: 2
+            name:
+              type: string
+              example: Upload Dokumen Kualifikasi
+            requires_file:
+              type: boolean
+              example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateProcurementChecklistFileRequest:
+      type: object
+      required: [procurement_schedule_id, name, max_size, file_types]
+      properties:
+        procurement_schedule_id:
+          type: integer
+          description: Schedule ID with requires_file = true
+          example: 2
+        name:
+          type: string
+          maxLength: 255
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          minimum: 1
+          maximum: 102400
+          description: Max allowed file size in KB (1..102400)
+          example: 5120
+        file_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg]
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          default: true
+          example: true
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+
+    UpdateProcurementChecklistFileRequest:
+      type: object
+      required: [name, max_size, file_types]
+      properties:
+        procurement_schedule_id:
+          type: integer
+          nullable: true
+          description: Optional schedule ID to reassign stage (requires_file = true)
+          example: 2
+        name:
+          type: string
+          maxLength: 255
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          minimum: 1
+          maximum: 102400
+          description: Max allowed file size in KB (1..102400)
+          example: 5120
+        file_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg]
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          example: true
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+
   parameters:
     PageParam:
       name: page
@@ -1393,6 +1517,20 @@ components:
       description: Procurement Document ID (autoincrement)
       schema:
         type: integer
+    PathChecklistFileId:
+      name: checklistFileId
+      in: path
+      required: true
+      description: Procurement Checklist File ID (autoincrement)
+      schema:
+        type: integer
+    QueryProcurementScheduleId:
+      name: procurement_schedule_id
+      in: query
+      required: false
+      description: Filter by procurement schedule ID
+      schema:
+        type: integer
 
 security:
   - bearerAuth: []
@@ -1445,6 +1583,8 @@ tags:
     description: Procurement job sub-field management
   - name: Document
     description: Procurement document upload and download management
+  - name: Checklist
+    description: Procurement stage checklist file specifications
 
 x-tagGroups:
   - name: Authentication
@@ -1478,6 +1618,7 @@ x-tagGroups:
       - Schedule
       - Procurement Job Field
       - Document
+      - Checklist
 
 paths:
 
@@ -5739,6 +5880,187 @@ paths:
                 format: binary
         '403':
           description: Procurement not found, inactive/cancelled, or document is not public
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT CHECKLIST ──────────────────────────────────────────────────
+
+  /api/procurement/{id}/checklist-file:
+    get:
+      tags: [Checklist]
+      summary: List procurement checklist file requirements
+      description: |
+        Retrieve list of required and optional files for procurement schedules.
+        Supports filtering by `procurement_schedule_id`.
+        Requires `procurement_checklist_file_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/QueryProcurementScheduleId'
+      responses:
+        '201':
+          description: Procurement checklist files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement checklist files
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementChecklistFile'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Checklist]
+      summary: Create procurement checklist file requirement
+      description: |
+        Create a file specification for a schedule stage where `requires_file = true`.
+        Requires `procurement_checklist_file_create` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProcurementChecklistFileRequest'
+      responses:
+        '201':
+          description: Procurement checklist file created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '400':
+          description: Validation error or stage does not require file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/checklist-file/{checklistFileId}:
+    get:
+      tags: [Checklist]
+      summary: Get procurement checklist file requirement detail
+      description: |
+        Retrieve a single checklist file requirement by ID.
+        Requires `procurement_checklist_file_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      responses:
+        '201':
+          description: Procurement checklist file retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Checklist]
+      summary: Update procurement checklist file requirement
+      description: |
+        Update a checklist file specification. Can reassign schedule stage if target stage has `requires_file = true`.
+        Requires `procurement_checklist_file_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProcurementChecklistFileRequest'
+      responses:
+        '201':
+          description: Procurement checklist file updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '400':
+          description: Validation error or invalid stage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Checklist]
+      summary: Delete procurement checklist file requirement
+      description: |
+        Delete a single checklist file requirement (soft delete).
+        Requires `procurement_checklist_file_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      responses:
+        '201':
+          description: Procurement checklist file deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement checklist file
+                  result:
+                    nullable: true
+        '400':
+          description: Validation error or cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
           content:
             application/json:
               schema:

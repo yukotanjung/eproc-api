@@ -22,6 +22,7 @@ class ProcurementScheduleService
      */
     public function syncSnapshotStages(Procurement $procurement): Collection
     {
+        $procurement->checklistFiles()->delete();
         $procurement->schedules()->delete();
 
         $masterStages = ProcurementMethodStage::where('procurement_method_id', $procurement->procurement_method_id)

@@ -66,6 +66,11 @@ class ProcurementSchedule extends Model
         return $this->belongsTo(ProcurementMethodStage::class, 'procurement_method_stage_id');
     }
 
+    public function checklistFiles()
+    {
+        return $this->hasMany(ProcurementChecklistFile::class, 'procurement_schedule_id');
+    }
+
     /**
      * @param  array<string, true>  $holidaySet
      */
