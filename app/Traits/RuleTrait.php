@@ -365,9 +365,11 @@ trait RuleTrait
             case 'JobSubFieldController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'page'         => 'integer|min:1|nullable',
+                        'page_size'    => 'integer|min:1|nullable',
+                        'all'          => 'boolean|nullable',
+                        'job_field_id' => 'integer|nullable',
+                        'job_type_id'  => 'integer|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [

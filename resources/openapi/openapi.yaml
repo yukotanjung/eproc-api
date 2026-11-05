@@ -3942,6 +3942,16 @@ paths:
           description: Filter by parent job field ID
           schema:
             type: integer
+        - name: job_field_id
+          in: query
+          description: Filter directly by parent job field ID
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          description: Filter directly by parent job type ID
+          schema:
+            type: integer
       responses:
         '201':
           description: Classifications retrieved successfully
@@ -4137,6 +4147,16 @@ paths:
         - name: filter[job_field_id]
           in: query
           description: Filter by parent job field ID
+          schema:
+            type: integer
+        - name: job_field_id
+          in: query
+          description: Filter directly by parent job field ID
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          description: Filter directly by parent job type ID
           schema:
             type: integer
       responses:

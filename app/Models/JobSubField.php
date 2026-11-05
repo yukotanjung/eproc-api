@@ -37,8 +37,18 @@ class JobSubField extends Model
 
     public function scopeGetJobSubField($query, $request, $page, $pageSize, $all)
     {
-        $data = $query->with(['jobType', 'jobField'])->filter()->order();
-        if ($all == 'true') {
+        $data = $query->with(['jobType', 'jobField'])->filter();
+
+        if ($request && method_exists($request, 'input')) {
+            $directJobFieldId = $request->input('job_field_id');
+            if (!empty($directJobFieldId) && empty(request()->input('filter.job_field_id')) && empty(request()->input('job_field_id'))) {
+                $data->where('job_field_id', $directJobFieldId);
+            }
+        }
+
+        $data->order();
+
+        if ($all == 'true' || $all === true) {
             return $data->orderBy('created_at', 'desc')->get();
         }
         return $data->orderBy('created_at', 'desc')->paginate($pageSize, ['*'], 'page', $page);
@@ -46,7 +56,28 @@ class JobSubField extends Model
 
     public function scopeFilter($query)
     {
-        return $this->filter_model($query, $this);
+        $this->filter_model($query, $this);
+
+        $filter = request()->input('filter', []);
+        $jobFieldId = $filter['job_field_id'] ?? request()->input('job_field_id');
+        if (!empty($jobFieldId) && empty($filter['job_field_id'])) {
+            $query->where('job_field_id', $jobFieldId);
+        }
+
+        $jobTypeId = $filter['job_type_id'] ?? request()->input('job_type_id');
+        if (!empty($jobTypeId) && empty($filter['job_type_id'])) {
+            $query->where('job_type_id', $jobTypeId);
+        }
+
+        return $query;
+    }
+
+    public function scopeByJobField($query, $jobFieldId)
+    {
+        if (!empty($jobFieldId)) {
+            return $query->where('job_field_id', $jobFieldId);
+        }
+        return $query;
     }
 
     public function scopeOrder($query)
