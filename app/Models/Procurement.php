@@ -86,6 +86,11 @@ class Procurement extends Model
         return $this->hasMany(ProcurementChecklistFile::class, 'procurement_id');
     }
 
+    public function hpsItems()
+    {
+        return $this->hasMany(ProcurementHpsItem::class, 'procurement_id');
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;

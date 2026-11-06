@@ -457,6 +457,54 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "holiday_delete"
             ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "read",
+                "permission" => "unit_read"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "create",
+                "permission" => "unit_create"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "update",
+                "permission" => "unit_update"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "delete",
+                "permission" => "unit_delete"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "read",
+                "permission" => "procurement_hps_read"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "create",
+                "permission" => "procurement_hps_create"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "update",
+                "permission" => "procurement_hps_update"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "delete",
+                "permission" => "procurement_hps_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

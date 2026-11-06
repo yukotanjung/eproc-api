@@ -1458,6 +1458,146 @@ components:
           nullable: true
           example: Scan akta asli dan perubahan terakhir
 
+    # Unit Schemas
+    Unit:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Unit
+        code:
+          type: string
+          nullable: true
+          example: unit
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Procurement HPS Schemas
+    ProcurementHpsItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        unit_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Server Rackmount 2U
+        quantity:
+          type: integer
+          example: 10
+        unit_price:
+          type: number
+          format: float
+          example: 15000000
+        base_subtotal:
+          type: number
+          format: float
+          example: 150000000
+        use_tax:
+          type: boolean
+          example: true
+        tax_rate:
+          type: number
+          format: float
+          example: 11
+        tax_amount:
+          type: number
+          format: float
+          example: 16500000
+        subtotal:
+          type: number
+          format: float
+          example: 166500000
+        unit:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Unit
+            code:
+              type: string
+              nullable: true
+              example: unit
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementHpsListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementHpsItem'
+        summary:
+          type: object
+          properties:
+            total_items:
+              type: integer
+              example: 2
+            total_before_tax:
+              type: number
+              format: float
+              example: 170000000
+            total_tax:
+              type: number
+              format: float
+              example: 16500000
+            grand_total:
+              type: number
+              format: float
+              example: 186500000
+
+    SaveProcurementHpsItemRequest:
+      type: object
+      required: [name, unit_id, quantity, unit_price]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Server Rackmount 2U
+        unit_id:
+          type: integer
+          description: Active Unit ID from master `units`
+          example: 1
+        quantity:
+          type: integer
+          minimum: 1
+          example: 10
+        unit_price:
+          type: number
+          format: float
+          minimum: 0
+          example: 15000000
+        use_tax:
+          type: boolean
+          default: false
+          description: If true, adds 11% tax to base subtotal
+          example: true
+
   parameters:
     PageParam:
       name: page
@@ -1524,6 +1664,13 @@ components:
       description: Procurement Checklist File ID (autoincrement)
       schema:
         type: integer
+    PathHpsId:
+      name: hpsId
+      in: path
+      required: true
+      description: Procurement HPS Item ID (autoincrement)
+      schema:
+        type: integer
     QueryProcurementScheduleId:
       name: procurement_schedule_id
       in: query
@@ -1574,6 +1721,8 @@ tags:
     description: Stages of a procurement method, including scheduling rules
   - name: Holiday
     description: Master national holidays management for working day calculation
+  - name: Unit
+    description: Master unit of measurement (satuan) management
   - name: Procurement
     description: Procurement package management (daftar pekerjaan/pengadaan)
   - name: Schedule
@@ -1585,6 +1734,8 @@ tags:
     description: Procurement document upload and download management
   - name: Checklist
     description: Procurement stage checklist file specifications
+  - name: HPS
+    description: Procurement owner estimate (Harga Perkiraan Sendiri / HPS Pengadaan) items and summary
 
 x-tagGroups:
   - name: Authentication
@@ -1602,6 +1753,7 @@ x-tagGroups:
       - Tax
       - Business Type
       - Work Unit
+      - Unit
       - Qualification
       - Education Level
       - Major
@@ -1619,6 +1771,7 @@ x-tagGroups:
       - Procurement Job Field
       - Document
       - Checklist
+      - HPS
 
 paths:
 
@@ -6055,6 +6208,362 @@ paths:
                     nullable: true
         '400':
           description: Validation error or cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── UNIT (MASTER SATUAN) ───────────────────────────────────────────────────
+
+  /api/unit:
+    get:
+      tags: [Unit]
+      summary: List units
+      description: Retrieve paginated or full list of measurement units (satuan). Supports search and filter. Requires `unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by unit name
+          schema:
+            type: string
+        - name: filter[code]
+          in: query
+          description: Filter by unit code
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Units retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list unit
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Unit'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Unit]
+      summary: Create unit
+      description: Create a new measurement unit record. Requires `unit_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Unit
+                code:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                  example: unit
+      responses:
+        '201':
+          description: Unit created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create unit
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/unit/{id}:
+    get:
+      tags: [Unit]
+      summary: Get unit details
+      description: Retrieve single measurement unit by ID. Requires `unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Unit retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '403':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Unit]
+      summary: Update unit
+      description: Update existing measurement unit details. Requires `unit_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Unit
+                code:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                  example: unit
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Unit updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update unit
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Unit not found
+
+    delete:
+      tags: [Unit]
+      summary: Delete unit
+      description: Soft delete measurement unit record. Requires `unit_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Unit deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete unit
+                  result:
+                    nullable: true
+        '403':
+          description: Unit not found
+
+  # ─── PROCUREMENT HPS ────────────────────────────────────────────────────────
+
+  /api/procurement/{id}/hps:
+    get:
+      tags: [HPS]
+      summary: List procurement HPS items and summary
+      description: |
+        Retrieve all HPS items for a procurement package along with summary totals (`total_items`, `total_before_tax`, `total_tax`, `grand_total`).
+        Requires `procurement_hps_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement HPS retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement hps
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsListResponse'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [HPS]
+      summary: Create procurement HPS item
+      description: |
+        Add an HPS item to a procurement package.
+        If `use_tax = true`, 11% tax is added to `quantity * unit_price` to compute `subtotal`.
+        Requires `procurement_hps_create` permission. Cannot add to a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveProcurementHpsItemRequest'
+      responses:
+        '201':
+          description: Procurement HPS item created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/hps/{hpsId}:
+    get:
+      tags: [HPS]
+      summary: Get procurement HPS item detail
+      description: |
+        Retrieve a single HPS item by ID.
+        Requires `procurement_hps_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      responses:
+        '201':
+          description: Procurement HPS item retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [HPS]
+      summary: Update procurement HPS item
+      description: |
+        Update an existing HPS item and recalculate 11% tax and subtotal.
+        Requires `procurement_hps_update` permission. Cannot update a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveProcurementHpsItemRequest'
+      responses:
+        '201':
+          description: Procurement HPS item updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [HPS]
+      summary: Delete procurement HPS item
+      description: |
+        Soft delete a single HPS item from the procurement package.
+        Requires `procurement_hps_delete` permission. Cannot delete from a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      responses:
+        '201':
+          description: Procurement HPS item deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement hps item
+                  result:
+                    nullable: true
+        '400':
+          description: Cannot update cancelled procurement
           content:
             application/json:
               schema:

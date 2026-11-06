@@ -25,6 +25,8 @@ use App\Http\Controllers\ProcurementScheduleController;
 use App\Http\Controllers\ProcurementJobSubFieldController;
 use App\Http\Controllers\ProcurementDocumentController;
 use App\Http\Controllers\ProcurementChecklistFileController;
+use App\Http\Controllers\ProcurementHpsController;
+use App\Http\Controllers\UnitController;
 use App\Http\Controllers\HolidayController;
 
 Route::prefix('auth')->group(function () {
@@ -191,6 +193,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}', [HolidayController::class, 'destroy'])->middleware('permission:holiday_delete');
     });
 
+    Route::prefix('unit')->group(function () {
+        Route::get('/', [UnitController::class, 'index'])->middleware('permission:unit_read');
+        Route::get('/{id}', [UnitController::class, 'show'])->middleware('permission:unit_read');
+        Route::post('/', [UnitController::class, 'store'])->middleware('permission:unit_create');
+        Route::post('/{id}', [UnitController::class, 'update'])->middleware('permission:unit_update');
+        Route::delete('/{id}', [UnitController::class, 'destroy'])->middleware('permission:unit_delete');
+    });
+
     Route::prefix('procurement')->group(function () {
         Route::get('/', [ProcurementController::class, 'index'])->middleware('permission:procurement_read');
         Route::get('/{id}', [ProcurementController::class, 'show'])->middleware('permission:procurement_read');
@@ -219,6 +229,12 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/{id}/checklist-file', [ProcurementChecklistFileController::class, 'store'])->middleware('permission:procurement_checklist_file_create');
         Route::post('/{id}/checklist-file/{checklistFileId}', [ProcurementChecklistFileController::class, 'update'])->middleware('permission:procurement_checklist_file_update');
         Route::delete('/{id}/checklist-file/{checklistFileId}', [ProcurementChecklistFileController::class, 'destroy'])->middleware('permission:procurement_checklist_file_delete');
+
+        Route::get('/{id}/hps', [ProcurementHpsController::class, 'index'])->middleware('permission:procurement_hps_read');
+        Route::get('/{id}/hps/{hpsId}', [ProcurementHpsController::class, 'show'])->middleware('permission:procurement_hps_read');
+        Route::post('/{id}/hps', [ProcurementHpsController::class, 'store'])->middleware('permission:procurement_hps_create');
+        Route::post('/{id}/hps/{hpsId}', [ProcurementHpsController::class, 'update'])->middleware('permission:procurement_hps_update');
+        Route::delete('/{id}/hps/{hpsId}', [ProcurementHpsController::class, 'destroy'])->middleware('permission:procurement_hps_delete');
     });
 
     Route::prefix('profile')->group(function () {

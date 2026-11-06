@@ -153,6 +153,7 @@ class ProcurementController extends Controller
 
                 $data->documents()->delete();
                 $data->checklistFiles()->delete();
+                $data->hpsItems()->delete();
                 $data->jobSubFields()->detach();
                 $data->schedules()->delete();
                 $data->delete();

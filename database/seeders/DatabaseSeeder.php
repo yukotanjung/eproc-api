@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             JobTypeSeeder::class,
             JobFieldSeeder::class,
             ProcurementMethodSeeder::class,
+            UnitSeeder::class,
         ]);
     }
 }

@@ -610,6 +610,39 @@ trait RuleTrait
                 }
                 break;
 
+            case 'UnitController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name' => 'required|unique:units,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'code' => 'nullable|string|max:50',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => ['required', 'max:100', new IsUniqueOtherRule('units', 'name', $params['own_id'])],
+                        'code'      => 'nullable|string|max:50',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementHpsController':
+                if ($method == 'store' || $method == 'update') {
+                    return [
+                        'name'       => 'required|string|max:255',
+                        'unit_id'    => 'required|integer|exists:units,id,deleted_at,NULL,is_active,1',
+                        'quantity'   => 'required|integer|min:1',
+                        'unit_price' => 'required|numeric|min:0',
+                        'use_tax'    => 'nullable|boolean',
+                    ];
+                }
+                break;
+
             case 'PasswordActivateController':
                 if ($method == "activateAccount") {
                     return [
