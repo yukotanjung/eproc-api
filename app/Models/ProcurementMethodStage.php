@@ -18,10 +18,40 @@ class ProcurementMethodStage extends Model
 
     protected $guarded = [];
 
+    public function getSequenceName(): string
+    {
+        return $this->getTable().'_'.$this->getKeyName().'_seq';
+    }
+
+    public function __isset($key)
+    {
+        if ($key === 'sequence') {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1]['class'] ?? '';
+            if (str_contains($trace, 'Yajra')) {
+                return false;
+            }
+        }
+
+        return parent::__isset($key);
+    }
+
+    public function __get($key)
+    {
+        if ($key === 'sequence') {
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3)[1]['class'] ?? '';
+            if (str_contains($trace, 'Yajra')) {
+                return null;
+            }
+        }
+
+        return parent::__get($key);
+    }
+
     protected $casts = [
         'sequence'      => 'integer',
         'duration_days' => 'integer',
         'requires_file' => 'boolean',
+        'is_public'     => 'boolean',
         'is_active'     => 'boolean',
     ];
 
@@ -44,6 +74,7 @@ class ProcurementMethodStage extends Model
             'duration_days'         => (int) $this->duration_days,
             'day_type'              => $this->day_type,
             'requires_file'         => (bool) $this->requires_file,
+            'is_public'             => (bool) ($this->is_public ?? true),
             'page_key'              => $this->page_key,
             'process_key'           => $this->process_key,
             'description'           => $this->description,
@@ -85,7 +116,7 @@ class ProcurementMethodStage extends Model
         static::withTrashed()
             ->where('procurement_method_id', $procurementMethodId)
             ->whereIn('id', $orderedIds)
-            ->update(['sequence' => DB::raw('-sequence')]);
+            ->update(['sequence' => DB::raw('-"sequence"')]);
 
         foreach ($orderedIds as $index => $id) {
             static::withTrashed()->where('id', $id)->update(['sequence' => $index + 1]);

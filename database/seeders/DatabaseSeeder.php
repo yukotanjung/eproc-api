@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             JobTypeSeeder::class,
+            JobFieldSeeder::class,
+            ProcurementMethodSeeder::class,
+            UnitSeeder::class,
         ]);
     }
 }

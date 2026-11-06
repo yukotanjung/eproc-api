@@ -2,24 +2,34 @@
 
 namespace Tests\Feature;
 
+use App\Models\Holiday;
+
 class ProcurementMethodScheduleTest extends ApiTestCase
 {
-    public function test_preview_returns_effective_dates_for_each_stage(): void
+    public function test_preview_returns_effective_dates_for_each_stage_and_skips_holidays(): void
     {
+        Holiday::create([
+            'holiday_date' => '2026-01-13',
+            'name'         => 'Libur Uji',
+            'is_active'    => true,
+        ]);
+
         $methodId = (int) $this->actingAsApiUser()
             ->postJson('/api/procurement-method', ['name' => 'Tender Jadwal'])
             ->json('result.id');
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Pengumuman', 'duration_days' => 5, 'day_type' => 'calendar',
+            'sequence' => 1, 'name' => 'Pengumuman', 'duration_days' => 5, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/announcement', 'process_key' => 'stage.announcement',
         ])->assertStatus(201);
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Evaluasi', 'duration_days' => 3, 'day_type' => 'working_day',
+            'sequence' => 2, 'name' => 'Evaluasi', 'duration_days' => 3, 'day_type' => 'working_day',
             'page_key' => 'procurement/stage/evaluation', 'process_key' => 'stage.evaluation',
         ])->assertStatus(201);
 
+        // Stage 1: Mon Jan 5 .. Fri Jan 9 (5 calendar days)
+        // Stage 2: snaps past weekend to Mon Jan 12; skips holiday Tue Jan 13 -> Mon 12, Wed 14, Thu 15 (3 working days)
         $this->actingAsApiUser()
             ->postJson("/api/procurement-method/{$methodId}/preview-schedule", ['start_date' => '2026-01-05'])
             ->assertStatus(201)
@@ -27,9 +37,9 @@ class ProcurementMethodScheduleTest extends ApiTestCase
             ->assertJsonPath('result.stages.0.start_date', '2026-01-05')
             ->assertJsonPath('result.stages.0.end_date', '2026-01-09')
             ->assertJsonPath('result.stages.0.next_start_date', '2026-01-10')
-            ->assertJsonPath('result.stages.1.start_date', '2026-01-10')
-            ->assertJsonPath('result.stages.1.end_date', '2026-01-13')
-            ->assertJsonPath('result.stages.1.next_start_date', '2026-01-14');
+            ->assertJsonPath('result.stages.1.start_date', '2026-01-12')
+            ->assertJsonPath('result.stages.1.end_date', '2026-01-15')
+            ->assertJsonPath('result.stages.1.next_start_date', '2026-01-16');
     }
 
     public function test_preview_ignores_inactive_stages(): void
@@ -40,7 +50,7 @@ class ProcurementMethodScheduleTest extends ApiTestCase
 
         // store() forces is_active = true, so deactivate through update
         $skippedId = (int) $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Dilewati', 'duration_days' => 9, 'day_type' => 'calendar',
+            'sequence' => 1, 'name' => 'Dilewati', 'duration_days' => 9, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/skipped', 'process_key' => 'stage.skipped',
         ])->json('result.id');
 
@@ -51,7 +61,7 @@ class ProcurementMethodScheduleTest extends ApiTestCase
         ])->assertStatus(201);
 
         $this->actingAsApiUser()->postJson("/api/procurement-method/{$methodId}/stage", [
-            'name' => 'Diproses', 'duration_days' => 2, 'day_type' => 'calendar',
+            'sequence' => 2, 'name' => 'Diproses', 'duration_days' => 2, 'day_type' => 'calendar',
             'page_key' => 'procurement/stage/processed', 'process_key' => 'stage.processed',
         ])->assertStatus(201);
 

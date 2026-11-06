@@ -483,6 +483,100 @@ components:
               type: string
               example: Civil Infrastructure
 
+    # Job Sub Field Schemas
+    JobSubField:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_type_id:
+          type: integer
+          example: 1
+        job_field_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Konstruksi Bangunan Gedung
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        job_field:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Bangunan Gedung
+
+    # Holiday Schemas
+    Holiday:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        holiday_date:
+          type: string
+          format: date
+          example: '2026-08-17'
+        name:
+          type: string
+          example: Hari Kemerdekaan RI
+        description:
+          type: string
+          nullable: true
+          example: Libur Nasional
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    HolidayInput:
+      type: object
+      required: [holiday_date, name]
+      properties:
+        holiday_date:
+          type: string
+          format: date
+          example: '2026-08-17'
+        name:
+          type: string
+          maxLength: 150
+          example: Hari Kemerdekaan RI
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+          example: Libur Nasional
+        is_active:
+          type: boolean
+          example: true
 
     # Procurement Method Schemas
     ProcurementMethod:
@@ -551,6 +645,10 @@ components:
           type: boolean
           description: When true the stage needs a file upload before it can be completed.
           example: false
+        is_public:
+          type: boolean
+          description: When true the stage is exposed on public endpoints. Default true.
+          example: true
         page_key:
           type: string
           description: Frontend page identifier rendered for this stage.
@@ -574,8 +672,13 @@ components:
 
     ProcurementMethodStageInput:
       type: object
-      required: [name, duration_days, day_type, page_key, process_key]
+      required: [sequence, name, duration_days, day_type, page_key, process_key]
       properties:
+        sequence:
+          type: integer
+          minimum: 1
+          example: 1
+          description: Urutan atau posisi tahapan dalam metode pengadaan.
         name:
           type: string
           maxLength: 150
@@ -591,6 +694,10 @@ components:
           example: working_day
         requires_file:
           type: boolean
+          example: true
+        is_public:
+          type: boolean
+          description: Opsi tayang publik (default true)
           example: true
         page_key:
           type: string
@@ -628,6 +735,9 @@ components:
         duration_days:
           type: integer
           example: 5
+        is_public:
+          type: boolean
+          example: true
         start_date:
           type: string
           format: date
@@ -654,6 +764,839 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProcurementMethodScheduleStage'
+
+    # Procurement Schemas
+    Procurement:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        job_number:
+          type: string
+          example: PROC-2026-001
+        name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          format: float
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          format: float
+          example: 4750000000.00
+        planned_date:
+          type: string
+          format: date
+          example: '2026-11-15'
+        job_type_id:
+          type: integer
+          example: 1
+        qualification_id:
+          type: integer
+          example: 1
+        funding_source_id:
+          type: integer
+          example: 1
+        budget_year:
+          type: integer
+          example: 2026
+        project_location:
+          type: string
+          example: Jakarta Pusat
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          example: -6.20880000
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          example: 106.84560000
+        procurement_method_id:
+          type: integer
+          example: 1
+        announcement_location:
+          type: string
+          example: Portal E-Procurement
+        is_active:
+          type: boolean
+          example: true
+        status:
+          type: string
+          default: draft
+          example: draft
+        cancellation_reason:
+          type: string
+          nullable: true
+          example: Perubahan prioritas anggaran pemerintah
+        cancelled_at:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-10-30T09:00:00Z'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        qualification:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Menengah
+        funding_source:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: APBN
+        procurement_method:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Tender
+
+    ProcurementListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          format: float
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          format: float
+          example: 4750000000.00
+        budget_year:
+          type: integer
+          example: 2026
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        procurement_method:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Tender
+        qualification:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Menengah
+        status:
+          type: string
+          example: draft
+
+    ProcurementInput:
+      type: object
+      required:
+        - job_number
+        - name
+        - budget_ceiling
+        - estimated_price
+        - planned_date
+        - job_type_id
+        - qualification_id
+        - funding_source_id
+        - budget_year
+        - project_location
+        - procurement_method_id
+        - announcement_location
+      properties:
+        job_number:
+          type: string
+          maxLength: 100
+          example: PROC-2026-001
+        name:
+          type: string
+          maxLength: 255
+          example: Pembangunan Gedung Kantor
+        budget_ceiling:
+          type: number
+          minimum: 0
+          example: 5000000000.00
+        estimated_price:
+          type: number
+          minimum: 0
+          example: 4750000000.00
+        planned_date:
+          type: string
+          format: date
+          example: '2026-11-15'
+        job_type_id:
+          type: integer
+          example: 1
+        qualification_id:
+          type: integer
+          example: 1
+        funding_source_id:
+          type: integer
+          example: 1
+        budget_year:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+          example: 2026
+        project_location:
+          type: string
+          maxLength: 255
+          example: Jakarta Pusat
+        latitude:
+          type: number
+          format: float
+          nullable: true
+          example: -6.20880000
+        longitude:
+          type: number
+          format: float
+          nullable: true
+          example: 106.84560000
+        procurement_method_id:
+          type: integer
+          example: 1
+        announcement_location:
+          type: string
+          maxLength: 255
+          example: Portal E-Procurement
+        is_active:
+          type: boolean
+          description: Update only. Create always stores procurement as active.
+          example: true
+
+    ProcurementCancelInput:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          description: Reason for cancellation.
+          example: Perubahan prioritas anggaran pemerintah
+
+    # Procurement Schedule Schemas
+    ProcurementSchedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        procurement_method_stage_id:
+          type: integer
+          nullable: true
+          example: 10
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        duration_days:
+          type: integer
+          example: 5
+        actual_duration_days:
+          type: integer
+          nullable: true
+          example: 5
+        day_type:
+          type: string
+          enum: [calendar, working_day]
+          example: calendar
+        requires_file:
+          type: boolean
+          example: false
+        is_public:
+          type: boolean
+          example: true
+        page_key:
+          type: string
+          example: procurement/stage/announcement
+        process_key:
+          type: string
+          example: stage.announcement
+        description:
+          type: string
+          nullable: true
+        start_at:
+          type: string
+          nullable: true
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          example: '2026-01-09 16:00'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementScheduleItemInput:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID baris jadwal (opsional jika sequence diberikan)
+          example: 1
+        sequence:
+          type: integer
+          description: Urutan tahapan (opsional jika id diberikan)
+          example: 1
+        start_at:
+          type: string
+          nullable: true
+          description: Format Y-m-d H:i atau Y-m-d H:i:s
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          description: Format Y-m-d H:i atau Y-m-d H:i:s
+          example: '2026-01-09 16:00'
+        is_public:
+          type: boolean
+          example: true
+
+    ProcurementScheduleSaveInput:
+      type: object
+      required: [schedules]
+      properties:
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementScheduleItemInput'
+
+    ProcurementScheduleGenerateInput:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+          description: Tanggal mulai generate (default planned_date paket)
+          example: '2026-01-05'
+        from_sequence:
+          type: integer
+          minimum: 1
+          description: Generate mulai dari tahapan tertentu (default 1)
+          example: 1
+        start_time:
+          type: string
+          description: Format H:i atau H:i:s (default 08:00)
+          example: '08:00'
+        end_time:
+          type: string
+          description: Format H:i atau H:i:s (default 16:00)
+          example: '16:00'
+        save:
+          type: boolean
+          description: Bila true langsung simpan ke DB; bila false murni preview
+          default: false
+          example: false
+
+    ProcurementScheduleGenerateResponse:
+      type: object
+      properties:
+        procurement_id:
+          type: integer
+          example: 1
+        start_date:
+          type: string
+          format: date
+          example: '2026-01-05'
+        from_sequence:
+          type: integer
+          example: 1
+        saved:
+          type: boolean
+          example: false
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementSchedule'
+
+    PublicProcurementScheduleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        sequence:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pengumuman
+        duration_days:
+          type: integer
+          example: 5
+        actual_duration_days:
+          type: integer
+          nullable: true
+          example: 5
+        day_type:
+          type: string
+          example: calendar
+        description:
+          type: string
+          nullable: true
+        start_at:
+          type: string
+          nullable: true
+          example: '2026-01-05 08:00'
+        end_at:
+          type: string
+          nullable: true
+          example: '2026-01-09 16:00'
+
+    PublicProcurementScheduleResponse:
+      type: object
+      properties:
+        procurement:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            job_number:
+              type: string
+              example: PROC-2026-001
+            name:
+              type: string
+              example: Pembangunan Gedung Kantor
+            planned_date:
+              type: string
+              format: date
+              nullable: true
+              example: '2026-11-15'
+            budget_year:
+              type: integer
+              example: 2026
+            project_location:
+              type: string
+              example: Jakarta Pusat
+            announcement_location:
+              type: string
+              example: Portal E-Procurement
+            status:
+              type: string
+              example: draft
+        schedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProcurementScheduleItem'
+
+    ProcurementDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Dokumen KAK & RKS
+        file_name:
+          type: string
+          example: kak-rks-2026.pdf
+        mime_type:
+          type: string
+          nullable: true
+          example: application/pdf
+        file_size:
+          type: integer
+          nullable: true
+          example: 245760
+        extension:
+          type: string
+          nullable: true
+          example: pdf
+        is_public:
+          type: boolean
+          example: true
+        download_url:
+          type: string
+          example: http://localhost:8000/api/procurement/1/document/1/download
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PublicProcurementDocument:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Dokumen KAK & RKS
+        file_name:
+          type: string
+          example: kak-rks-2026.pdf
+        mime_type:
+          type: string
+          nullable: true
+          example: application/pdf
+        file_size:
+          type: integer
+          nullable: true
+          example: 245760
+        extension:
+          type: string
+          nullable: true
+          example: pdf
+        download_url:
+          type: string
+          example: http://localhost:8000/api/public/procurement/1/document/1/download
+        created_at:
+          type: string
+          format: date-time
+
+    PublicProcurementDocumentListResponse:
+      type: object
+      properties:
+        procurement:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            job_number:
+              type: string
+              example: PROC-2026-001
+            name:
+              type: string
+              example: Pembangunan Gedung Kantor
+            status:
+              type: string
+              example: draft
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProcurementDocument'
+        download_all_url:
+          type: string
+          example: http://localhost:8000/api/public/procurement/1/document/download-all
+
+    ProcurementChecklistFile:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        procurement_schedule_id:
+          type: integer
+          example: 2
+        name:
+          type: string
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          description: Max file size in KB
+          example: 5120
+        file_types:
+          type: array
+          items:
+            type: string
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          example: true
+        description:
+          type: string
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+        schedule:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 2
+            sequence:
+              type: integer
+              example: 2
+            name:
+              type: string
+              example: Upload Dokumen Kualifikasi
+            requires_file:
+              type: boolean
+              example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateProcurementChecklistFileRequest:
+      type: object
+      required: [procurement_schedule_id, name, max_size, file_types]
+      properties:
+        procurement_schedule_id:
+          type: integer
+          description: Schedule ID with requires_file = true
+          example: 2
+        name:
+          type: string
+          maxLength: 255
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          minimum: 1
+          maximum: 102400
+          description: Max allowed file size in KB (1..102400)
+          example: 5120
+        file_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg]
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          default: true
+          example: true
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+
+    UpdateProcurementChecklistFileRequest:
+      type: object
+      required: [name, max_size, file_types]
+      properties:
+        procurement_schedule_id:
+          type: integer
+          nullable: true
+          description: Optional schedule ID to reassign stage (requires_file = true)
+          example: 2
+        name:
+          type: string
+          maxLength: 255
+          example: Akta Pendirian Perusahaan
+        max_size:
+          type: integer
+          minimum: 1
+          maximum: 102400
+          description: Max allowed file size in KB (1..102400)
+          example: 5120
+        file_types:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg]
+          example: [pdf, zip]
+        is_required:
+          type: boolean
+          example: true
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          example: Scan akta asli dan perubahan terakhir
+
+    # Unit Schemas
+    Unit:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Unit
+        code:
+          type: string
+          nullable: true
+          example: unit
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    # Procurement HPS Schemas
+    ProcurementHpsItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        procurement_id:
+          type: integer
+          example: 1
+        unit_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Server Rackmount 2U
+        quantity:
+          type: integer
+          example: 10
+        unit_price:
+          type: number
+          format: float
+          example: 15000000
+        base_subtotal:
+          type: number
+          format: float
+          example: 150000000
+        use_tax:
+          type: boolean
+          example: true
+        tax_rate:
+          type: number
+          format: float
+          example: 11
+        tax_amount:
+          type: number
+          format: float
+          example: 16500000
+        subtotal:
+          type: number
+          format: float
+          example: 166500000
+        unit:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Unit
+            code:
+              type: string
+              nullable: true
+              example: unit
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ProcurementHpsListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcurementHpsItem'
+        summary:
+          type: object
+          properties:
+            total_items:
+              type: integer
+              example: 2
+            total_before_tax:
+              type: number
+              format: float
+              example: 170000000
+            total_tax:
+              type: number
+              format: float
+              example: 16500000
+            grand_total:
+              type: number
+              format: float
+              example: 186500000
+
+    SaveProcurementHpsItemRequest:
+      type: object
+      required: [name, unit_id, quantity, unit_price]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Server Rackmount 2U
+        unit_id:
+          type: integer
+          description: Active Unit ID from master `units`
+          example: 1
+        quantity:
+          type: integer
+          minimum: 1
+          example: 10
+        unit_price:
+          type: number
+          format: float
+          minimum: 0
+          example: 15000000
+        use_tax:
+          type: boolean
+          default: false
+          description: If true, adds 11% tax to base subtotal
+          example: true
 
   parameters:
     PageParam:
@@ -707,6 +1650,34 @@ components:
       description: Stage ID (autoincrement)
       schema:
         type: integer
+    PathDocumentId:
+      name: documentId
+      in: path
+      required: true
+      description: Procurement Document ID (autoincrement)
+      schema:
+        type: integer
+    PathChecklistFileId:
+      name: checklistFileId
+      in: path
+      required: true
+      description: Procurement Checklist File ID (autoincrement)
+      schema:
+        type: integer
+    PathHpsId:
+      name: hpsId
+      in: path
+      required: true
+      description: Procurement HPS Item ID (autoincrement)
+      schema:
+        type: integer
+    QueryProcurementScheduleId:
+      name: procurement_schedule_id
+      in: query
+      required: false
+      description: Filter by procurement schedule ID
+      schema:
+        type: integer
 
 security:
   - bearerAuth: []
@@ -740,12 +1711,31 @@ tags:
     description: Job type and work classification management
   - name: Job Field
     description: Job field and specialized work area management
+  - name: Job Sub Field
+    description: Job sub field management (sub bidang pekerjaan)
   - name: Classification
     description: Classification and sub-specialization management
   - name: Procurement Method
     description: Procurement method (metode pengadaan) and its ordered stages
   - name: Procurement Method Stage
     description: Stages of a procurement method, including scheduling rules
+  - name: Holiday
+    description: Master national holidays management for working day calculation
+  - name: Unit
+    description: Master unit of measurement (satuan) management
+  - name: Procurement
+    description: Procurement package management (daftar pekerjaan/pengadaan)
+  - name: Schedule
+    description: Procurement stage schedule management and auto-generation
+  - name: Procurement Job Field
+    x-displayName: Job Field
+    description: Procurement job sub-field management
+  - name: Document
+    description: Procurement document upload and download management
+  - name: Checklist
+    description: Procurement stage checklist file specifications
+  - name: HPS
+    description: Procurement owner estimate (Harga Perkiraan Sendiri / HPS Pengadaan) items and summary
 
 x-tagGroups:
   - name: Authentication
@@ -763,14 +1753,25 @@ x-tagGroups:
       - Tax
       - Business Type
       - Work Unit
+      - Unit
       - Qualification
       - Education Level
       - Major
       - Job Type
       - Job Field
+      - Job Sub Field
       - Classification
       - Procurement Method
       - Procurement Method Stage
+      - Holiday
+  - name: Procurement
+    tags:
+      - Procurement
+      - Schedule
+      - Procurement Job Field
+      - Document
+      - Checklist
+      - HPS
 
 paths:
 
@@ -3235,6 +4236,16 @@ paths:
           description: Filter by parent job field ID
           schema:
             type: integer
+        - name: job_field_id
+          in: query
+          description: Filter directly by parent job field ID
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          description: Filter directly by parent job type ID
+          schema:
+            type: integer
       responses:
         '201':
           description: Classifications retrieved successfully
@@ -3400,6 +4411,390 @@ paths:
                     nullable: true
         '403':
           description: Classification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── JOB SUB FIELD ──────────────────────────────────────────────────────────
+
+  /api/job-sub-field:
+    get:
+      tags: [Job Sub Field]
+      summary: List
+      description: Retrieve paginated or full list of job sub fields. Supports search and filter by job type, job field, or name. Requires `job_sub_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by job sub field name
+          schema:
+            type: string
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by parent job type ID
+          schema:
+            type: integer
+        - name: filter[job_field_id]
+          in: query
+          description: Filter by parent job field ID
+          schema:
+            type: integer
+        - name: job_field_id
+          in: query
+          description: Filter directly by parent job field ID
+          schema:
+            type: integer
+        - name: job_type_id
+          in: query
+          description: Filter directly by parent job type ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Job sub fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job sub field
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobSubField'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Job Sub Field]
+      summary: Create
+      description: Create a new job sub field record. Requires `job_sub_field_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_type_id, job_field_id, name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Konstruksi Bangunan Gedung
+      responses:
+        '201':
+          description: Job sub field created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create job sub field
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+
+  /api/job-sub-field/{id}:
+    get:
+      tags: [Job Sub Field]
+      summary: Get details
+      description: Retrieve single job sub field record by ID with job type and job field relations. Requires `job_sub_field_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job sub field retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '403':
+          description: Job sub field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Job Sub Field]
+      summary: Update
+      description: Update existing job sub field details. Requires `job_sub_field_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                job_type_id:
+                  type: integer
+                  example: 1
+                job_field_id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Konstruksi Bangunan Gedung Komersial
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Job sub field updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update job sub field
+                  result:
+                    $ref: '#/components/schemas/JobSubField'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Job sub field not found
+
+    delete:
+      tags: [Job Sub Field]
+      summary: Delete
+      description: Soft delete job sub field record. Requires `job_sub_field_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job sub field deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete job sub field
+                  result:
+                    nullable: true
+        '403':
+          description: Job sub field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── HOLIDAY ────────────────────────────────────────────────────────────────
+
+  /api/holiday:
+    get:
+      tags: [Holiday]
+      summary: List
+      description: Retrieve paginated or full list of holidays. Supports filtering by year or exact date. Requires `holiday_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[year]
+          in: query
+          description: Filter holidays by year (also accepts filter[tahun] or year query)
+          schema:
+            type: integer
+            example: 2026
+        - name: filter[holiday_date]
+          in: query
+          description: Filter by exact holiday date (Y-m-d)
+          schema:
+            type: string
+            format: date
+            example: '2026-08-17'
+      responses:
+        '201':
+          description: Holidays retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list holiday
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Holiday'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Holiday]
+      summary: Create
+      description: Create a new national holiday. Requires `holiday_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayInput'
+      responses:
+        '201':
+          description: Holiday created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create holiday
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '400':
+          description: Validation error or duplicate holiday date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/holiday/{id}:
+    get:
+      tags: [Holiday]
+      summary: Get details
+      description: Retrieve details of a single holiday by ID. Requires `holiday_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Holiday retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '403':
+          description: Holiday not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Holiday]
+      summary: Update
+      description: Update an existing holiday. Requires `holiday_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HolidayInput'
+      responses:
+        '201':
+          description: Holiday updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update holiday
+                  result:
+                    $ref: '#/components/schemas/Holiday'
+        '400':
+          description: Validation error or duplicate holiday date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Holiday not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Holiday]
+      summary: Delete
+      description: Soft delete a holiday record. Requires `holiday_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Holiday deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete holiday
+                  result:
+                    nullable: true
+                    example: null
+        '403':
+          description: Holiday not found
           content:
             application/json:
               schema:
@@ -3617,8 +5012,8 @@ paths:
       tags: [Procurement Method Stage]
       summary: Create stage
       description: |
-        Append a stage to a method. `sequence` is assigned by the server as `max + 1`;
-        any client-sent `sequence` is ignored. Use the reorder endpoint to change the order.
+        Create a stage for a method at the specified `sequence` position. If a stage with the same sequence
+        already exists, subsequent stages are shifted to preserve contiguous 1..N order.
         Requires `procurement_method_create` permission.
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'
@@ -3789,6 +5184,1396 @@ paths:
                 $ref: '#/components/schemas/ValidationError'
         '403':
           description: Method not found
+
+  # ─── PROCUREMENT ────────────────────────────────────────────────────────────
+
+  /api/procurement:
+    get:
+      tags: [Procurement]
+      summary: List
+      description: Retrieve paginated or full list of procurements. Supports filtering and search. Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by procurement name
+          schema:
+            type: string
+        - name: filter[budget_year]
+          in: query
+          description: Filter by budget year (also accepts filter[tahun])
+          schema:
+            type: integer
+        - name: filter[job_type_id]
+          in: query
+          description: Filter by job type ID or name (also accepts filter[jenis_pekerjaan])
+          schema:
+            type: string
+        - name: filter[procurement_method_id]
+          in: query
+          description: Filter by procurement method ID or name (also accepts filter[metode_pengadaan])
+          schema:
+            type: string
+        - name: filter[qualification_id]
+          in: query
+          description: Filter by qualification ID or name (also accepts filter[kualifikasi])
+          schema:
+            type: string
+        - name: filter[status]
+          in: query
+          description: Filter by status (draft, cancelled, etc.)
+          schema:
+            type: string
+        - name: filter[job_number]
+          in: query
+          description: Filter by job number
+          schema:
+            type: string
+        - name: filter[project_location]
+          in: query
+          description: Filter by project location
+          schema:
+            type: string
+        - name: filter[announcement_location]
+          in: query
+          description: Filter by announcement location
+          schema:
+            type: string
+        - name: filter[funding_source_id]
+          in: query
+          description: Filter by funding source ID
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Procurements retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list procurement
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementListItem'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+    post:
+      tags: [Procurement]
+      summary: Create
+      description: Create a new procurement. Requires `procurement_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementInput'
+      responses:
+        '201':
+          description: Procurement created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Creation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}:
+    get:
+      tags: [Procurement]
+      summary: Get details
+      description: Retrieve details of a single procurement by ID with its relations. Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Procurement]
+      summary: Update
+      description: Update an existing procurement. Omitted `is_active` keeps the current value. Cannot update cancelled procurement. Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementInput'
+      responses:
+        '201':
+          description: Procurement updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error or cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Procurement]
+      summary: Delete
+      description: Soft delete a procurement. Requires `procurement_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement
+                  result:
+                    nullable: true
+                    example: null
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/cancel:
+    post:
+      tags: [Procurement]
+      summary: Cancel
+      description: Cancel an active procurement package. Sets status to cancelled and records optional cancellation reason and timestamp. Requires `procurement_cancel` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementCancelInput'
+      responses:
+        '201':
+          description: Procurement cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success cancel procurement
+                  result:
+                    $ref: '#/components/schemas/Procurement'
+        '400':
+          description: Validation error or already cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/job-sub-field:
+    get:
+      tags: [Procurement Job Field]
+      summary: List procurement job sub-fields
+      description: |
+        Retrieve all job sub-fields assigned to a procurement package, including their parent `job_field` and `job_type`.
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement job sub-fields retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement job sub fields
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: PL001 (Pengerukan)
+                        job_type_id:
+                          type: integer
+                          example: 4
+                        job_field_id:
+                          type: integer
+                          example: 6
+                        is_active:
+                          type: boolean
+                          example: true
+                        job_type:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+                        job_field:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: integer
+                            name:
+                              type: string
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Procurement Job Field]
+      summary: Sync procurement job sub-fields
+      description: |
+        Bulk sync/replace the job sub-fields assigned to a procurement package.
+        Every selected `job_sub_field_id` must be active and match the procurement's `job_type_id`.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_sub_field_ids]
+              properties:
+                job_sub_field_ids:
+                  type: array
+                  items:
+                    type: integer
+                  example: [1, 2]
+      responses:
+        '201':
+          description: Procurement job sub-fields synced successfully
+        '400':
+          description: Validation error (cancelled procurement or mismatched job_type_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/job-sub-field/{jobSubFieldId}:
+    delete:
+      tags: [Procurement Job Field]
+      summary: Remove a single job sub-field from procurement
+      description: |
+        Detach a single job sub-field from a procurement package.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: jobSubFieldId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Job sub-field removed from procurement successfully
+        '400':
+          description: Cannot update cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or assigned job sub-field not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT SCHEDULE ───────────────────────────────────────────────────
+
+  /api/procurement/{id}/schedule:
+    get:
+      tags: [Schedule]
+      summary: Get schedule
+      description: |
+        Retrieve all stage schedules of a procurement package ordered by sequence.
+        Calculates `actual_duration_days` considering working days and holidays.
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement schedule retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement schedule
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementSchedule'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Schedule]
+      summary: Save schedule
+      description: |
+        Bulk save and validate stage schedules for a procurement.
+        Supports contiguous partial scheduling starting from stage 1.
+        Validates date order, working days, maximum stage duration, and intra/cross-procurement non-overlapping time windows.
+        Requires `procurement_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementScheduleSaveInput'
+      responses:
+        '201':
+          description: Procurement schedule saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success save procurement schedule
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementSchedule'
+        '400':
+          description: Validation error or schedule conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found or cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/schedule/generate:
+    post:
+      tags: [Schedule]
+      summary: Generate schedule
+      description: |
+        Auto-generate stage schedules starting from start_date (or procurement planned_date).
+        Automatically skips weekends and holidays for working-day stages, and shifts past any overlapping active procurement schedules.
+        Supports preview mode (default `save: false`) or direct persistence (`save: true`, requiring `procurement_update` permission).
+        Requires `procurement_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcurementScheduleGenerateInput'
+      responses:
+        '201':
+          description: Procurement schedule generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success generate procurement schedule
+                  result:
+                    $ref: '#/components/schemas/ProcurementScheduleGenerateResponse'
+        '400':
+          description: Validation error or generation conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found, cancelled, or unauthorized to save
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/schedule:
+    get:
+      tags: [Schedule]
+      summary: Public procurement schedule
+      description: |
+        Public endpoint returning basic procurement package details and only stages marked `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '201':
+          description: Public schedule retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get public procurement schedule
+                  result:
+                    $ref: '#/components/schemas/PublicProcurementScheduleResponse'
+        '403':
+          description: Procurement not found or inactive/cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT DOCUMENT ───────────────────────────────────────────────────
+
+  /api/procurement/{id}/document:
+    get:
+      tags: [Document]
+      summary: List procurement documents
+      description: |
+        Retrieve all documents uploaded to a procurement package (both public and non-public).
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement documents
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementDocument'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Document]
+      summary: Upload a procurement document
+      description: |
+        Upload a single document to a procurement package.
+        Allowed file extensions: `pdf, doc, docx, xls, xlsx, ppt, pptx, csv, txt, jpg, jpeg, png, zip, rar, dwg` (max 20 MB).
+        Requires `procurement_document_create` permission. Cannot upload to a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, file]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Dokumen KAK & RKS
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: boolean
+                  default: true
+                  example: true
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement document
+                  result:
+                    $ref: '#/components/schemas/ProcurementDocument'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/download-all:
+    get:
+      tags: [Document]
+      summary: Download all procurement documents as ZIP
+      description: |
+        Bundle all documents of the procurement package into a single `.zip` archive on the fly and stream it as a download.
+        Duplicate document names inside the ZIP are automatically numbered (`Name (1).ext`).
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP archive stream
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: No documents available to download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or files not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/{documentId}:
+    post:
+      tags: [Document]
+      summary: Update a procurement document
+      description: |
+        Update document name, `is_public` visibility flag, or replace its file.
+        If a new `file` is uploaded, the previous file is deleted from storage.
+        Requires `procurement_document_update` permission. Cannot update a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Dokumen KAK Revisi 1
+                file:
+                  type: string
+                  format: binary
+                is_public:
+                  type: boolean
+                  example: false
+      responses:
+        '201':
+          description: Document updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement document
+                  result:
+                    $ref: '#/components/schemas/ProcurementDocument'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Document]
+      summary: Delete a procurement document
+      description: |
+        Delete a single procurement document and remove its file from storage.
+        Requires `procurement_document_delete` permission. Cannot delete from a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      responses:
+        '201':
+          description: Document deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement document
+                  result:
+                    nullable: true
+        '400':
+          description: Cannot update cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement or document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/document/{documentId}/download:
+    get:
+      tags: [Document]
+      summary: Download a single procurement document
+      description: |
+        Stream/download a single document from the procurement package.
+        Requires `procurement_document_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      responses:
+        '200':
+          description: Document binary file stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Procurement, document, or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document:
+    get:
+      tags: [Document]
+      summary: Public list of procurement documents
+      description: |
+        Public endpoint returning basic procurement details and only documents marked `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '201':
+          description: Public procurement documents retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get public procurement documents
+                  result:
+                    $ref: '#/components/schemas/PublicProcurementDocumentListResponse'
+        '403':
+          description: Procurement not found or inactive/cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document/download-all:
+    get:
+      tags: [Document]
+      summary: Public download all public procurement documents as ZIP
+      description: |
+        Public endpoint bundling only `is_public = true` documents into a `.zip` archive on the fly.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      security: []
+      responses:
+        '200':
+          description: ZIP archive stream of public documents
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: No public documents available to download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Procurement not found, inactive/cancelled, or files missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/public/procurement/{id}/document/{documentId}/download:
+    get:
+      tags: [Document]
+      summary: Public download a single public procurement document
+      description: |
+        Public endpoint to download a single document if it belongs to an active procurement and has `is_public = true`.
+        No Bearer authentication required.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathDocumentId'
+      security: []
+      responses:
+        '200':
+          description: Document binary file stream
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Procurement not found, inactive/cancelled, or document is not public
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── PROCUREMENT CHECKLIST ──────────────────────────────────────────────────
+
+  /api/procurement/{id}/checklist-file:
+    get:
+      tags: [Checklist]
+      summary: List procurement checklist file requirements
+      description: |
+        Retrieve list of required and optional files for procurement schedules.
+        Supports filtering by `procurement_schedule_id`.
+        Requires `procurement_checklist_file_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/QueryProcurementScheduleId'
+      responses:
+        '201':
+          description: Procurement checklist files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement checklist files
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProcurementChecklistFile'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Checklist]
+      summary: Create procurement checklist file requirement
+      description: |
+        Create a file specification for a schedule stage where `requires_file = true`.
+        Requires `procurement_checklist_file_create` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProcurementChecklistFileRequest'
+      responses:
+        '201':
+          description: Procurement checklist file created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '400':
+          description: Validation error or stage does not require file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/checklist-file/{checklistFileId}:
+    get:
+      tags: [Checklist]
+      summary: Get procurement checklist file requirement detail
+      description: |
+        Retrieve a single checklist file requirement by ID.
+        Requires `procurement_checklist_file_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      responses:
+        '201':
+          description: Procurement checklist file retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Checklist]
+      summary: Update procurement checklist file requirement
+      description: |
+        Update a checklist file specification. Can reassign schedule stage if target stage has `requires_file = true`.
+        Requires `procurement_checklist_file_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProcurementChecklistFileRequest'
+      responses:
+        '201':
+          description: Procurement checklist file updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement checklist file
+                  result:
+                    $ref: '#/components/schemas/ProcurementChecklistFile'
+        '400':
+          description: Validation error or invalid stage
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Checklist]
+      summary: Delete procurement checklist file requirement
+      description: |
+        Delete a single checklist file requirement (soft delete).
+        Requires `procurement_checklist_file_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathChecklistFileId'
+      responses:
+        '201':
+          description: Procurement checklist file deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement checklist file
+                  result:
+                    nullable: true
+        '400':
+          description: Validation error or cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── UNIT (MASTER SATUAN) ───────────────────────────────────────────────────
+
+  /api/unit:
+    get:
+      tags: [Unit]
+      summary: List units
+      description: Retrieve paginated or full list of measurement units (satuan). Supports search and filter. Requires `unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: filter[name]
+          in: query
+          description: Filter by unit name
+          schema:
+            type: string
+        - name: filter[code]
+          in: query
+          description: Filter by unit code
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Units retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list unit
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Unit'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Unit]
+      summary: Create unit
+      description: Create a new measurement unit record. Requires `unit_create` permission.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Unit
+                code:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                  example: unit
+      responses:
+        '201':
+          description: Unit created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create unit
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/unit/{id}:
+    get:
+      tags: [Unit]
+      summary: Get unit details
+      description: Retrieve single measurement unit by ID. Requires `unit_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Unit retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '403':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Unit]
+      summary: Update unit
+      description: Update existing measurement unit details. Requires `unit_update` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                  example: Unit
+                code:
+                  type: string
+                  maxLength: 50
+                  nullable: true
+                  example: unit
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Unit updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update unit
+                  result:
+                    $ref: '#/components/schemas/Unit'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Unit not found
+
+    delete:
+      tags: [Unit]
+      summary: Delete unit
+      description: Soft delete measurement unit record. Requires `unit_delete` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Unit deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete unit
+                  result:
+                    nullable: true
+        '403':
+          description: Unit not found
+
+  # ─── PROCUREMENT HPS ────────────────────────────────────────────────────────
+
+  /api/procurement/{id}/hps:
+    get:
+      tags: [HPS]
+      summary: List procurement HPS items and summary
+      description: |
+        Retrieve all HPS items for a procurement package along with summary totals (`total_items`, `total_before_tax`, `total_tax`, `grand_total`).
+        Requires `procurement_hps_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Procurement HPS retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement hps
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsListResponse'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [HPS]
+      summary: Create procurement HPS item
+      description: |
+        Add an HPS item to a procurement package.
+        If `use_tax = true`, 11% tax is added to `quantity * unit_price` to compute `subtotal`.
+        Requires `procurement_hps_create` permission. Cannot add to a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveProcurementHpsItemRequest'
+      responses:
+        '201':
+          description: Procurement HPS item created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success create procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Forbidden or procurement not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/procurement/{id}/hps/{hpsId}:
+    get:
+      tags: [HPS]
+      summary: Get procurement HPS item detail
+      description: |
+        Retrieve a single HPS item by ID.
+        Requires `procurement_hps_read` permission.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      responses:
+        '201':
+          description: Procurement HPS item retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [HPS]
+      summary: Update procurement HPS item
+      description: |
+        Update an existing HPS item and recalculate 11% tax and subtotal.
+        Requires `procurement_hps_update` permission. Cannot update a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveProcurementHpsItemRequest'
+      responses:
+        '201':
+          description: Procurement HPS item updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success update procurement hps item
+                  result:
+                    $ref: '#/components/schemas/ProcurementHpsItem'
+        '400':
+          description: Validation error or procurement cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [HPS]
+      summary: Delete procurement HPS item
+      description: |
+        Soft delete a single HPS item from the procurement package.
+        Requires `procurement_hps_delete` permission. Cannot delete from a cancelled procurement.
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PathHpsId'
+      responses:
+        '201':
+          description: Procurement HPS item deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success delete procurement hps item
+                  result:
+                    nullable: true
+        '400':
+          description: Cannot update cancelled procurement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden or item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ─── PROFILE ────────────────────────────────────────────────────────────────
 

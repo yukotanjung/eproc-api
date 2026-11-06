@@ -308,6 +308,30 @@ class PermissionSeeder extends Seeder
                 "permission" => "classification_delete"
             ],
             [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "read",
+                "permission" => "job_sub_field_read"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "create",
+                "permission" => "job_sub_field_create"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "update",
+                "permission" => "job_sub_field_update"
+            ],
+            [
+                "name" => "Manage Job Sub Field",
+                "subject" => "job_sub_field",
+                "action" => "delete",
+                "permission" => "job_sub_field_delete"
+            ],
+            [
                 "name" => "Manage Procurement Method",
                 "subject" => "procurement_method",
                 "action" => "read",
@@ -330,6 +354,156 @@ class PermissionSeeder extends Seeder
                 "subject" => "procurement_method",
                 "action" => "delete",
                 "permission" => "procurement_method_delete"
+            ],
+            [
+                "name" => "Manage Procurement",
+                "subject" => "procurement",
+                "action" => "read",
+                "permission" => "procurement_read"
+            ],
+            [
+                "name" => "Manage Procurement",
+                "subject" => "procurement",
+                "action" => "create",
+                "permission" => "procurement_create"
+            ],
+            [
+                "name" => "Manage Procurement",
+                "subject" => "procurement",
+                "action" => "update",
+                "permission" => "procurement_update"
+            ],
+            [
+                "name" => "Manage Procurement",
+                "subject" => "procurement",
+                "action" => "delete",
+                "permission" => "procurement_delete"
+            ],
+            [
+                "name" => "Manage Procurement",
+                "subject" => "procurement",
+                "action" => "cancel",
+                "permission" => "procurement_cancel"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "read",
+                "permission" => "procurement_document_read"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "create",
+                "permission" => "procurement_document_create"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "update",
+                "permission" => "procurement_document_update"
+            ],
+            [
+                "name" => "Manage Procurement Document",
+                "subject" => "procurement_document",
+                "action" => "delete",
+                "permission" => "procurement_document_delete"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "read",
+                "permission" => "procurement_checklist_file_read"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "create",
+                "permission" => "procurement_checklist_file_create"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "update",
+                "permission" => "procurement_checklist_file_update"
+            ],
+            [
+                "name" => "Manage Procurement Checklist File",
+                "subject" => "procurement_checklist_file",
+                "action" => "delete",
+                "permission" => "procurement_checklist_file_delete"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "read",
+                "permission" => "holiday_read"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "create",
+                "permission" => "holiday_create"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "update",
+                "permission" => "holiday_update"
+            ],
+            [
+                "name" => "Manage Holiday",
+                "subject" => "holiday",
+                "action" => "delete",
+                "permission" => "holiday_delete"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "read",
+                "permission" => "unit_read"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "create",
+                "permission" => "unit_create"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "update",
+                "permission" => "unit_update"
+            ],
+            [
+                "name" => "Manage Unit",
+                "subject" => "unit",
+                "action" => "delete",
+                "permission" => "unit_delete"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "read",
+                "permission" => "procurement_hps_read"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "create",
+                "permission" => "procurement_hps_create"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "update",
+                "permission" => "procurement_hps_update"
+            ],
+            [
+                "name" => "Manage Procurement HPS",
+                "subject" => "procurement_hps",
+                "action" => "delete",
+                "permission" => "procurement_hps_delete"
             ],
         ];
 

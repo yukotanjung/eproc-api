@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\ProcurementMethod;
+use App\Models\ProcurementMethodStage;
 use App\Traits\RuleTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -43,8 +44,27 @@ class ProcurementMethodController extends Controller
                 'is_active'   => true,
             ]);
 
+            if ($request->has('stages') && is_array($request->stages)) {
+                $stages = collect($request->stages)->sortBy('sequence')->values();
+                foreach ($stages as $index => $stageData) {
+                    ProcurementMethodStage::create([
+                        'procurement_method_id' => $result->id,
+                        'sequence'              => (int) ($stageData['sequence'] ?? ($index + 1)),
+                        'name'                  => $stageData['name'],
+                        'duration_days'         => (int) $stageData['duration_days'],
+                        'day_type'              => $stageData['day_type'],
+                        'requires_file'         => filter_var($stageData['requires_file'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'is_public'             => filter_var($stageData['is_public'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                        'page_key'              => $stageData['page_key'],
+                        'process_key'           => $stageData['process_key'],
+                        'description'           => $stageData['description'] ?? null,
+                        'is_active'             => filter_var($stageData['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                    ]);
+                }
+            }
+
             DB::commit();
-            return $this->baseResponse('Success create procurement method', $result->toApiArray());
+            return $this->baseResponse('Success create procurement method', $result->toApiArray($request->has('stages')));
         } catch (Exception $e) {
             DB::rollBack();
             return $this->invalidResponse($e->getMessage());
@@ -78,8 +98,28 @@ class ProcurementMethodController extends Controller
                     'is_active'   => $request->has('is_active') ? filter_var($request->is_active, FILTER_VALIDATE_BOOLEAN) : $data->is_active,
                 ]);
 
+                if ($request->has('stages') && is_array($request->stages)) {
+                    $data->stages()->delete();
+                    $stages = collect($request->stages)->sortBy('sequence')->values();
+                    foreach ($stages as $index => $stageData) {
+                        ProcurementMethodStage::create([
+                            'procurement_method_id' => $data->id,
+                            'sequence'              => (int) ($stageData['sequence'] ?? ($index + 1)),
+                            'name'                  => $stageData['name'],
+                            'duration_days'         => (int) $stageData['duration_days'],
+                            'day_type'              => $stageData['day_type'],
+                            'requires_file'         => filter_var($stageData['requires_file'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                            'is_public'             => filter_var($stageData['is_public'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                            'page_key'              => $stageData['page_key'],
+                            'process_key'           => $stageData['process_key'],
+                            'description'           => $stageData['description'] ?? null,
+                            'is_active'             => filter_var($stageData['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
+                        ]);
+                    }
+                }
+
                 DB::commit();
-                return $this->baseResponse('Success update procurement method', $data->toApiArray());
+                return $this->baseResponse('Success update procurement method', $data->toApiArray($request->has('stages')));
             }
             return $this->invalidResponse('No data');
         } catch (Exception $e) {

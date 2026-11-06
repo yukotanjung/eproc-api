@@ -63,6 +63,7 @@ class ProcurementMethodTest extends ApiTestCase
 
         $stageId = (int) $this->actingAsApiUser()
             ->postJson("/api/procurement-method/{$id}/stage", [
+                'sequence'      => 1,
                 'name'          => 'Pengumuman',
                 'duration_days' => 5,
                 'day_type'      => 'calendar',
@@ -75,5 +76,53 @@ class ProcurementMethodTest extends ApiTestCase
 
         $this->assertSame(0, ProcurementMethodStage::where('procurement_method_id', $id)->count());
         $this->assertNotNull(ProcurementMethodStage::withTrashed()->find($stageId));
+    }
+
+    public function test_can_create_and_update_method_with_stages_having_required_sequence(): void
+    {
+        $response = $this->actingAsApiUser()->postJson('/api/procurement-method', [
+            'name'        => 'Tender Bersama Tahapan',
+            'description' => 'Metode langsung dengan tahapan',
+            'stages'      => [
+                [
+                    'sequence'      => 2,
+                    'name'          => 'Pemasukan Dokumen',
+                    'duration_days' => 3,
+                    'day_type'      => 'calendar',
+                    'page_key'      => 'page.doc',
+                    'process_key'   => 'proc.doc',
+                ],
+                [
+                    'sequence'      => 1,
+                    'name'          => 'Pengumuman',
+                    'duration_days' => 2,
+                    'day_type'      => 'calendar',
+                    'page_key'      => 'page.announcement',
+                    'process_key'   => 'proc.announcement',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('result.name', 'Tender Bersama Tahapan')
+            ->assertJsonPath('result.stages.0.sequence', 1)
+            ->assertJsonPath('result.stages.0.name', 'Pengumuman')
+            ->assertJsonPath('result.stages.1.sequence', 2)
+            ->assertJsonPath('result.stages.1.name', 'Pemasukan Dokumen');
+
+        $id = $response->json('result.id');
+
+        $this->actingAsApiUser()->postJson('/api/procurement-method', [
+            'name'   => 'Tender Invalid Stage',
+            'stages' => [
+                [
+                    'name'          => 'Tanpa Sequence',
+                    'duration_days' => 3,
+                    'day_type'      => 'calendar',
+                    'page_key'      => 'page.doc',
+                    'process_key'   => 'proc.doc',
+                ],
+            ],
+        ])->assertStatus(400);
     }
 }

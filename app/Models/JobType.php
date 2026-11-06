@@ -27,6 +27,11 @@ class JobType extends Model
         return $this->hasMany(Classification::class, 'job_type_id');
     }
 
+    public function jobSubFields()
+    {
+        return $this->hasMany(JobSubField::class, 'job_type_id');
+    }
+
     public function scopeGetJobType($query, $request, $page, $pageSize, $all)
     {
         $data = $query->filter()->order();

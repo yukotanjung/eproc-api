@@ -13,6 +13,39 @@ trait RuleTrait
         $method = debug_backtrace()[1]['function'];
         $path = explode('\\', $controller);
         $controller = array_pop($path);
+
+        if ($controller === 'ProcurementMethodStageController') {
+            if (!request()->has('sequence')) {
+                if (request()->has('order')) {
+                    request()->merge(['sequence' => request()->order]);
+                } elseif (request()->has('position')) {
+                    request()->merge(['sequence' => request()->position]);
+                }
+            }
+        } elseif ($controller === 'ProcurementMethodController' && request()->has('stages') && is_array(request()->stages)) {
+            $stages = request()->stages;
+            $modified = false;
+            foreach ($stages as $k => $stg) {
+                if (is_array($stg) && !isset($stg['sequence'])) {
+                    if (isset($stg['order'])) {
+                        $stages[$k]['sequence'] = $stg['order'];
+                        $modified = true;
+                    } elseif (isset($stg['position'])) {
+                        $stages[$k]['sequence'] = $stg['position'];
+                        $modified = true;
+                    }
+                }
+            }
+            if ($modified) {
+                request()->merge(['stages' => $stages]);
+            }
+        } elseif ($controller === 'ProcurementDocumentController' && request()->has('is_public')) {
+            $rawPublic = request()->input('is_public');
+            if (is_string($rawPublic) && in_array(strtolower($rawPublic), ['true', 'false'], true)) {
+                request()->merge(['is_public' => strtolower($rawPublic) === 'true']);
+            }
+        }
+
         $datas = request()->all();
         $validator = Validator::make($datas, $this->rules_lists($controller, $method, $custom_var), $this->custom_messages());
         if ($validator->fails()) return $validator->getMessageBag();
@@ -329,6 +362,31 @@ trait RuleTrait
                 }
                 break;
 
+            case 'JobSubFieldController':
+                if ($method == 'index') {
+                    return [
+                        'page'         => 'integer|min:1|nullable',
+                        'page_size'    => 'integer|min:1|nullable',
+                        'all'          => 'boolean|nullable',
+                        'job_field_id' => 'integer|nullable',
+                        'job_type_id'  => 'integer|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
+                        'name'         => 'required|unique:job_sub_fields,name,NULL,id,deleted_at,NULL|string|max:255',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_type_id'  => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'job_field_id' => 'required|integer|exists:job_fields,id,deleted_at,NULL',
+                        'name'         => ['required', 'max:255', new IsUniqueOtherRule('job_sub_fields', 'name', $params['own_id'])],
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                }
+                break;
+
             case 'ProcurementMethodController':
                 if ($method == 'index') {
                     return [
@@ -338,14 +396,34 @@ trait RuleTrait
                     ];
                 } elseif ($method == 'store') {
                     return [
-                        'name'        => 'required|unique:procurement_methods,name,NULL,id,deleted_at,NULL|string|max:100',
-                        'description' => 'nullable|string|max:500',
+                        'name'                   => 'required|unique:procurement_methods,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'description'            => 'nullable|string|max:500',
+                        'stages'                 => 'nullable|array',
+                        'stages.*.sequence'      => 'required_with:stages|integer|min:1',
+                        'stages.*.name'          => 'required_with:stages|string|max:150',
+                        'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
+                        'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
+                        'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.is_public'     => 'nullable|boolean',
+                        'stages.*.page_key'      => 'required_with:stages|string|max:100',
+                        'stages.*.process_key'   => 'required_with:stages|string|max:100',
+                        'stages.*.description'   => 'nullable|string|max:500',
                     ];
                 } elseif ($method == 'update') {
                     return [
-                        'name'        => ['required', 'max:100', new IsUniqueOtherRule('procurement_methods', 'name', $params['own_id'])],
-                        'description' => 'nullable|string|max:500',
-                        'is_active'   => 'nullable|boolean',
+                        'name'                   => ['required', 'max:100', new IsUniqueOtherRule('procurement_methods', 'name', $params['own_id'])],
+                        'description'            => 'nullable|string|max:500',
+                        'is_active'              => 'nullable|boolean',
+                        'stages'                 => 'nullable|array',
+                        'stages.*.sequence'      => 'required_with:stages|integer|min:1',
+                        'stages.*.name'          => 'required_with:stages|string|max:150',
+                        'stages.*.duration_days' => 'required_with:stages|integer|min:1|max:3650',
+                        'stages.*.day_type'      => 'required_with:stages|in:calendar,working_day',
+                        'stages.*.requires_file' => 'nullable|boolean',
+                        'stages.*.is_public'     => 'nullable|boolean',
+                        'stages.*.page_key'      => 'required_with:stages|string|max:100',
+                        'stages.*.process_key'   => 'required_with:stages|string|max:100',
+                        'stages.*.description'   => 'nullable|string|max:500',
                     ];
                 }
                 break;
@@ -353,20 +431,24 @@ trait RuleTrait
             case 'ProcurementMethodStageController':
                 if ($method == 'store') {
                     return [
+                        'sequence'      => 'required|integer|min:1',
                         'name'          => 'required|string|max:150',
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
                         'requires_file' => 'nullable|boolean',
+                        'is_public'     => 'nullable|boolean',
                         'page_key'      => 'required|string|max:100',
                         'process_key'   => 'required|string|max:100',
                         'description'   => 'nullable|string|max:500',
                     ];
                 } elseif ($method == 'update') {
                     return [
+                        'sequence'      => 'nullable|integer|min:1',
                         'name'          => 'required|string|max:150',
                         'duration_days' => 'required|integer|min:1|max:3650',
                         'day_type'      => 'required|in:calendar,working_day',
                         'requires_file' => 'nullable|boolean',
+                        'is_public'     => 'nullable|boolean',
                         'page_key'      => 'required|string|max:100',
                         'process_key'   => 'required|string|max:100',
                         'description'   => 'nullable|string|max:500',
@@ -380,6 +462,183 @@ trait RuleTrait
                 } elseif ($method == 'previewSchedule') {
                     return [
                         'start_date' => 'required|date_format:Y-m-d',
+                    ];
+                }
+                break;
+
+            case 'ProcurementController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_number'            => 'required|unique:procurements,job_number,NULL,id,deleted_at,NULL|string|max:100',
+                        'name'                  => 'required|string|max:255',
+                        'budget_ceiling'        => 'required|numeric|min:0',
+                        'estimated_price'       => 'required|numeric|min:0',
+                        'planned_date'          => 'required|date_format:Y-m-d',
+                        'job_type_id'           => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'qualification_id'      => 'required|integer|exists:qualifications,id,deleted_at,NULL',
+                        'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
+                        'budget_year'           => 'required|integer|min:1900|max:2100',
+                        'project_location'      => 'required|string|max:255',
+                        'latitude'              => 'nullable|numeric|between:-90,90',
+                        'longitude'             => 'nullable|numeric|between:-180,180',
+                        'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
+                        'announcement_location' => 'required|string|max:255',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_number'            => ['required', 'string', 'max:100', new IsUniqueOtherRule('procurements', 'job_number', $params['own_id'])],
+                        'name'                  => 'required|string|max:255',
+                        'budget_ceiling'        => 'required|numeric|min:0',
+                        'estimated_price'       => 'required|numeric|min:0',
+                        'planned_date'          => 'required|date_format:Y-m-d',
+                        'job_type_id'           => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'qualification_id'      => 'required|integer|exists:qualifications,id,deleted_at,NULL',
+                        'funding_source_id'     => 'required|integer|exists:funding_sources,id,deleted_at,NULL',
+                        'budget_year'           => 'required|integer|min:1900|max:2100',
+                        'project_location'      => 'required|string|max:255',
+                        'latitude'              => 'nullable|numeric|between:-90,90',
+                        'longitude'             => 'nullable|numeric|between:-180,180',
+                        'procurement_method_id' => 'required|integer|exists:procurement_methods,id,deleted_at,NULL',
+                        'announcement_location' => 'required|string|max:255',
+                        'is_active'             => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'cancel') {
+                    return [
+                        'reason'              => 'nullable|string|max:500',
+                        'cancellation_reason' => 'nullable|string|max:500',
+                    ];
+                }
+                break;
+
+            case 'HolidayController':
+                if ($method == 'index') {
+                    return [
+                        'page'         => 'integer|min:1|nullable',
+                        'page_size'    => 'integer|min:1|nullable',
+                        'all'          => 'nullable',
+                        'year'         => 'nullable|integer|min:1900|max:2100',
+                        'tahun'        => 'nullable|integer|min:1900|max:2100',
+                        'holiday_date' => 'nullable|date_format:Y-m-d',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'holiday_date' => 'required|date_format:Y-m-d',
+                        'name'         => 'required|string|max:150',
+                        'description'  => 'nullable|string|max:500',
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementScheduleController':
+                if ($method == 'generate') {
+                    return [
+                        'start_date'    => 'nullable|date_format:Y-m-d',
+                        'from_sequence' => 'nullable|integer|min:1',
+                        'start_time'    => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'end_time'      => ['nullable', 'regex:/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'save'          => 'nullable',
+                    ];
+                } elseif ($method == 'save') {
+                    return [
+                        'schedules'            => 'required|array|min:1',
+                        'schedules.*.id'       => 'nullable|integer',
+                        'schedules.*.sequence' => 'nullable|integer|min:1',
+                        'schedules.*.start_at' => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'schedules.*.end_at'   => ['nullable', 'date', 'regex:/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/'],
+                        'schedules.*.is_public' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementJobSubFieldController':
+                if ($method == 'store') {
+                    return [
+                        'job_sub_field_ids'   => 'present|array',
+                        'job_sub_field_ids.*' => 'required|integer|exists:job_sub_fields,id,deleted_at,NULL,is_active,1',
+                    ];
+                }
+                break;
+
+            case 'ProcurementDocumentController':
+                if ($method == 'store') {
+                    return [
+                        'name'      => 'required|string|max:255',
+                        'file'      => 'required|file|extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg|max:20480',
+                        'is_public' => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => 'required|string|max:255',
+                        'file'      => 'nullable|file|extensions:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg|max:20480',
+                        'is_public' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementChecklistFileController':
+                if ($method == 'index') {
+                    return [
+                        'procurement_schedule_id' => 'nullable|integer',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'procurement_schedule_id' => 'required|integer',
+                        'name'                    => 'required|string|max:255',
+                        'max_size'                => 'required|integer|min:1|max:102400',
+                        'file_types'              => 'required|array|min:1',
+                        'file_types.*'            => 'required|string|in:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,CSV,TXT,JPG,JPEG,PNG,ZIP,RAR,DWG',
+                        'is_required'             => 'nullable|boolean',
+                        'description'             => 'nullable|string|max:1000',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'procurement_schedule_id' => 'nullable|integer',
+                        'name'                    => 'required|string|max:255',
+                        'max_size'                => 'required|integer|min:1|max:102400',
+                        'file_types'              => 'required|array|min:1',
+                        'file_types.*'            => 'required|string|in:pdf,doc,docx,xls,xlsx,ppt,pptx,csv,txt,jpg,jpeg,png,zip,rar,dwg,PDF,DOC,DOCX,XLS,XLSX,PPT,PPTX,CSV,TXT,JPG,JPEG,PNG,ZIP,RAR,DWG',
+                        'is_required'             => 'nullable|boolean',
+                        'description'             => 'nullable|string|max:1000',
+                    ];
+                }
+                break;
+
+            case 'UnitController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name' => 'required|unique:units,name,NULL,id,deleted_at,NULL|string|max:100',
+                        'code' => 'nullable|string|max:50',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => ['required', 'max:100', new IsUniqueOtherRule('units', 'name', $params['own_id'])],
+                        'code'      => 'nullable|string|max:50',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'ProcurementHpsController':
+                if ($method == 'store' || $method == 'update') {
+                    return [
+                        'name'       => 'required|string|max:255',
+                        'unit_id'    => 'required|integer|exists:units,id,deleted_at,NULL,is_active,1',
+                        'quantity'   => 'required|integer|min:1',
+                        'unit_price' => 'required|numeric|min:0',
+                        'use_tax'    => 'nullable|boolean',
                     ];
                 }
                 break;
