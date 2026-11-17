@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Middleware\Authenticate;
-use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\Permission;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,8 +31,32 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => $e->getMessage(),
+                    'message' => 'Sesi tidak valid atau telah berakhir. Silakan masuk kembali.',
                 ], 401);
+            }
+        });
+
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Terlalu banyak permintaan. Silakan coba beberapa saat lagi.',
+                ], 429);
+            }
+        });
+
+        $exceptions->render(function (ModelNotFoundException|NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Data atau endpoint yang diminta tidak ditemukan.',
+                ], 404);
+            }
+        });
+
+        $exceptions->render(function (MethodNotAllowedHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Metode permintaan HTTP tidak diizinkan untuk endpoint ini.',
+                ], 405);
             }
         });
     })->create();

@@ -28,19 +28,19 @@ class PasswordForgotController extends Controller
 
             if ($user) {
                 if ($user->email_verified_at == null)
-                return $this->invalidResponse("You need to activate your account first. Check your email for activation link or contact admin for help");
+                return $this->invalidResponse("Akun Anda belum diaktifkan. Silakan periksa email Anda untuk tautan aktivasi atau hubungi admin.");
 
                 $response = $user->sendPasswordReset($request->callback_url);
 
                 return $this->baseResponse("Email sent",$response);
             }
             else {
-                return $this->invalidResponse("Send email failed. Email not found.");
+                return $this->invalidResponse("Gagal mengirim email. Alamat email tidak ditemukan.");
             }
 
         } catch (Exception $e) {
 
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal mengirim tautan atur ulang kata sandi.");
        }
     }
 
@@ -54,16 +54,16 @@ class PasswordForgotController extends Controller
                 ->where('active', '=', 1)
                 ->first();
             if (!$getToken)
-                return $this->invalidResponse("Token Credentials Was Exipired");
+                return $this->invalidResponse("Token sudah kedaluwarsa.");
             $checkHashToken = md5($getToken->token) == $token;
             if ($checkHashToken)
                 return $this->baseResponse("Token is available",["token" => $token]);
             else
-                return $this->invalidResponse("Token Credentials Is Not Valid");
+                return $this->invalidResponse("Token tidak valid.");
         }
 
         catch(DecryptException $e){
-            return $this->invalidResponse("Email Is Not Valid");
+            return $this->invalidResponse("Alamat email tidak valid.");
         }
     }
 
@@ -83,11 +83,11 @@ class PasswordForgotController extends Controller
                 ->where("active", "=", 1)
                 ->first();
             if (!$passwordForgot){
-                return $this->invalidResponse("Token Credentials Was Exipired");
+                return $this->invalidResponse("Token sudah kedaluwarsa.");
             }
             $checkHashToken = md5($passwordForgot->token) == $token;
             if (!$checkHashToken){
-                return $this->invalidResponse("Token Credentials Is Not Valid");
+                return $this->invalidResponse("Token tidak valid.");
             }
             $datas["password"] = Hash::make($request->password);
             $update = $user->update($datas);
@@ -100,7 +100,7 @@ class PasswordForgotController extends Controller
 
         } catch (Exception $e) {
             DB::rollback();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui kata sandi.");
        }
     }
 }

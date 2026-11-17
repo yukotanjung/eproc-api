@@ -890,6 +890,9 @@ components:
         id:
           type: integer
           example: 1
+        job_number:
+          type: string
+          example: PROC-2026-001
         name:
           type: string
           example: Pembangunan Gedung Kantor
@@ -904,6 +907,9 @@ components:
         budget_year:
           type: integer
           example: 2026
+        project_location:
+          type: string
+          example: Jakarta Pusat
         job_type:
           type: object
           nullable: true
@@ -934,6 +940,16 @@ components:
             name:
               type: string
               example: Menengah
+        funding_source:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: APBN
         status:
           type: string
           example: draft

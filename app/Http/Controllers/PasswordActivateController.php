@@ -27,9 +27,9 @@ class PasswordActivateController extends Controller
             $passwordActivation = PasswordActivate::query()->where('email', '=', $email)
                 ->where('active', '=', 1)
                 ->first();
-            if (!$passwordActivation) $this->errorResponses("Token Credentials Was Exipired");
+            if (!$passwordActivation) return $this->errorResponses("Token aktivasi sudah kedaluwarsa.");
             $checkHashToken = md5($passwordActivation->token) == $token;
-            if (!$checkHashToken) $this->errorResponses("Token Credentials Is Not Valid");
+            if (!$checkHashToken) return $this->errorResponses("Token aktivasi tidak valid.");
 
             $user = User::query()->where('email', "=", $email)->first();
             $user->password = Hash::make($request->password);
@@ -41,10 +41,10 @@ class PasswordActivateController extends Controller
                     ->where('active', '=', 1)->update(["active" => 0]);
                 return $this->baseResponse('Account has been activated',$user);
             } else {
-                return $this->invalidResponse("Unkown error");
+                return $this->invalidResponse("Gagal mengaktifkan akun.");
             }
         } catch (Exception $e) {
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal mengaktifkan akun.");
         }
     }
 
@@ -63,9 +63,9 @@ class PasswordActivateController extends Controller
                 ->where('active', '=', 1)
                 ->first();
 
-            if (!$passwordActivation) $this->errorResponses("Token Credentials Was Exipired");
+            if (!$passwordActivation) return $this->errorResponses("Token verifikasi sudah kedaluwarsa.");
             $checkHashToken = md5($passwordActivation->token) == $token;
-            if (!$checkHashToken) $this->errorResponses("Token Credentials Is Not Valid");
+            if (!$checkHashToken) return $this->errorResponses("Token verifikasi tidak valid.");
 
             $user = User::find($uid);
 
@@ -79,7 +79,7 @@ class PasswordActivateController extends Controller
             return $this->baseResponse('Email has been changed',$user);
 
         } catch (Exception $e) {
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memverifikasi email.");
         }
     }
 
@@ -93,12 +93,12 @@ class PasswordActivateController extends Controller
             ->first();
 
         if (!$passwordActivation) {
-            return $this->errorResponses("Token Credentials Was Exipired");
+            return $this->errorResponses("Token aktivasi sudah kedaluwarsa.");
         }
         $checkHashToken = md5($passwordActivation->token) == $token;
         if ($checkHashToken)
                 return $this->baseResponse("Token is available",["token" => $token]);
             else
-                return $this->invalidResponse("Token Credentials Is Not Valid");
+                return $this->invalidResponse("Token aktivasi tidak valid.");
     }
 }

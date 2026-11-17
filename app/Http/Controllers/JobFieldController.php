@@ -57,7 +57,7 @@ class JobFieldController extends Controller
             return $this->baseResponse('Success create job field', $result->load('jobType'));
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data bidang pekerjaan.');
         }
     }
 
@@ -78,7 +78,7 @@ class JobFieldController extends Controller
                 ] : null,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data bidang pekerjaan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -99,10 +99,10 @@ class JobFieldController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update job field', $data->load('jobType'));
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data bidang pekerjaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data bidang pekerjaan.');
         }
     }
 
@@ -118,10 +118,10 @@ class JobFieldController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete job field', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data bidang pekerjaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data bidang pekerjaan.');
         }
     }
 }

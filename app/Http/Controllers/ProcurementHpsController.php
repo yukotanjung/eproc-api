@@ -17,7 +17,7 @@ class ProcurementHpsController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $items = $procurement->hpsItems()
@@ -47,7 +47,7 @@ class ProcurementHpsController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $item = $procurement->hpsItems()
@@ -55,7 +55,7 @@ class ProcurementHpsController extends Controller
             ->find($hpsId);
 
         if (!$item) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data item HPS tidak ditemukan.');
         }
 
         return $this->baseResponse('Success get procurement hps item', $item->toApiArray());
@@ -70,11 +70,11 @@ class ProcurementHpsController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $quantity = (int) $request->input('quantity');
@@ -107,7 +107,7 @@ class ProcurementHpsController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan item HPS pengadaan.');
         }
     }
 
@@ -120,16 +120,16 @@ class ProcurementHpsController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $hpsItem = $procurement->hpsItems()->find($hpsId);
             if (!$hpsItem) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data item HPS tidak ditemukan.');
             }
 
             $quantity = (int) $request->input('quantity');
@@ -161,7 +161,7 @@ class ProcurementHpsController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui item HPS pengadaan.');
         }
     }
 
@@ -170,16 +170,16 @@ class ProcurementHpsController extends Controller
         try {
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $hpsItem = $procurement->hpsItems()->find($hpsId);
             if (!$hpsItem) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data item HPS tidak ditemukan.');
             }
 
             DB::beginTransaction();
@@ -189,7 +189,7 @@ class ProcurementHpsController extends Controller
             return $this->baseResponse('Success delete procurement hps item', null);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus item HPS pengadaan.');
         }
     }
 }

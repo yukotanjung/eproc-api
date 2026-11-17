@@ -93,13 +93,16 @@ class ProcurementTest extends ApiTestCase
         $firstItem = $list->json('result.0');
         $this->assertEquals([
             'id',
+            'job_number',
             'name',
             'budget_ceiling',
             'estimated_price',
             'budget_year',
+            'project_location',
             'job_type',
             'procurement_method',
             'qualification',
+            'funding_source',
             'status',
         ], array_keys($firstItem));
 

@@ -64,7 +64,7 @@ class ProcurementController extends Controller
             return $this->baseResponse('Success create procurement', $result->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data pengadaan.');
         }
     }
 
@@ -80,7 +80,7 @@ class ProcurementController extends Controller
         if ($data) {
             return $this->baseResponse('Success', $data->toApiArray());
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data pengadaan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -91,7 +91,7 @@ class ProcurementController extends Controller
             $data = Procurement::find($id);
             if ($data) {
                 if ($data->status === Procurement::STATUS_CANCELLED) {
-                    return $this->errorValidateResponse('Cannot update cancelled procurement');
+                    return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
                 }
 
                 DB::beginTransaction();
@@ -130,10 +130,10 @@ class ProcurementController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update procurement', $data->toApiArray());
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data pengadaan.');
         }
     }
 
@@ -161,10 +161,10 @@ class ProcurementController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete procurement', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data pengadaan.');
         }
     }
 
@@ -176,7 +176,7 @@ class ProcurementController extends Controller
             $data = Procurement::find($id);
             if ($data) {
                 if ($data->status === Procurement::STATUS_CANCELLED) {
-                    return $this->errorValidateResponse('Procurement is already cancelled');
+                    return $this->errorValidateResponse('Pengadaan sudah dibatalkan sebelumnya.');
                 }
 
                 DB::beginTransaction();
@@ -194,10 +194,10 @@ class ProcurementController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success cancel procurement', $data->toApiArray());
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal membatalkan pengadaan.');
         }
     }
 }

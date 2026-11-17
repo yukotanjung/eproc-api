@@ -31,6 +31,6 @@ class Permission extends Controller
             }
         }
 
-        return $this->invalidResponse("Your request is not allowed");
+        return $this->invalidResponse("Anda tidak memiliki akses untuk melakukan permintaan ini.");
     }
 }

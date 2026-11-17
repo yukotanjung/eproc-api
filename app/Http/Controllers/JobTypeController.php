@@ -51,7 +51,7 @@ class JobTypeController extends Controller
             return $this->baseResponse('Success create job type', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data jenis pekerjaan.');
         }
     }
 
@@ -67,7 +67,7 @@ class JobTypeController extends Controller
                 'updated_at' => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data jenis pekerjaan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -87,10 +87,10 @@ class JobTypeController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update job type', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jenis pekerjaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data jenis pekerjaan.');
         }
     }
 
@@ -106,10 +106,10 @@ class JobTypeController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete job type', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jenis pekerjaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data jenis pekerjaan.');
         }
     }
 }

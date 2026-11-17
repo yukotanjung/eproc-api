@@ -4,25 +4,20 @@ namespace App\Providers;
 
 use App\Database\Oracle\OracleConnection;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Yajra\Oci8\Connectors\OracleConnector as Connector;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
+        App::setLocale('id');
         URL::forceScheme('https');
 
         Connection::resolverFor('oracle', function ($connection, $database, $prefix, $config) {

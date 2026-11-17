@@ -118,7 +118,7 @@ class ProcurementScheduleService
     public function generate(Procurement $procurement, array $options = []): array
     {
         if ($procurement->status === Procurement::STATUS_CANCELLED) {
-            throw new DomainException('Cannot generate schedule for cancelled procurement');
+            throw new DomainException('Tidak dapat membuat jadwal untuk pengadaan yang sudah dibatalkan.');
         }
 
         $startTime = $options['start_time'] ?? self::DEFAULT_START_TIME;
@@ -128,7 +128,7 @@ class ProcurementScheduleService
         $requestedStartDate = $options['start_date'] ?? null;
 
         if ($this->normalizeHms($endTime) <= $this->normalizeHms($startTime)) {
-            throw new DomainException('end_time must be after start_time');
+            throw new DomainException('Waktu selesai harus lebih besar dari waktu mulai.');
         }
 
         $schedules = $this->getOrderedSchedules($procurement);
@@ -144,7 +144,7 @@ class ProcurementScheduleService
 
         $maxSequence = (int) $schedules->max('sequence');
         if ($fromSequence < 1 || $fromSequence > $maxSequence) {
-            throw new DomainException("from_sequence must be between 1 and {$maxSequence}");
+            throw new DomainException("Urutan awal harus bernilai antara 1 sampai {$maxSequence}.");
         }
 
         $lockedStages = $schedules->filter(fn (ProcurementSchedule $s) => (int) $s->sequence < $fromSequence)->values();
@@ -154,7 +154,7 @@ class ProcurementScheduleService
             foreach ($lockedStages as $locked) {
                 if (!$locked->start_at || !$locked->end_at) {
                     throw new DomainException(
-                        "Stage #{$locked->sequence} ({$locked->name}) must be scheduled before generating from sequence {$fromSequence}"
+                        "Tahap #{$locked->sequence} ({$locked->name}) harus dijadwalkan terlebih dahulu sebelum membuat jadwal dari urutan {$fromSequence}."
                     );
                 }
             }
@@ -166,7 +166,7 @@ class ProcurementScheduleService
                 $cursorDate = CarbonImmutable::parse($requestedStartDate)->startOfDay();
                 if ($cursorDate->lt($minStartDate)) {
                     throw new DomainException(
-                        "start_date ({$cursorDate->toDateString()}) must be at least {$minStartDate->toDateString()} (H+1 after previous stage)"
+                        "Tanggal mulai ({$cursorDate->toDateString()}) minimal harus {$minStartDate->toDateString()} (H+1 setelah tahapan sebelumnya)."
                     );
                 }
             } else {
@@ -227,12 +227,12 @@ class ProcurementScheduleService
     public function save(Procurement $procurement, array $items): array
     {
         if ($procurement->status === Procurement::STATUS_CANCELLED) {
-            throw new DomainException('Cannot update schedule of cancelled procurement');
+            throw new DomainException('Tidak dapat memperbarui jadwal pada pengadaan yang sudah dibatalkan.');
         }
 
         $schedules = $this->getOrderedSchedules($procurement);
         if ($schedules->isEmpty()) {
-            throw new DomainException('Procurement has no stages to schedule');
+            throw new DomainException('Pengadaan tidak memiliki tahapan untuk dijadwalkan.');
         }
 
         $byId = $schedules->keyBy('id');
@@ -244,19 +244,19 @@ class ProcurementScheduleService
             if (isset($item['id']) && $item['id'] !== null) {
                 $target = $byId->get((int) $item['id']);
                 if (!$target) {
-                    throw new DomainException("Schedule item at index {$idx} references invalid schedule id {$item['id']}");
+                    throw new DomainException("Item jadwal pada indeks {$idx} mengacu pada ID jadwal yang tidak valid ({$item['id']}).");
                 }
             } elseif (isset($item['sequence']) && $item['sequence'] !== null) {
                 $target = $bySequence->get((int) $item['sequence']);
                 if (!$target) {
-                    throw new DomainException("Schedule item at index {$idx} references invalid sequence {$item['sequence']}");
+                    throw new DomainException("Item jadwal pada indeks {$idx} mengacu pada urutan yang tidak valid ({$item['sequence']}).");
                 }
             } else {
-                throw new DomainException("Schedule item at index {$idx} must include id or sequence");
+                throw new DomainException("Item jadwal pada indeks {$idx} wajib menyertakan ID atau urutan.");
             }
 
             if (isset($seenStageIds[$target->id])) {
-                throw new DomainException("Duplicate schedule entry for stage #{$target->sequence} ({$target->name})");
+                throw new DomainException("Terdapat duplikasi data jadwal untuk tahap #{$target->sequence} ({$target->name}).");
             }
             $seenStageIds[$target->id] = true;
 
@@ -269,7 +269,7 @@ class ProcurementScheduleService
 
                 if ($hasStart !== $hasEnd) {
                     throw new DomainException(
-                        "Stage #{$target->sequence} ({$target->name}): start_at and end_at must both be filled or both be null"
+                        "Tahap #{$target->sequence} ({$target->name}): waktu mulai dan waktu selesai harus diisi keduanya atau dikosongkan keduanya."
                     );
                 }
 
@@ -296,7 +296,7 @@ class ProcurementScheduleService
             if (!$hasDates) {
                 if ($stage->start_at !== null || $stage->end_at !== null) {
                     throw new DomainException(
-                        "Stage #{$seq} ({$stage->name}): start_at and end_at must both be filled or both be null"
+                        "Tahap #{$seq} ({$stage->name}): waktu mulai dan waktu selesai harus diisi keduanya atau dikosongkan keduanya."
                     );
                 }
                 $seenUnscheduled = true;
@@ -305,7 +305,7 @@ class ProcurementScheduleService
 
             if ($seenUnscheduled) {
                 throw new DomainException(
-                    "Stage #{$seq} ({$stage->name}): cannot schedule stage after an unscheduled earlier stage; fill sequentially from stage 1"
+                    "Tahap #{$seq} ({$stage->name}): tidak dapat menjadwalkan tahapan setelah tahapan sebelumnya yang belum dijadwalkan; silakan isi secara berurutan mulai dari tahap 1."
                 );
             }
 
@@ -314,33 +314,34 @@ class ProcurementScheduleService
 
             if ($end->lte($start)) {
                 throw new DomainException(
-                    "Stage #{$seq} ({$stage->name}): end_at must be greater than start_at"
+                    "Tahap #{$seq} ({$stage->name}): waktu selesai harus lebih besar dari waktu mulai."
                 );
             }
 
             if ($stage->day_type === ProcurementMethodStage::DAY_TYPE_WORKING_DAY) {
                 if (!StageSchedule::isWorkingDay($start, $holidaySet)) {
                     throw new DomainException(
-                        "Stage #{$seq} ({$stage->name}): start_at ({$start->toDateString()}) must fall on a working day"
+                        "Tahap #{$seq} ({$stage->name}): tanggal mulai ({$start->toDateString()}) harus jatuh pada hari kerja."
                     );
                 }
                 if (!StageSchedule::isWorkingDay($end, $holidaySet)) {
                     throw new DomainException(
-                        "Stage #{$seq} ({$stage->name}): end_at ({$end->toDateString()}) must fall on a working day"
+                        "Tahap #{$seq} ({$stage->name}): tanggal selesai ({$end->toDateString()}) harus jatuh pada hari kerja."
                     );
                 }
             }
 
             $actualDays = StageSchedule::countActualDays($start, $end, $stage->day_type, $holidaySet);
             if ($actualDays < 1 || $actualDays > (int) $stage->duration_days) {
+                $dayTypeLabel = $stage->day_type === ProcurementMethodStage::DAY_TYPE_WORKING_DAY ? 'hari kerja' : 'hari kalender';
                 throw new DomainException(
-                    "Stage #{$seq} ({$stage->name}): duration of {$actualDays} {$stage->day_type} day(s) exceeds maximum allowed {$stage->duration_days} day(s)"
+                    "Tahap #{$seq} ({$stage->name}): durasi {$actualDays} {$dayTypeLabel} melebihi batas maksimal {$stage->duration_days} {$dayTypeLabel}."
                 );
             }
 
             if ($prevEnd !== null && $start->startOfDay()->lte($prevEnd->startOfDay())) {
                 throw new DomainException(
-                    "Stage #{$seq} ({$stage->name}): start date ({$start->toDateString()}) clashes with previous stage end date ({$prevEnd->toDateString()})"
+                    "Tahap #{$seq} ({$stage->name}): tanggal mulai ({$start->toDateString()}) bentrok dengan tanggal selesai tahapan sebelumnya ({$prevEnd->toDateString()})."
                 );
             }
 
@@ -348,11 +349,11 @@ class ProcurementScheduleService
             if ($conflict !== null) {
                 $otherLabel = $conflict->procurement
                     ? "{$conflict->procurement->job_number} - {$conflict->procurement->name}"
-                    : "Procurement #{$conflict->procurement_id}";
+                    : "Pengadaan #{$conflict->procurement_id}";
                 $window = $conflict->start_at->format('Y-m-d H:i').' s/d '.$conflict->end_at->format('Y-m-d H:i');
 
                 throw new DomainException(
-                    "Stage #{$seq} ({$stage->name}): schedule clashes with stage '{$conflict->name}' ({$window}) on {$otherLabel}"
+                    "Tahap #{$seq} ({$stage->name}): jadwal bentrok dengan tahap '{$conflict->name}' ({$window}) pada {$otherLabel}."
                 );
             }
 
@@ -432,7 +433,7 @@ class ProcurementScheduleService
             $cursor = $jumpDate;
 
             if (++$safety > 3660) {
-                throw new DomainException('Unable to locate conflict-free schedule window within search horizon');
+                throw new DomainException('Tidak dapat menemukan rentang waktu jadwal yang bebas bentrok.');
             }
         }
     }

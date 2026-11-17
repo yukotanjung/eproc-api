@@ -21,7 +21,7 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $documents = $procurement->documents()
@@ -43,11 +43,11 @@ class ProcurementDocumentController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $file = $request->file('file');
@@ -76,7 +76,7 @@ class ProcurementDocumentController extends Controller
             return $this->baseResponse('Success create procurement document', $document->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan dokumen pengadaan.');
         }
     }
 
@@ -89,16 +89,16 @@ class ProcurementDocumentController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $document = $procurement->documents()->find($documentId);
             if (!$document) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data dokumen pengadaan tidak ditemukan.');
             }
 
             $updates = [
@@ -136,7 +136,7 @@ class ProcurementDocumentController extends Controller
             return $this->baseResponse('Success update procurement document', $document->fresh()->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui dokumen pengadaan.');
         }
     }
 
@@ -145,16 +145,16 @@ class ProcurementDocumentController extends Controller
         try {
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $document = $procurement->documents()->find($documentId);
             if (!$document) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data dokumen pengadaan tidak ditemukan.');
             }
 
             $filePath = $document->file_path;
@@ -171,7 +171,7 @@ class ProcurementDocumentController extends Controller
             return $this->baseResponse('Success delete procurement document', null);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus dokumen pengadaan.');
         }
     }
 
@@ -179,12 +179,12 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $document = $procurement->documents()->find($documentId);
         if (!$document) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data dokumen pengadaan tidak ditemukan.');
         }
 
         return $this->streamDocumentDownload($document);
@@ -194,12 +194,12 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $documents = $procurement->documents()->orderBy('id')->get();
         if ($documents->isEmpty()) {
-            return $this->errorValidateResponse('No documents available to download');
+            return $this->errorValidateResponse('Tidak ada dokumen yang tersedia untuk diunduh.');
         }
 
         return $this->streamZipDownload($procurement, $documents);
@@ -209,7 +209,7 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = $this->findActiveProcurement($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $documents = $procurement->documents()
@@ -236,7 +236,7 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = $this->findActiveProcurement($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $document = $procurement->documents()
@@ -244,7 +244,7 @@ class ProcurementDocumentController extends Controller
             ->find($documentId);
 
         if (!$document) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data dokumen pengadaan tidak ditemukan.');
         }
 
         return $this->streamDocumentDownload($document);
@@ -254,7 +254,7 @@ class ProcurementDocumentController extends Controller
     {
         $procurement = $this->findActiveProcurement($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $documents = $procurement->documents()
@@ -263,7 +263,7 @@ class ProcurementDocumentController extends Controller
             ->get();
 
         if ($documents->isEmpty()) {
-            return $this->errorValidateResponse('No documents available to download');
+            return $this->errorValidateResponse('Tidak ada dokumen yang tersedia untuk diunduh.');
         }
 
         return $this->streamZipDownload($procurement, $documents);
@@ -286,7 +286,7 @@ class ProcurementDocumentController extends Controller
         $disk = Storage::disk($this->diskName());
 
         if (!$document->file_path || !$disk->exists($document->file_path)) {
-            return $this->invalidResponse('File not found');
+            return $this->invalidResponse('Berkas dokumen tidak ditemukan.');
         }
 
         $downloadName = $this->buildDownloadFilename($document->name, $document->extension);
@@ -306,7 +306,7 @@ class ProcurementDocumentController extends Controller
 
         $zip = new ZipArchive();
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            return $this->invalidResponse('Failed to create zip archive');
+            return $this->invalidResponse('Gagal membuat arsip ZIP.');
         }
 
         $usedNames = [];
@@ -326,7 +326,7 @@ class ProcurementDocumentController extends Controller
 
         if ($addedCount === 0) {
             @unlink($zipPath);
-            return $this->invalidResponse('File not found');
+            return $this->invalidResponse('Berkas dokumen tidak ditemukan.');
         }
 
         $slug = Str::slug($procurement->job_number ?: ('procurement-' . $procurement->id));

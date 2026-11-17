@@ -55,7 +55,7 @@ class WorkUnitController extends Controller
             return $this->baseResponse('Success create work unit', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data unit kerja.');
         }
     }
 
@@ -73,7 +73,7 @@ class WorkUnitController extends Controller
                 'updated_at'  => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data unit kerja tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -95,10 +95,10 @@ class WorkUnitController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update work unit', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data unit kerja tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data unit kerja.');
         }
     }
 
@@ -114,10 +114,10 @@ class WorkUnitController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete work unit', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data unit kerja tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data unit kerja.');
         }
     }
 }

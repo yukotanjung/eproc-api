@@ -51,7 +51,7 @@ class MajorController extends Controller
             return $this->baseResponse('Success create major', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data jurusan.');
         }
     }
 
@@ -67,7 +67,7 @@ class MajorController extends Controller
                 'updated_at' => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data jurusan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -87,10 +87,10 @@ class MajorController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update major', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jurusan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data jurusan.');
         }
     }
 
@@ -106,10 +106,10 @@ class MajorController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete major', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jurusan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data jurusan.');
         }
     }
 }

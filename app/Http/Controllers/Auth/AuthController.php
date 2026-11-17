@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\User;
 use App\Traits\RoleTrait;
-use App\Types\RoleAccess;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -16,29 +17,42 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $loginInput = $request->input('login') ?? $request->input('email') ?? $request->input('username');
+        $loginInput = trim((string) ($request->input('login') ?? $request->input('email') ?? $request->input('username') ?? ''));
+        $validator = Validator::make(
+            [
+                'login'    => $loginInput,
+                'password' => $request->input('password'),
+            ],
+            [
+                'login'    => ['required', 'string'],
+                'password' => ['required', 'string'],
+            ],
+            [
+                'login.required'    => 'Username atau email wajib diisi.',
+                'password.required' => 'Kata sandi wajib diisi.',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->errorValidateResponse($validator->errors()->first(), $validator->errors(), 422);
+        }
+
         $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        $credentials = [$field => $loginInput, 'password' => $request->password];
+        $credentials = [$field => $loginInput, 'password' => $request->input('password')];
+
         try {
             if (!($token = JWTAuth::attempt($credentials))) {
-                return $this->invalidResponse('Invalid credentials', 400);
+                return $this->invalidResponse('Username/email atau kata sandi salah.', 401);
             }
         } catch (JWTException $e) {
-            return $this->invalidResponse('Could not create token', 500);
+            return $this->invalidResponse('Gagal membuat token autentikasi.', 500);
         }
+
+        /** @var User $user */
         $user = Auth::user();
-        $roles = $this->transformRoles($user->roles);
-        $result = [
-            'id'            => $user->id,
-            'name'          => $user->name,
-            'username'      => $user->username,
-            'employee_code' => $user->employee_code,
-            'email'         => $user->email,
-            'photo_url'     => $user->photo_url,
-            'token'         => $token,
-            'roles'         => $roles
-        ];
-        return $this->baseResponse('Login successful', $result);
+        $user->load('roles.permissions');
+
+        return $this->baseResponse('Login successful', $this->formatAuthUser($user, $token));
     }
 
     public function logout()
@@ -49,15 +63,39 @@ class AuthController extends Controller
 
     public function me()
     {
+        /** @var User $user */
         $user = auth()->user();
-        $result = [
+        $user->load('roles.permissions');
+
+        return $this->baseResponse('User profile', $this->formatAuthUser($user));
+    }
+
+    private function formatAuthUser(User $user, ?string $token = null): array
+    {
+        $permissions = $user->roles
+            ->flatMap(fn ($role) => $role->permissions)
+            ->pluck('permission')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $payload = [
             'id'            => $user->id,
             'name'          => $user->name,
             'username'      => $user->username,
             'employee_code' => $user->employee_code,
             'email'         => $user->email,
+            'photo_url'     => $user->photo_url,
             'last_login'    => $user->last_login,
+            'roles'         => $this->transformRoles($user->roles),
+            'permissions'   => $permissions,
         ];
-        return $this->baseResponse('User profile', $result);
+
+        if ($token !== null) {
+            $payload['token'] = $token;
+        }
+
+        return $payload;
     }
 }

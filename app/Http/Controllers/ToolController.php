@@ -22,7 +22,7 @@ class ToolController extends Controller
             $pathInfo = pathinfo($filePath);
 
             if (!Storage::disk('s3')->exists($filePath)) {
-                return response()->json(['error' => 'File not found'], 404);
+                return response()->json(['error' => 'Berkas tidak ditemukan.', 'message' => 'Berkas tidak ditemukan.'], 404);
             }
 
             /** @var \Illuminate\Filesystem\FilesystemManager $disk */
@@ -50,7 +50,7 @@ class ToolController extends Controller
                     ->header('Content-Disposition', 'attachment; filename="' . $fileName . $extension . '"');
             }
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid token or file not found'], 404);
+            return response()->json(['error' => 'Token tidak valid atau berkas tidak ditemukan.', 'message' => 'Token tidak valid atau berkas tidak ditemukan.'], 404);
         }
     }
 
@@ -66,7 +66,7 @@ class ToolController extends Controller
             $pathInfo = pathinfo($filePath);
 
             if (!Storage::disk('s3')->exists($filePath)) {
-                return response()->json(['error' => 'File not found'], 404);
+                return response()->json(['error' => 'Berkas tidak ditemukan.', 'message' => 'Berkas tidak ditemukan.'], 404);
             }
 
             /** @var \Illuminate\Filesystem\FilesystemManager $disk */
@@ -94,7 +94,7 @@ class ToolController extends Controller
                     ->header('Content-Disposition', 'attachment; filename="' . $fileName . $extension . '"');
             }
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Invalid token or file not found'], 404);
+            return response()->json(['error' => 'Token tidak valid atau berkas tidak ditemukan.', 'message' => 'Token tidak valid atau berkas tidak ditemukan.'], 404);
         }
     }
 }

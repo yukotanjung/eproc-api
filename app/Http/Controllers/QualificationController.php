@@ -53,7 +53,7 @@ class QualificationController extends Controller
             return $this->baseResponse('Success create qualification', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data kualifikasi.');
         }
     }
 
@@ -70,7 +70,7 @@ class QualificationController extends Controller
                 'updated_at'  => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data kualifikasi tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -91,10 +91,10 @@ class QualificationController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update qualification', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data kualifikasi tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data kualifikasi.');
         }
     }
 
@@ -110,10 +110,10 @@ class QualificationController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete qualification', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data kualifikasi tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data kualifikasi.');
         }
     }
 }

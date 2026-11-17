@@ -27,6 +27,6 @@ class SumUniqueInTable implements Rule
 
     public function message()
     {
-        return 'File already exists.';
+        return 'Berkas sudah ada.';
     }
 }

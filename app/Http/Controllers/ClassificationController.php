@@ -63,7 +63,7 @@ class ClassificationController extends Controller
             return $this->baseResponse('Success create classification', $result->load(['jobType', 'jobField']));
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data klasifikasi.');
         }
     }
 
@@ -89,7 +89,7 @@ class ClassificationController extends Controller
                 ] : null,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data klasifikasi tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -111,10 +111,10 @@ class ClassificationController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update classification', $data->load(['jobType', 'jobField']));
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data klasifikasi tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data klasifikasi.');
         }
     }
 
@@ -130,10 +130,10 @@ class ClassificationController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete classification', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data klasifikasi tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data klasifikasi.');
         }
     }
 }

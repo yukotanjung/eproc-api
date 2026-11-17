@@ -126,6 +126,7 @@ class Procurement extends Model
             'jobType',
             'qualification',
             'procurementMethod',
+            'fundingSource',
         ])->filter()->order();
 
         if ($all) {
@@ -196,10 +197,12 @@ class Procurement extends Model
     {
         return [
             'id'                 => $this->id,
+            'job_number'         => $this->job_number,
             'name'               => $this->name,
             'budget_ceiling'     => (float) $this->budget_ceiling,
             'estimated_price'    => (float) $this->estimated_price,
             'budget_year'        => (int) $this->budget_year,
+            'project_location'   => $this->project_location,
             'job_type'           => $this->jobType ? [
                 'id'   => $this->jobType->id,
                 'name' => $this->jobType->name,
@@ -212,8 +215,11 @@ class Procurement extends Model
                 'id'   => $this->qualification->id,
                 'name' => $this->qualification->name,
             ] : null,
+            'funding_source'     => $this->fundingSource ? [
+                'id'   => $this->fundingSource->id,
+                'name' => $this->fundingSource->name,
+            ] : null,
             'status'             => $this->status,
-
         ];
     }
 

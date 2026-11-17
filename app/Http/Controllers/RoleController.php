@@ -60,11 +60,11 @@ class RoleController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success create role', $result);
             }else{
-                return $this->invalidResponse("No data");
+                return $this->invalidResponse("Gagal menyimpan data peran.");
             }
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal menyimpan data peran.");
         }
 
     }
@@ -88,7 +88,7 @@ class RoleController extends Controller
             ];;
             return $this->baseResponse('Success', $result);
         }else{
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data peran tidak ditemukan.");
         }
     }
 
@@ -113,11 +113,11 @@ class RoleController extends Controller
                 DB::commit();
                 return $this->baseResponse("Success update role",$data);
             }
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data peran tidak ditemukan.");
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui data peran.");
         }
     }
 
@@ -132,7 +132,7 @@ class RoleController extends Controller
             })->count();
 
             if ($usersCount > 0) {
-                return $this->invalidResponse("Cannot delete the roles. There are users still associated with them.");
+                return $this->invalidResponse("Tidak dapat menghapus peran karena masih digunakan oleh pengguna.");
             }
 
             $data = Role::find($id);
@@ -144,11 +144,11 @@ class RoleController extends Controller
                 DB::commit();
                 return $this->baseResponse("Success delete role",null);
             }
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data peran tidak ditemukan.");
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal menghapus data peran.");
         }
     }
 }
