@@ -401,9 +401,12 @@ trait RuleTrait
             case 'ProcurementMethodController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -480,9 +483,12 @@ trait RuleTrait
             case 'ProcurementController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -624,9 +630,12 @@ trait RuleTrait
             case 'UnitController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
