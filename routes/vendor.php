@@ -3,6 +3,7 @@
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\Vendor\VendorAuthController;
+use App\Http\Controllers\Vendor\VendorOwnerController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,16 @@ Route::prefix('vendor')->group(function () {
             Route::get('/{id}', [VendorProfileController::class, 'showUser']);
             Route::post('/{id}', [VendorProfileController::class, 'updateUser']);
             Route::delete('/{id}', [VendorProfileController::class, 'destroyUser']);
+        });
+
+        Route::prefix('owner')->group(function () {
+            Route::get('/', [VendorOwnerController::class, 'index']);
+            Route::post('/', [VendorOwnerController::class, 'store']);
+            Route::get('/{id}', [VendorOwnerController::class, 'show']);
+            Route::post('/{id}', [VendorOwnerController::class, 'update']);
+            Route::delete('/{id}', [VendorOwnerController::class, 'destroy']);
+            Route::get('/{id}/file/{type}', [VendorOwnerController::class, 'downloadFile']);
+            Route::get('/{id}/download-zip', [VendorOwnerController::class, 'downloadZip']);
         });
     });
 });

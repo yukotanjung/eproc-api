@@ -225,6 +225,50 @@ components:
           type: string
           format: date-time
 
+    VendorOwner:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        ktp_number:
+          type: string
+          example: "3171012345670001"
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        address:
+          type: string
+          example: Jl. Sudirman No. 10, Jakarta Selatan
+        percentage:
+          type: number
+          format: float
+          example: 60.0
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -393,6 +437,8 @@ tags:
     description: Vendor company profile details (NPWP, address, PIC, province, city)
   - name: Vendor Team Users
     description: Manage multiple user accounts under the authenticated vendor
+  - name: Vendor Owners
+    description: Manage company owners (pemilik PT) under the authenticated vendor
   - name: Master Region
     description: Master provinces and cities (with filter city by province_id)
 
@@ -405,6 +451,7 @@ x-tagGroups:
     tags:
       - Vendor Company
       - Vendor Team Users
+      - Vendor Owners
   - name: Master Data
     tags:
       - Master Region
@@ -1000,3 +1047,151 @@ paths:
       responses:
         '201':
           description: Activation email resent
+
+  /api/vendor/owner:
+    get:
+      tags: [Vendor Owners]
+      summary: List company owners (pemilik PT)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor owners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar pemilik perusahaan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorOwner'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Owners]
+      summary: Create new company owner (pemilik PT)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, address, percentage, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                address:
+                  type: string
+                percentage:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor owner created
+
+  /api/vendor/owner/{id}:
+    get:
+      tags: [Vendor Owners]
+      summary: Get vendor owner detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor owner detail
+    post:
+      tags: [Vendor Owners]
+      summary: Update vendor owner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, address, percentage]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                address:
+                  type: string
+                percentage:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor owner updated
+    delete:
+      tags: [Vendor Owners]
+      summary: Delete vendor owner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor owner deleted
+
+  /api/vendor/owner/{id}/file/{type}:
+    get:
+      tags: [Vendor Owners]
+      summary: Download/view owner file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/owner/{id}/download-zip:
+    get:
+      tags: [Vendor Owners]
+      summary: Download all 3 owner files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary

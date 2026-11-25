@@ -43,6 +43,11 @@ class Vendor extends Model
         return $this->hasMany(VendorUser::class, 'vendor_id');
     }
 
+    public function owners()
+    {
+        return $this->hasMany(VendorOwner::class, 'vendor_id');
+    }
+
     public function scopeGetVendor($query, $request, $page, $pageSize, $all)
     {
         $data = $query->with(['province', 'city'])->withCount('users')->filter()->order();

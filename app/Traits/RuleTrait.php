@@ -762,6 +762,38 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorOwnerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -853,6 +885,38 @@ trait RuleTrait
                         'phone'     => 'nullable|string|max:50',
                         'password'  => 'nullable|string|min:6',
                         'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorOwnerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;

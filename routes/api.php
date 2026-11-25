@@ -31,6 +31,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorOwnerController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -233,6 +234,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::get('/{id}/user/{userId}', [VendorController::class, 'showUser'])->middleware('permission:vendor_read');
         Route::post('/{id}/user/{userId}', [VendorController::class, 'updateUser'])->middleware('permission:vendor_update');
         Route::delete('/{id}/user/{userId}', [VendorController::class, 'destroyUser'])->middleware('permission:vendor_delete');
+
+        Route::get('/{id}/owner', [VendorOwnerController::class, 'index'])->middleware('permission:vendor_owner_read');
+        Route::post('/{id}/owner', [VendorOwnerController::class, 'store'])->middleware('permission:vendor_owner_create');
+        Route::get('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'show'])->middleware('permission:vendor_owner_read');
+        Route::post('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'update'])->middleware('permission:vendor_owner_update');
+        Route::delete('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'destroy'])->middleware('permission:vendor_owner_delete');
+        Route::get('/{id}/owner/{ownerId}/file/{type}', [VendorOwnerController::class, 'downloadFile'])->middleware('permission:vendor_owner_read');
+        Route::get('/{id}/owner/{ownerId}/download-zip', [VendorOwnerController::class, 'downloadZip'])->middleware('permission:vendor_owner_read');
     });
 
     Route::prefix('procurement')->group(function () {
