@@ -269,6 +269,43 @@ components:
           type: string
           format: date-time
 
+    VendorCommissioner:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Hendra Wijaya
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        position:
+          type: string
+          example: Komisaris Utama
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -439,6 +476,8 @@ tags:
     description: Manage multiple user accounts under the authenticated vendor
   - name: Vendor Owners
     description: Manage company owners (pemilik PT) under the authenticated vendor
+  - name: Vendor Commissioners
+    description: Manage company commissioners (komisaris) under the authenticated vendor
   - name: Master Region
     description: Master provinces and cities (with filter city by province_id)
 
@@ -452,6 +491,7 @@ x-tagGroups:
       - Vendor Company
       - Vendor Team Users
       - Vendor Owners
+      - Vendor Commissioners
   - name: Master Data
     tags:
       - Master Region
@@ -1185,6 +1225,142 @@ paths:
     get:
       tags: [Vendor Owners]
       summary: Download all 3 owner files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/commissioner:
+    get:
+      tags: [Vendor Commissioners]
+      summary: List company commissioners (komisaris)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor commissioners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar komisaris
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorCommissioner'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Commissioners]
+      summary: Create new company commissioner (komisaris)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, npwp_number, position, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor commissioner created
+
+  /api/vendor/commissioner/{id}:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Get vendor commissioner detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor commissioner detail
+    post:
+      tags: [Vendor Commissioners]
+      summary: Update vendor commissioner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, npwp_number, position]
+              properties:
+                name:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor commissioner updated
+    delete:
+      tags: [Vendor Commissioners]
+      summary: Delete vendor commissioner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor commissioner deleted
+
+  /api/vendor/commissioner/{id}/file/{type}:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Download/view commissioner file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/commissioner/{id}/download-zip:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Download all 3 commissioner files (photo, npwp, ktp) as a ZIP archive
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'
       responses:

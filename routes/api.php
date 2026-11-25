@@ -31,6 +31,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorOwnerController;
 
 Route::prefix('auth')->group(function () {
@@ -242,6 +243,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'destroy'])->middleware('permission:vendor_owner_delete');
         Route::get('/{id}/owner/{ownerId}/file/{type}', [VendorOwnerController::class, 'downloadFile'])->middleware('permission:vendor_owner_read');
         Route::get('/{id}/owner/{ownerId}/download-zip', [VendorOwnerController::class, 'downloadZip'])->middleware('permission:vendor_owner_read');
+
+        Route::get('/{id}/commissioner', [VendorCommissionerController::class, 'index'])->middleware('permission:vendor_commissioner_read');
+        Route::post('/{id}/commissioner', [VendorCommissionerController::class, 'store'])->middleware('permission:vendor_commissioner_create');
+        Route::get('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'show'])->middleware('permission:vendor_commissioner_read');
+        Route::post('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'update'])->middleware('permission:vendor_commissioner_update');
+        Route::delete('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'destroy'])->middleware('permission:vendor_commissioner_delete');
+        Route::get('/{id}/commissioner/{commissionerId}/file/{type}', [VendorCommissionerController::class, 'downloadFile'])->middleware('permission:vendor_commissioner_read');
+        Route::get('/{id}/commissioner/{commissionerId}/download-zip', [VendorCommissionerController::class, 'downloadZip'])->middleware('permission:vendor_commissioner_read');
     });
 
     Route::prefix('procurement')->group(function () {

@@ -3,6 +3,7 @@
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\Vendor\VendorAuthController;
+use App\Http\Controllers\Vendor\VendorCommissionerController;
 use App\Http\Controllers\Vendor\VendorOwnerController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,16 @@ Route::prefix('vendor')->group(function () {
             Route::delete('/{id}', [VendorOwnerController::class, 'destroy']);
             Route::get('/{id}/file/{type}', [VendorOwnerController::class, 'downloadFile']);
             Route::get('/{id}/download-zip', [VendorOwnerController::class, 'downloadZip']);
+        });
+
+        Route::prefix('commissioner')->group(function () {
+            Route::get('/', [VendorCommissionerController::class, 'index']);
+            Route::post('/', [VendorCommissionerController::class, 'store']);
+            Route::get('/{id}', [VendorCommissionerController::class, 'show']);
+            Route::post('/{id}', [VendorCommissionerController::class, 'update']);
+            Route::delete('/{id}', [VendorCommissionerController::class, 'destroy']);
+            Route::get('/{id}/file/{type}', [VendorCommissionerController::class, 'downloadFile']);
+            Route::get('/{id}/download-zip', [VendorCommissionerController::class, 'downloadZip']);
         });
     });
 });

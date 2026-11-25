@@ -6,6 +6,7 @@ use App\Models\City;
 use App\Models\PasswordActivate;
 use App\Models\Province;
 use App\Models\Vendor;
+use App\Models\VendorCommissioner;
 use App\Models\VendorOwner;
 use App\Models\VendorUser;
 use App\Notifications\VendorEmailVerification;
@@ -369,5 +370,105 @@ class VendorModuleTest extends ApiTestCase
         Storage::disk('local')->assertMissing($owner2NewKtp);
         Storage::disk('local')->assertMissing($owner2OldNpwp);
         $this->assertNotNull(VendorOwner::withTrashed()->find($owner2Id));
+    }
+
+    public function test_vendor_and_admin_can_manage_commissioners_with_file_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '88.777.666.5-444.000',
+            'company_name' => 'PT Komisaris Nusantara',
+            'phone'        => '0217776665',
+            'pic'          => 'Hendra Wijaya',
+            'email'        => 'hendra@komisaris.co.id',
+            'address'      => 'Jl. Kuningan',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'hendra@komisaris.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'hendra@komisaris.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'hendra@komisaris.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $comm = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/commissioner', [
+                'name'        => 'Hendra Wijaya',
+                'npwp_number' => '01.222.333.4-555.000',
+                'position'    => 'Komisaris Utama',
+                'photo'       => UploadedFile::fake()->image('comm_photo.jpg'),
+                'npwp'        => UploadedFile::fake()->create('comm_npwp.pdf', 100, 'application/pdf'),
+                'ktp'         => UploadedFile::fake()->image('comm_ktp.png'),
+            ]);
+
+        $comm->assertStatus(201)
+            ->assertJsonPath('result.name', 'Hendra Wijaya')
+            ->assertJsonPath('result.position', 'Komisaris Utama');
+
+        $commId = (int) $comm->json('result.id');
+        $oldPhoto = $comm->json('result.photo_path');
+        $oldNpwp = $comm->json('result.npwp_path');
+        $oldKtp = $comm->json('result.ktp_path');
+
+        $this->assertStringStartsWith('vendor/komisaris/', $oldPhoto);
+        Storage::disk('local')->assertExists($oldPhoto);
+        Storage::disk('local')->assertExists($oldNpwp);
+        Storage::disk('local')->assertExists($oldKtp);
+
+        // Update photo -> old photo deleted
+        $updateComm = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/commissioner/{$commId}", [
+                'name'        => 'Hendra Wijaya Updated',
+                'npwp_number' => '01.222.333.4-555.000',
+                'position'    => 'Komisaris Independen',
+                'photo'       => UploadedFile::fake()->image('comm_photo_new.jpg'),
+            ]);
+
+        $updateComm->assertStatus(201)
+            ->assertJsonPath('result.position', 'Komisaris Independen');
+
+        $newPhoto = $updateComm->json('result.photo_path');
+        Storage::disk('local')->assertMissing($oldPhoto);
+        Storage::disk('local')->assertExists($newPhoto);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/commissioner/{$commId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('komisaris-hendra-wijaya-updated.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> all files deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/commissioner?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/commissioner/{$commId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPhoto);
+        Storage::disk('local')->assertMissing($oldNpwp);
+        Storage::disk('local')->assertMissing($oldKtp);
+        $this->assertNotNull(VendorCommissioner::withTrashed()->find($commId));
     }
 }
