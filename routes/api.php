@@ -35,6 +35,7 @@ use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorDirectorController;
 use App\Http\Controllers\VendorExpertController;
 use App\Http\Controllers\VendorLegalController;
+use App\Http\Controllers\VendorLicenseController;
 use App\Http\Controllers\VendorOwnerController;
 use App\Http\Controllers\VendorTaxController;
 
@@ -287,6 +288,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}/legal/{legalId}', [VendorLegalController::class, 'destroy'])->middleware('permission:vendor_legal_delete');
         Route::get('/{id}/legal/{legalId}/file/{type}', [VendorLegalController::class, 'downloadFile'])->middleware('permission:vendor_legal_read');
         Route::get('/{id}/legal/{legalId}/download-zip', [VendorLegalController::class, 'downloadZip'])->middleware('permission:vendor_legal_read');
+
+        Route::get('/{id}/license', [VendorLicenseController::class, 'index'])->middleware('permission:vendor_license_read');
+        Route::post('/{id}/license', [VendorLicenseController::class, 'store'])->middleware('permission:vendor_license_create');
+        Route::get('/{id}/license/{licenseId}', [VendorLicenseController::class, 'show'])->middleware('permission:vendor_license_read');
+        Route::post('/{id}/license/{licenseId}', [VendorLicenseController::class, 'update'])->middleware('permission:vendor_license_update');
+        Route::delete('/{id}/license/{licenseId}', [VendorLicenseController::class, 'destroy'])->middleware('permission:vendor_license_delete');
+        Route::get('/{id}/license/{licenseId}/file', [VendorLicenseController::class, 'downloadFile'])->middleware('permission:vendor_license_read');
+        Route::get('/{id}/license/{licenseId}/download-zip', [VendorLicenseController::class, 'downloadZip'])->middleware('permission:vendor_license_read');
     });
 
     Route::prefix('procurement')->group(function () {

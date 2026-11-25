@@ -600,6 +600,44 @@ components:
           type: string
           format: date-time
 
+    VendorLicense:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        license_type:
+          type: string
+          enum: [SIUP, SIUJK, SBU]
+          example: SIUP
+        license_number:
+          type: string
+          example: SIUP-2025-00123
+        issued_date:
+          type: string
+          format: date
+          example: "2025-01-10"
+        expired_date:
+          type: string
+          format: date
+          example: "2030-01-10"
+        issuing_agency:
+          type: string
+          example: DPMPTSP DKI Jakarta
+        file_path:
+          type: string
+          nullable: true
+          example: vendor/perizinan/siup_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -782,6 +820,8 @@ tags:
     description: Manage company tax reports (manajemen pajak) under the authenticated vendor
   - name: Vendor Legals
     description: Manage company legal deeds (data hukum pendirian & perubahan) under the authenticated vendor
+  - name: Vendor Licenses
+    description: Manage company licenses (perizinan SIUP, SIUJK, SBU) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
@@ -805,6 +845,7 @@ x-tagGroups:
       - Vendor Financials
       - Vendor Taxes
       - Vendor Legals
+      - Vendor Licenses
   - name: Master Data
     tags:
       - Master Region
@@ -2444,6 +2485,159 @@ paths:
     get:
       tags: [Vendor Legals]
       summary: Download legal deed files as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/license/types:
+    get:
+      tags: [Vendor Licenses]
+      summary: Get available license types dropdown (SIUP, SIUJK, SBU)
+      responses:
+        '201':
+          description: List of license types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar jenis perizinan
+                  result:
+                    type: array
+                    items:
+                      type: string
+                      enum: [SIUP, SIUJK, SBU]
+
+  /api/vendor/license:
+    get:
+      tags: [Vendor Licenses]
+      summary: List company licenses (perizinan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor licenses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data perizinan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorLicense'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Licenses]
+      summary: Create company license (perizinan)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [license_type, license_number, issued_date, expired_date, issuing_agency, file]
+              properties:
+                license_type:
+                  type: string
+                  enum: [SIUP, SIUJK, SBU]
+                license_number:
+                  type: string
+                issued_date:
+                  type: string
+                  format: date
+                expired_date:
+                  type: string
+                  format: date
+                issuing_agency:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor license created
+
+  /api/vendor/license/{id}:
+    get:
+      tags: [Vendor Licenses]
+      summary: Get vendor license detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor license detail
+    post:
+      tags: [Vendor Licenses]
+      summary: Update vendor license data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [license_type, license_number, issued_date, expired_date, issuing_agency]
+              properties:
+                license_type:
+                  type: string
+                  enum: [SIUP, SIUJK, SBU]
+                license_number:
+                  type: string
+                issued_date:
+                  type: string
+                  format: date
+                expired_date:
+                  type: string
+                  format: date
+                issuing_agency:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor license updated
+    delete:
+      tags: [Vendor Licenses]
+      summary: Delete vendor license data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor license deleted
+
+  /api/vendor/license/{id}/file:
+    get:
+      tags: [Vendor Licenses]
+      summary: Download/view license file
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/license/{id}/download-zip:
+    get:
+      tags: [Vendor Licenses]
+      summary: Download license file as ZIP archive
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'
       responses:

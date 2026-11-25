@@ -13,6 +13,7 @@ use App\Models\VendorDirector;
 use App\Models\VendorExpert;
 use App\Models\VendorFinancial;
 use App\Models\VendorLegal;
+use App\Models\VendorLicense;
 use App\Models\VendorOwner;
 use App\Models\VendorTax;
 use App\Models\VendorUser;
@@ -990,5 +991,117 @@ class VendorModuleTest extends ApiTestCase
         Storage::disk('local')->assertMissing($newEstPath);
         Storage::disk('local')->assertMissing($amdPath);
         $this->assertNotNull(VendorLegal::withTrashed()->find($legalId));
+    }
+
+    public function test_vendor_and_admin_can_manage_licenses_with_file_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '12.345.678.9-012.000',
+            'company_name' => 'PT Perizinan Nusantara',
+            'phone'        => '0211234567',
+            'pic'          => 'Bima Sakti',
+            'email'        => 'bima@perizinan.co.id',
+            'address'      => 'Jl. Medan Merdeka',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'bima@perizinan.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'bima@perizinan.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'bima@perizinan.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/vendor/license/types')
+            ->assertStatus(201)
+            ->assertJsonPath('result', ['SIUP', 'SIUJK', 'SBU']);
+
+        // Invalid license_type must fail
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/license', [
+                'license_type'   => 'INVALID',
+                'license_number' => '123',
+                'issued_date'    => '2025-01-10',
+                'expired_date'   => '2030-01-10',
+                'issuing_agency' => 'DPMPTSP',
+                'file'           => UploadedFile::fake()->create('izin.pdf', 100, 'application/pdf'),
+            ])->assertStatus(400);
+
+        $license = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/license', [
+                'license_type'   => 'SIUJK',
+                'license_number' => 'SIUJK-2025-001',
+                'issued_date'    => '2025-01-10',
+                'expired_date'   => '2030-01-10',
+                'issuing_agency' => 'DPMPTSP DKI Jakarta',
+                'file'           => UploadedFile::fake()->create('siujk.pdf', 100, 'application/pdf'),
+            ]);
+
+        $license->assertStatus(201)
+            ->assertJsonPath('result.license_type', 'SIUJK')
+            ->assertJsonPath('result.license_number', 'SIUJK-2025-001');
+
+        $licenseId = (int) $license->json('result.id');
+        $oldPath = $license->json('result.file_path');
+
+        $this->assertStringStartsWith('vendor/perizinan/', $oldPath);
+        Storage::disk('local')->assertExists($oldPath);
+
+        // Update file -> old file deleted
+        $updateLicense = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/license/{$licenseId}", [
+                'license_type'   => 'SBU',
+                'license_number' => 'SBU-2025-002',
+                'issued_date'    => '2025-02-01',
+                'expired_date'   => '2030-02-01',
+                'issuing_agency' => 'LPJK',
+                'file'           => UploadedFile::fake()->create('sbu.pdf', 120, 'application/pdf'),
+            ]);
+
+        $updateLicense->assertStatus(201)
+            ->assertJsonPath('result.license_type', 'SBU');
+
+        $newPath = $updateLicense->json('result.file_path');
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($newPath);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/license/{$licenseId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('perizinan-sbu-2025-002.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> file deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/license?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/license/{$licenseId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPath);
+        $this->assertNotNull(VendorLicense::withTrashed()->find($licenseId));
     }
 }
