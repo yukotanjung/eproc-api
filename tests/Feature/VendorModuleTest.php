@@ -12,6 +12,7 @@ use App\Models\VendorCommissioner;
 use App\Models\VendorDirector;
 use App\Models\VendorExpert;
 use App\Models\VendorFinancial;
+use App\Models\VendorLegal;
 use App\Models\VendorOwner;
 use App\Models\VendorTax;
 use App\Models\VendorUser;
@@ -889,5 +890,105 @@ class VendorModuleTest extends ApiTestCase
 
         Storage::disk('local')->assertMissing($newPath);
         $this->assertNotNull(VendorTax::withTrashed()->find($taxId));
+    }
+
+    public function test_vendor_and_admin_can_manage_legal_data_with_optional_amendment(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '22.111.000.9-888.000',
+            'company_name' => 'PT Hukum Nusantara',
+            'phone'        => '0212221110',
+            'pic'          => 'Raka Mahendra',
+            'email'        => 'raka@hukum.co.id',
+            'address'      => 'Jl. Kebon Sirih',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'raka@hukum.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'raka@hukum.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'raka@hukum.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        // Create without optional amendment fields
+        $legal = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/legal', [
+                'establishment_date'        => '2020-01-15',
+                'establishment_deed_number' => 'AHU-00123',
+                'establishment_notary'      => 'Notaris Andi SH',
+                'establishment_deed_file'   => UploadedFile::fake()->create('akta_pendirian.pdf', 100, 'application/pdf'),
+            ]);
+
+        $legal->assertStatus(201)
+            ->assertJsonPath('result.establishment_deed_number', 'AHU-00123')
+            ->assertJsonPath('result.amendment_deed_path', null);
+
+        $legalId = (int) $legal->json('result.id');
+        $oldEstPath = $legal->json('result.establishment_deed_path');
+
+        $this->assertStringStartsWith('vendor/hukum/', $oldEstPath);
+        Storage::disk('local')->assertExists($oldEstPath);
+
+        // Update with new establishment deed file + optional amendment -> old establishment file deleted
+        $updateLegal = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/legal/{$legalId}", [
+                'establishment_date'        => '2020-01-15',
+                'establishment_deed_number' => 'AHU-00123',
+                'establishment_notary'      => 'Notaris Andi SH',
+                'establishment_deed_file'   => UploadedFile::fake()->create('akta_pendirian_rev.pdf', 110, 'application/pdf'),
+                'amendment_date'            => '2023-06-10',
+                'amendment_deed_number'     => 'AHU-00456',
+                'amendment_notary'          => 'Notaris Budi SH',
+                'amendment_deed_file'       => UploadedFile::fake()->create('akta_perubahan.pdf', 120, 'application/pdf'),
+            ]);
+
+        $updateLegal->assertStatus(201)
+            ->assertJsonPath('result.amendment_deed_number', 'AHU-00456');
+
+        $newEstPath = $updateLegal->json('result.establishment_deed_path');
+        $amdPath = $updateLegal->json('result.amendment_deed_path');
+        Storage::disk('local')->assertMissing($oldEstPath);
+        Storage::disk('local')->assertExists($newEstPath);
+        Storage::disk('local')->assertExists($amdPath);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/legal/{$legalId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('hukum-ahu-00123.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> all files deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/legal?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/legal/{$legalId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newEstPath);
+        Storage::disk('local')->assertMissing($amdPath);
+        $this->assertNotNull(VendorLegal::withTrashed()->find($legalId));
     }
 }

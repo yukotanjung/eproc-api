@@ -553,6 +553,53 @@ components:
           type: string
           format: date-time
 
+    VendorLegal:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        establishment_date:
+          type: string
+          format: date
+          example: "2020-01-15"
+        establishment_deed_number:
+          type: string
+          example: AHU-00123.AH.01.01.TAHUN 2020
+        establishment_notary:
+          type: string
+          example: Notaris Andi SH, M.Kn
+        establishment_deed_path:
+          type: string
+          nullable: true
+          example: vendor/hukum/akta_pendirian.pdf
+        amendment_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2023-06-10"
+        amendment_deed_number:
+          type: string
+          nullable: true
+          example: AHU-00456.AH.01.02.TAHUN 2023
+        amendment_notary:
+          type: string
+          nullable: true
+          example: Notaris Budi SH, M.Kn
+        amendment_deed_path:
+          type: string
+          nullable: true
+          example: vendor/hukum/akta_perubahan.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -733,6 +780,8 @@ tags:
     description: Manage company financial statements (data keuangan) under the authenticated vendor
   - name: Vendor Taxes
     description: Manage company tax reports (manajemen pajak) under the authenticated vendor
+  - name: Vendor Legals
+    description: Manage company legal deeds (data hukum pendirian & perubahan) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
@@ -755,6 +804,7 @@ x-tagGroups:
       - Vendor Experts
       - Vendor Financials
       - Vendor Taxes
+      - Vendor Legals
   - name: Master Data
     tags:
       - Master Region
@@ -2248,6 +2298,152 @@ paths:
     get:
       tags: [Vendor Taxes]
       summary: Download tax receipt file as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/legal:
+    get:
+      tags: [Vendor Legals]
+      summary: List company legal data (data hukum)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor legals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data hukum
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorLegal'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Legals]
+      summary: Create company legal data (akta pendirian & perubahan opsional)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [establishment_date, establishment_deed_number, establishment_notary, establishment_deed_file]
+              properties:
+                establishment_date:
+                  type: string
+                  format: date
+                establishment_deed_number:
+                  type: string
+                establishment_notary:
+                  type: string
+                establishment_deed_file:
+                  type: string
+                  format: binary
+                amendment_date:
+                  type: string
+                  format: date
+                amendment_deed_number:
+                  type: string
+                amendment_notary:
+                  type: string
+                amendment_deed_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor legal created
+
+  /api/vendor/legal/{id}:
+    get:
+      tags: [Vendor Legals]
+      summary: Get vendor legal detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor legal detail
+    post:
+      tags: [Vendor Legals]
+      summary: Update vendor legal data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [establishment_date, establishment_deed_number, establishment_notary]
+              properties:
+                establishment_date:
+                  type: string
+                  format: date
+                establishment_deed_number:
+                  type: string
+                establishment_notary:
+                  type: string
+                establishment_deed_file:
+                  type: string
+                  format: binary
+                amendment_date:
+                  type: string
+                  format: date
+                amendment_deed_number:
+                  type: string
+                amendment_notary:
+                  type: string
+                amendment_deed_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor legal updated
+    delete:
+      tags: [Vendor Legals]
+      summary: Delete vendor legal data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor legal deleted
+
+  /api/vendor/legal/{id}/file/{type}:
+    get:
+      tags: [Vendor Legals]
+      summary: Download/view legal deed file (establishment or amendment)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [establishment, amendment]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/legal/{id}/download-zip:
+    get:
+      tags: [Vendor Legals]
+      summary: Download legal deed files as ZIP archive
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'
       responses:

@@ -721,6 +721,30 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "vendor_tax_delete"
             ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "read",
+                "permission" => "vendor_legal_read"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "create",
+                "permission" => "vendor_legal_create"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "update",
+                "permission" => "vendor_legal_update"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "delete",
+                "permission" => "vendor_legal_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

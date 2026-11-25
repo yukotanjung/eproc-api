@@ -34,6 +34,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorDirectorController;
 use App\Http\Controllers\VendorExpertController;
+use App\Http\Controllers\VendorLegalController;
 use App\Http\Controllers\VendorOwnerController;
 use App\Http\Controllers\VendorTaxController;
 
@@ -278,6 +279,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}/tax/{taxId}', [VendorTaxController::class, 'destroy'])->middleware('permission:vendor_tax_delete');
         Route::get('/{id}/tax/{taxId}/file', [VendorTaxController::class, 'downloadFile'])->middleware('permission:vendor_tax_read');
         Route::get('/{id}/tax/{taxId}/download-zip', [VendorTaxController::class, 'downloadZip'])->middleware('permission:vendor_tax_read');
+
+        Route::get('/{id}/legal', [VendorLegalController::class, 'index'])->middleware('permission:vendor_legal_read');
+        Route::post('/{id}/legal', [VendorLegalController::class, 'store'])->middleware('permission:vendor_legal_create');
+        Route::get('/{id}/legal/{legalId}', [VendorLegalController::class, 'show'])->middleware('permission:vendor_legal_read');
+        Route::post('/{id}/legal/{legalId}', [VendorLegalController::class, 'update'])->middleware('permission:vendor_legal_update');
+        Route::delete('/{id}/legal/{legalId}', [VendorLegalController::class, 'destroy'])->middleware('permission:vendor_legal_delete');
+        Route::get('/{id}/legal/{legalId}/file/{type}', [VendorLegalController::class, 'downloadFile'])->middleware('permission:vendor_legal_read');
+        Route::get('/{id}/legal/{legalId}/download-zip', [VendorLegalController::class, 'downloadZip'])->middleware('permission:vendor_legal_read');
     });
 
     Route::prefix('procurement')->group(function () {

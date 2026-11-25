@@ -943,6 +943,38 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorLegalController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -1215,6 +1247,38 @@ trait RuleTrait
                         'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
                         'receipt_number' => 'required|string|max:100',
                         'receipt_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorLegalController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;
