@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\City;
 use App\Models\EducationLevel;
+use App\Models\JobType;
 use App\Models\PasswordActivate;
 use App\Models\Province;
 use App\Models\Tax;
@@ -11,6 +12,7 @@ use App\Models\Vendor;
 use App\Models\VendorCommissioner;
 use App\Models\VendorDirector;
 use App\Models\VendorEquipment;
+use App\Models\VendorExperience;
 use App\Models\VendorExpert;
 use App\Models\VendorFinancial;
 use App\Models\VendorLegal;
@@ -1203,5 +1205,124 @@ class VendorModuleTest extends ApiTestCase
 
         Storage::disk('local')->assertMissing($newPath);
         $this->assertNotNull(VendorEquipment::withTrashed()->find($equipmentId));
+    }
+
+    public function test_vendor_and_admin_can_manage_experiences_with_file_uploads_and_zip(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+        $jobType = JobType::create(['name' => 'Pekerjaan Konstruksi Test', 'is_active' => true]);
+
+        $this->getJson('/api/vendor/job-type?all=true')
+            ->assertStatus(201)
+            ->assertJsonFragment(['id' => $jobType->id, 'name' => 'Pekerjaan Konstruksi Test']);
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '14.567.890.1-234.000',
+            'company_name' => 'PT Pengalaman Nusantara',
+            'phone'        => '0218765432',
+            'pic'          => 'Tari Wijaya',
+            'email'        => 'tari@pengalaman.co.id',
+            'address'      => 'Jl. Sudirman',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'tari@pengalaman.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'tari@pengalaman.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'tari@pengalaman.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $experience = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/experience', [
+                'job_name'          => 'Pembangunan Gedung Kantor',
+                'contract_number'   => 'KTR-2025-001',
+                'contract_value'    => 2500000000,
+                'job_type_id'       => $jobType->id,
+                'client_name'       => 'Kementerian PUPR',
+                'location'          => 'Jakarta Selatan',
+                'address'           => 'Jl. Pattimura No. 20',
+                'contract_date'     => '2025-01-10',
+                'contract_end_date' => '2025-12-10',
+                'contract_file'     => UploadedFile::fake()->create('kontrak.pdf', 100, 'application/pdf'),
+                'handover_date'     => '2025-12-15',
+                'handover_number'   => 'BAST-2025-001',
+                'handover_file'     => UploadedFile::fake()->create('bast.pdf', 100, 'application/pdf'),
+            ]);
+
+        $experience->assertStatus(201)
+            ->assertJsonPath('result.job_name', 'Pembangunan Gedung Kantor')
+            ->assertJsonPath('result.job_type_id', $jobType->id)
+            ->assertJsonPath('result.job_type.name', 'Pekerjaan Konstruksi Test');
+
+        $expId = (int) $experience->json('result.id');
+        $oldContract = $experience->json('result.contract_file_path');
+        $oldHandover = $experience->json('result.handover_file_path');
+
+        $this->assertStringStartsWith('vendor/pengalaman/', $oldContract);
+        Storage::disk('local')->assertExists($oldContract);
+        Storage::disk('local')->assertExists($oldHandover);
+
+        // Update contract file -> old contract deleted
+        $updateExp = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/experience/{$expId}", [
+                'job_name'          => 'Pembangunan Gedung Kantor Fase 2',
+                'contract_number'   => 'KTR-2025-001-REV',
+                'contract_value'    => 3000000000,
+                'job_type_id'       => $jobType->id,
+                'client_name'       => 'Kementerian PUPR',
+                'location'          => 'Jakarta Selatan',
+                'address'           => 'Jl. Pattimura No. 20',
+                'contract_date'     => '2025-01-10',
+                'contract_end_date' => '2025-12-20',
+                'contract_file'     => UploadedFile::fake()->create('kontrak_rev.pdf', 120, 'application/pdf'),
+                'handover_date'     => '2025-12-25',
+                'handover_number'   => 'BAST-2025-002',
+            ]);
+
+        $updateExp->assertStatus(201)
+            ->assertJsonPath('result.contract_number', 'KTR-2025-001-REV');
+
+        $newContract = $updateExp->json('result.contract_file_path');
+        Storage::disk('local')->assertMissing($oldContract);
+        Storage::disk('local')->assertExists($newContract);
+        Storage::disk('local')->assertExists($oldHandover);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/experience/{$expId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('pengalaman-ktr-2025-001-rev.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> all files deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/experience?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/experience/{$expId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newContract);
+        Storage::disk('local')->assertMissing($oldHandover);
+        $this->assertNotNull(VendorExperience::withTrashed()->find($expId));
     }
 }

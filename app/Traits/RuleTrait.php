@@ -304,7 +304,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -1035,6 +1035,48 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorExperienceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -1399,6 +1441,48 @@ trait RuleTrait
                         'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
                         'location'         => 'required|string|max:255',
                         'photo'            => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExperienceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;

@@ -88,6 +88,11 @@ class Vendor extends Model
         return $this->hasMany(VendorEquipment::class, 'vendor_id');
     }
 
+    public function experiences()
+    {
+        return $this->hasMany(VendorExperience::class, 'vendor_id');
+    }
+
     public function scopeGetVendor($query, $request, $page, $pageSize, $all)
     {
         $data = $query->with(['province', 'city'])->withCount('users')->filter()->order();

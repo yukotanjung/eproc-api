@@ -34,6 +34,7 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorDirectorController;
 use App\Http\Controllers\VendorEquipmentController;
+use App\Http\Controllers\VendorExperienceController;
 use App\Http\Controllers\VendorExpertController;
 use App\Http\Controllers\VendorLegalController;
 use App\Http\Controllers\VendorLicenseController;
@@ -304,6 +305,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'update'])->middleware('permission:vendor_equipment_update');
         Route::delete('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'destroy'])->middleware('permission:vendor_equipment_delete');
         Route::get('/{id}/equipment/{equipmentId}/file', [VendorEquipmentController::class, 'downloadFile'])->middleware('permission:vendor_equipment_read');
+
+        Route::get('/{id}/experience', [VendorExperienceController::class, 'index'])->middleware('permission:vendor_experience_read');
+        Route::post('/{id}/experience', [VendorExperienceController::class, 'store'])->middleware('permission:vendor_experience_create');
+        Route::get('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'show'])->middleware('permission:vendor_experience_read');
+        Route::post('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'update'])->middleware('permission:vendor_experience_update');
+        Route::delete('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'destroy'])->middleware('permission:vendor_experience_delete');
+        Route::get('/{id}/experience/{experienceId}/file/{type}', [VendorExperienceController::class, 'downloadFile'])->middleware('permission:vendor_experience_read');
+        Route::get('/{id}/experience/{experienceId}/download-zip', [VendorExperienceController::class, 'downloadZip'])->middleware('permission:vendor_experience_read');
     });
 
     Route::prefix('procurement')->group(function () {

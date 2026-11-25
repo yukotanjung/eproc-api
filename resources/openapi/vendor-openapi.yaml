@@ -680,6 +680,96 @@ components:
           type: string
           format: date-time
 
+    JobType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pekerjaan Konstruksi
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        job_name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        contract_number:
+          type: string
+          example: KTR-2025-001
+        contract_value:
+          type: number
+          format: float
+          example: 2500000000
+        job_type_id:
+          type: integer
+          example: 1
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        client_name:
+          type: string
+          example: Kementerian PUPR
+        location:
+          type: string
+          example: Jakarta Selatan
+        address:
+          type: string
+          example: Jl. Pattimura No. 20
+        contract_date:
+          type: string
+          format: date
+          example: "2025-01-10"
+        contract_end_date:
+          type: string
+          format: date
+          example: "2025-12-10"
+        contract_file_path:
+          type: string
+          nullable: true
+          example: vendor/pengalaman/kontrak_abc123.pdf
+        handover_date:
+          type: string
+          format: date
+          example: "2025-12-15"
+        handover_number:
+          type: string
+          example: BAST-2025-001
+        handover_file_path:
+          type: string
+          nullable: true
+          example: vendor/pengalaman/bast_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -866,12 +956,16 @@ tags:
     description: Manage company licenses (perizinan SIUP, SIUJK, SBU) under the authenticated vendor
   - name: Vendor Equipments
     description: Manage company equipment (peralatan) under the authenticated vendor
+  - name: Vendor Experiences
+    description: Manage company work experiences (pengalaman kerja) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
     description: Master provinces and cities (with filter city by province_id)
   - name: Master Tax Type
     description: Master tax types (jenis pajak)
+  - name: Master Job Type
+    description: Master job types (jenis pekerjaan)
 
 x-tagGroups:
   - name: Authentication
@@ -891,11 +985,13 @@ x-tagGroups:
       - Vendor Legals
       - Vendor Licenses
       - Vendor Equipments
+      - Vendor Experiences
   - name: Master Data
     tags:
       - Master Region
       - Master Education Level
       - Master Tax Type
+      - Master Job Type
 
 paths:
   /api/vendor/auth/register:
@@ -2835,3 +2931,210 @@ paths:
       responses:
         '200':
           description: Binary image response
+
+  /api/vendor/job-type:
+    get:
+      tags: [Master Job Type]
+      summary: List master job types (jenis pekerjaan)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of job types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job type
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/job-type/{id}:
+    get:
+      tags: [Master Job Type]
+      summary: Get master job type detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job type detail
+
+  /api/vendor/experience:
+    get:
+      tags: [Vendor Experiences]
+      summary: List company work experiences (pengalaman kerja)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor experiences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar pengalaman kerja
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorExperience'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Experiences]
+      summary: Create company work experience (pengalaman kerja)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [job_name, contract_number, contract_value, job_type_id, client_name, location, address, contract_date, contract_end_date, contract_file, handover_date, handover_number, handover_file]
+              properties:
+                job_name:
+                  type: string
+                contract_number:
+                  type: string
+                contract_value:
+                  type: number
+                job_type_id:
+                  type: integer
+                client_name:
+                  type: string
+                location:
+                  type: string
+                address:
+                  type: string
+                contract_date:
+                  type: string
+                  format: date
+                contract_end_date:
+                  type: string
+                  format: date
+                contract_file:
+                  type: string
+                  format: binary
+                handover_date:
+                  type: string
+                  format: date
+                handover_number:
+                  type: string
+                handover_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor experience created
+
+  /api/vendor/experience/{id}:
+    get:
+      tags: [Vendor Experiences]
+      summary: Get vendor experience detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor experience detail
+    post:
+      tags: [Vendor Experiences]
+      summary: Update vendor experience data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [job_name, contract_number, contract_value, job_type_id, client_name, location, address, contract_date, contract_end_date, handover_date, handover_number]
+              properties:
+                job_name:
+                  type: string
+                contract_number:
+                  type: string
+                contract_value:
+                  type: number
+                job_type_id:
+                  type: integer
+                client_name:
+                  type: string
+                location:
+                  type: string
+                address:
+                  type: string
+                contract_date:
+                  type: string
+                  format: date
+                contract_end_date:
+                  type: string
+                  format: date
+                contract_file:
+                  type: string
+                  format: binary
+                handover_date:
+                  type: string
+                  format: date
+                handover_number:
+                  type: string
+                handover_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor experience updated
+    delete:
+      tags: [Vendor Experiences]
+      summary: Delete vendor experience data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor experience deleted
+
+  /api/vendor/experience/{id}/file/{type}:
+    get:
+      tags: [Vendor Experiences]
+      summary: Download/view experience file (contract or handover)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [contract, handover]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/experience/{id}/download-zip:
+    get:
+      tags: [Vendor Experiences]
+      summary: Download experience files (contract and handover) as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
