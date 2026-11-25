@@ -10,6 +10,7 @@ use App\Models\Tax;
 use App\Models\Vendor;
 use App\Models\VendorCommissioner;
 use App\Models\VendorDirector;
+use App\Models\VendorEquipment;
 use App\Models\VendorExpert;
 use App\Models\VendorFinancial;
 use App\Models\VendorLegal;
@@ -1103,5 +1104,104 @@ class VendorModuleTest extends ApiTestCase
 
         Storage::disk('local')->assertMissing($newPath);
         $this->assertNotNull(VendorLicense::withTrashed()->find($licenseId));
+    }
+
+    public function test_vendor_and_admin_can_manage_equipments_with_photo_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '13.456.789.0-123.000',
+            'company_name' => 'PT Peralatan Nusantara',
+            'phone'        => '0217654321',
+            'pic'          => 'Bagus Setiawan',
+            'email'        => 'bagus@peralatan.co.id',
+            'address'      => 'Jl. Industri',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'bagus@peralatan.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'bagus@peralatan.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'bagus@peralatan.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/vendor/equipment/conditions')
+            ->assertStatus(201)
+            ->assertJsonPath('result', ['Baik', 'Rusak Ringan', 'Rusak Berat']);
+
+        $equipment = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/equipment', [
+                'equipment_type'   => 'Excavator',
+                'brand'            => 'Komatsu',
+                'quantity'         => 2,
+                'capacity'         => '20 Ton',
+                'manufacture_year' => 2022,
+                'condition'        => 'Baik',
+                'location'         => 'Gudang Bekasi',
+                'photo'            => UploadedFile::fake()->image('excavator.jpg'),
+            ]);
+
+        $equipment->assertStatus(201)
+            ->assertJsonPath('result.equipment_type', 'Excavator')
+            ->assertJsonPath('result.condition', 'Baik');
+
+        $equipmentId = (int) $equipment->json('result.id');
+        $oldPath = $equipment->json('result.photo_path');
+
+        $this->assertStringStartsWith('vendor/peralatan/', $oldPath);
+        Storage::disk('local')->assertExists($oldPath);
+
+        // Update photo -> old photo deleted
+        $updateEquipment = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/equipment/{$equipmentId}", [
+                'equipment_type'   => 'Excavator',
+                'brand'            => 'Komatsu PC200',
+                'quantity'         => 3,
+                'capacity'         => '22 Ton',
+                'manufacture_year' => 2023,
+                'condition'        => 'Rusak Ringan',
+                'location'         => 'Gudang Karawang',
+                'photo'            => UploadedFile::fake()->image('excavator_new.jpg'),
+            ]);
+
+        $updateEquipment->assertStatus(201)
+            ->assertJsonPath('result.condition', 'Rusak Ringan');
+
+        $newPath = $updateEquipment->json('result.photo_path');
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($newPath);
+
+        // Admin read & delete -> photo deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/equipment?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/equipment/{$equipmentId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPath);
+        $this->assertNotNull(VendorEquipment::withTrashed()->find($equipmentId));
     }
 }

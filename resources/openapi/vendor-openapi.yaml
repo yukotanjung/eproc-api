@@ -638,6 +638,48 @@ components:
           type: string
           format: date-time
 
+    VendorEquipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        equipment_type:
+          type: string
+          example: Excavator
+        brand:
+          type: string
+          example: Komatsu
+        quantity:
+          type: integer
+          example: 2
+        capacity:
+          type: string
+          example: 20 Ton
+        manufacture_year:
+          type: integer
+          example: 2022
+        condition:
+          type: string
+          enum: [Baik, Rusak Ringan, Rusak Berat]
+          example: Baik
+        location:
+          type: string
+          example: Gudang Bekasi
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/peralatan/photo_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -822,6 +864,8 @@ tags:
     description: Manage company legal deeds (data hukum pendirian & perubahan) under the authenticated vendor
   - name: Vendor Licenses
     description: Manage company licenses (perizinan SIUP, SIUJK, SBU) under the authenticated vendor
+  - name: Vendor Equipments
+    description: Manage company equipment (peralatan) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
@@ -846,6 +890,7 @@ x-tagGroups:
       - Vendor Taxes
       - Vendor Legals
       - Vendor Licenses
+      - Vendor Equipments
   - name: Master Data
     tags:
       - Master Region
@@ -2648,3 +2693,145 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  /api/vendor/equipment/conditions:
+    get:
+      tags: [Vendor Equipments]
+      summary: Get available equipment conditions dropdown
+      responses:
+        '201':
+          description: List of equipment conditions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar kondisi peralatan
+                  result:
+                    type: array
+                    items:
+                      type: string
+                      enum: [Baik, Rusak Ringan, Rusak Berat]
+
+  /api/vendor/equipment:
+    get:
+      tags: [Vendor Equipments]
+      summary: List company equipments (peralatan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor equipments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data peralatan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorEquipment'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Equipments]
+      summary: Create company equipment (peralatan)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [equipment_type, brand, quantity, capacity, manufacture_year, condition, location, photo]
+              properties:
+                equipment_type:
+                  type: string
+                brand:
+                  type: string
+                quantity:
+                  type: integer
+                capacity:
+                  type: string
+                manufacture_year:
+                  type: integer
+                condition:
+                  type: string
+                  enum: [Baik, Rusak Ringan, Rusak Berat]
+                location:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor equipment created
+
+  /api/vendor/equipment/{id}:
+    get:
+      tags: [Vendor Equipments]
+      summary: Get vendor equipment detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor equipment detail
+    post:
+      tags: [Vendor Equipments]
+      summary: Update vendor equipment data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [equipment_type, brand, quantity, capacity, manufacture_year, condition, location]
+              properties:
+                equipment_type:
+                  type: string
+                brand:
+                  type: string
+                quantity:
+                  type: integer
+                capacity:
+                  type: string
+                manufacture_year:
+                  type: integer
+                condition:
+                  type: string
+                  enum: [Baik, Rusak Ringan, Rusak Berat]
+                location:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor equipment updated
+    delete:
+      tags: [Vendor Equipments]
+      summary: Delete vendor equipment data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor equipment deleted
+
+  /api/vendor/equipment/{id}/file:
+    get:
+      tags: [Vendor Equipments]
+      summary: Download/view equipment photo
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary image response

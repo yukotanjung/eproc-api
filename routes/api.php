@@ -33,6 +33,7 @@ use App\Http\Controllers\CityController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorDirectorController;
+use App\Http\Controllers\VendorEquipmentController;
 use App\Http\Controllers\VendorExpertController;
 use App\Http\Controllers\VendorLegalController;
 use App\Http\Controllers\VendorLicenseController;
@@ -296,6 +297,13 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}/license/{licenseId}', [VendorLicenseController::class, 'destroy'])->middleware('permission:vendor_license_delete');
         Route::get('/{id}/license/{licenseId}/file', [VendorLicenseController::class, 'downloadFile'])->middleware('permission:vendor_license_read');
         Route::get('/{id}/license/{licenseId}/download-zip', [VendorLicenseController::class, 'downloadZip'])->middleware('permission:vendor_license_read');
+
+        Route::get('/{id}/equipment', [VendorEquipmentController::class, 'index'])->middleware('permission:vendor_equipment_read');
+        Route::post('/{id}/equipment', [VendorEquipmentController::class, 'store'])->middleware('permission:vendor_equipment_create');
+        Route::get('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'show'])->middleware('permission:vendor_equipment_read');
+        Route::post('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'update'])->middleware('permission:vendor_equipment_update');
+        Route::delete('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'destroy'])->middleware('permission:vendor_equipment_delete');
+        Route::get('/{id}/equipment/{equipmentId}/file', [VendorEquipmentController::class, 'downloadFile'])->middleware('permission:vendor_equipment_read');
     });
 
     Route::prefix('procurement')->group(function () {

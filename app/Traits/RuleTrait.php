@@ -1003,6 +1003,38 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorEquipmentController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -1335,6 +1367,38 @@ trait RuleTrait
                         'expired_date'   => 'required|date_format:Y-m-d|after_or_equal:issued_date',
                         'issuing_agency' => 'required|string|max:150',
                         'file'           => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorEquipmentController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
                     ];
                 }
                 break;

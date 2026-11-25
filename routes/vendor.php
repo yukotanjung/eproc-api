@@ -7,6 +7,7 @@ use App\Http\Controllers\TaxController;
 use App\Http\Controllers\Vendor\VendorAuthController;
 use App\Http\Controllers\Vendor\VendorCommissionerController;
 use App\Http\Controllers\Vendor\VendorDirectorController;
+use App\Http\Controllers\Vendor\VendorEquipmentController;
 use App\Http\Controllers\Vendor\VendorExpertController;
 use App\Http\Controllers\Vendor\VendorFinancialController;
 use App\Http\Controllers\Vendor\VendorLegalController;
@@ -143,6 +144,16 @@ Route::prefix('vendor')->group(function () {
             Route::delete('/{id}', [VendorLicenseController::class, 'destroy']);
             Route::get('/{id}/file', [VendorLicenseController::class, 'downloadFile']);
             Route::get('/{id}/download-zip', [VendorLicenseController::class, 'downloadZip']);
+        });
+
+        Route::prefix('equipment')->group(function () {
+            Route::get('/conditions', [VendorEquipmentController::class, 'conditions']);
+            Route::get('/', [VendorEquipmentController::class, 'index']);
+            Route::post('/', [VendorEquipmentController::class, 'store']);
+            Route::get('/{id}', [VendorEquipmentController::class, 'show']);
+            Route::post('/{id}', [VendorEquipmentController::class, 'update']);
+            Route::delete('/{id}', [VendorEquipmentController::class, 'destroy']);
+            Route::get('/{id}/file', [VendorEquipmentController::class, 'downloadFile']);
         });
     });
 });
