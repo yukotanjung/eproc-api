@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\Vendor\VendorAuthController;
 use App\Http\Controllers\Vendor\VendorCommissionerController;
+use App\Http\Controllers\Vendor\VendorDirectorController;
+use App\Http\Controllers\Vendor\VendorExpertController;
 use App\Http\Controllers\Vendor\VendorOwnerController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +34,8 @@ Route::prefix('vendor')->group(function () {
         Route::get('/province/{id}', [ProvinceController::class, 'show']);
         Route::get('/city', [CityController::class, 'index']);
         Route::get('/city/{id}', [CityController::class, 'show']);
+        Route::get('/education-level', [EducationLevelController::class, 'index']);
+        Route::get('/education-level/{id}', [EducationLevelController::class, 'show']);
     });
 
     Route::middleware(['auth:vendor', 'throttle:600,1'])->group(function () {
@@ -72,6 +77,26 @@ Route::prefix('vendor')->group(function () {
             Route::delete('/{id}', [VendorCommissionerController::class, 'destroy']);
             Route::get('/{id}/file/{type}', [VendorCommissionerController::class, 'downloadFile']);
             Route::get('/{id}/download-zip', [VendorCommissionerController::class, 'downloadZip']);
+        });
+
+        Route::prefix('director')->group(function () {
+            Route::get('/', [VendorDirectorController::class, 'index']);
+            Route::post('/', [VendorDirectorController::class, 'store']);
+            Route::get('/{id}', [VendorDirectorController::class, 'show']);
+            Route::post('/{id}', [VendorDirectorController::class, 'update']);
+            Route::delete('/{id}', [VendorDirectorController::class, 'destroy']);
+            Route::get('/{id}/file/{type}', [VendorDirectorController::class, 'downloadFile']);
+            Route::get('/{id}/download-zip', [VendorDirectorController::class, 'downloadZip']);
+        });
+
+        Route::prefix('expert')->group(function () {
+            Route::get('/', [VendorExpertController::class, 'index']);
+            Route::post('/', [VendorExpertController::class, 'store']);
+            Route::get('/{id}', [VendorExpertController::class, 'show']);
+            Route::post('/{id}', [VendorExpertController::class, 'update']);
+            Route::delete('/{id}', [VendorExpertController::class, 'destroy']);
+            Route::get('/{id}/file/{type}', [VendorExpertController::class, 'downloadFile']);
+            Route::get('/{id}/download-zip', [VendorExpertController::class, 'downloadZip']);
         });
     });
 });

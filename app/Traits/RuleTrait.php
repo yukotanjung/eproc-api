@@ -266,7 +266,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -822,6 +822,82 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorDirectorController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExpertController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -973,6 +1049,82 @@ trait RuleTrait
                         'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
                         'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                         'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorDirectorController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExpertController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;

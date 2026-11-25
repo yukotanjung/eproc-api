@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ProcurementMethodSeeder::class,
             UnitSeeder::class,
             ProvinceCitySeeder::class,
+            EducationLevelSeeder::class,
         ]);
     }
 }

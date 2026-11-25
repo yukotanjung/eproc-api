@@ -625,6 +625,54 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "vendor_commissioner_delete"
             ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "read",
+                "permission" => "vendor_director_read"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "create",
+                "permission" => "vendor_director_create"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "update",
+                "permission" => "vendor_director_update"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "delete",
+                "permission" => "vendor_director_delete"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "read",
+                "permission" => "vendor_expert_read"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "create",
+                "permission" => "vendor_expert_create"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "update",
+                "permission" => "vendor_expert_update"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "delete",
+                "permission" => "vendor_expert_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

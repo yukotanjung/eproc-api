@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\City;
+use App\Models\EducationLevel;
 use App\Models\PasswordActivate;
 use App\Models\Province;
 use App\Models\Vendor;
 use App\Models\VendorCommissioner;
+use App\Models\VendorDirector;
+use App\Models\VendorExpert;
 use App\Models\VendorOwner;
 use App\Models\VendorUser;
 use App\Notifications\VendorEmailVerification;
@@ -470,5 +473,235 @@ class VendorModuleTest extends ApiTestCase
         Storage::disk('local')->assertMissing($oldNpwp);
         Storage::disk('local')->assertMissing($oldKtp);
         $this->assertNotNull(VendorCommissioner::withTrashed()->find($commId));
+    }
+
+    public function test_vendor_and_admin_can_manage_directors_with_file_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '66.555.444.3-222.000',
+            'company_name' => 'PT Direksi Nusantara',
+            'phone'        => '0216665554',
+            'pic'          => 'Agus Pratama',
+            'email'        => 'agus@direksi.co.id',
+            'address'      => 'Jl. Sudirman',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'agus@direksi.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'agus@direksi.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'agus@direksi.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $director = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/director', [
+                'name'        => 'Agus Pratama',
+                'ktp_number'  => '3171000000000009',
+                'npwp_number' => '01.333.444.5-666.000',
+                'position'    => 'Direktur Utama',
+                'is_pic'      => true,
+                'photo'       => UploadedFile::fake()->image('dir_photo.jpg'),
+                'npwp'        => UploadedFile::fake()->create('dir_npwp.pdf', 100, 'application/pdf'),
+                'ktp'         => UploadedFile::fake()->image('dir_ktp.png'),
+            ]);
+
+        $director->assertStatus(201)
+            ->assertJsonPath('result.name', 'Agus Pratama')
+            ->assertJsonPath('result.position', 'Direktur Utama')
+            ->assertJsonPath('result.is_pic', true);
+
+        $directorId = (int) $director->json('result.id');
+        $oldPhoto = $director->json('result.photo_path');
+        $oldNpwp = $director->json('result.npwp_path');
+        $oldKtp = $director->json('result.ktp_path');
+
+        $this->assertStringStartsWith('vendor/direksi/', $oldPhoto);
+        Storage::disk('local')->assertExists($oldPhoto);
+        Storage::disk('local')->assertExists($oldNpwp);
+        Storage::disk('local')->assertExists($oldKtp);
+
+        // Update photo -> old photo deleted
+        $updateDirector = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/director/{$directorId}", [
+                'name'        => 'Agus Pratama Updated',
+                'ktp_number'  => '3171000000000009',
+                'npwp_number' => '01.333.444.5-666.000',
+                'position'    => 'Direktur Operasional',
+                'is_pic'      => false,
+                'photo'       => UploadedFile::fake()->image('dir_photo_new.jpg'),
+            ]);
+
+        $updateDirector->assertStatus(201)
+            ->assertJsonPath('result.position', 'Direktur Operasional')
+            ->assertJsonPath('result.is_pic', false);
+
+        $newPhoto = $updateDirector->json('result.photo_path');
+        Storage::disk('local')->assertMissing($oldPhoto);
+        Storage::disk('local')->assertExists($newPhoto);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/director/{$directorId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('direksi-agus-pratama-updated.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> all files deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/director?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/director/{$directorId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPhoto);
+        Storage::disk('local')->assertMissing($oldNpwp);
+        Storage::disk('local')->assertMissing($oldKtp);
+        $this->assertNotNull(VendorDirector::withTrashed()->find($directorId));
+    }
+
+    public function test_vendor_and_admin_can_manage_experts_with_education_level_and_file_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+        $educationLevel = EducationLevel::firstOrFail();
+
+        $this->getJson('/api/vendor/education-level?all=true')
+            ->assertStatus(201)
+            ->assertJsonFragment(['id' => $educationLevel->id, 'name' => $educationLevel->name]);
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '55.444.333.2-111.000',
+            'company_name' => 'PT Tenaga Ahli Nusantara',
+            'phone'        => '0215554443',
+            'pic'          => 'Rina Kartika',
+            'email'        => 'rina@tenagaahli.co.id',
+            'address'      => 'Jl. Asia Afrika',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'rina@tenagaahli.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'rina@tenagaahli.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'rina@tenagaahli.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        // Create expert without optional certificate
+        $expert = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/expert', [
+                'name'               => 'Ir. Rina Kartika',
+                'birth_place'        => 'Bandung',
+                'birth_date'         => '1990-05-15',
+                'position'           => 'Tenaga Ahli Sipil',
+                'npwp_number'        => '01.555.666.7-888.000',
+                'ktp_number'         => '3273012345670001',
+                'address'            => 'Jl. Dago No. 10, Bandung',
+                'education_level_id' => $educationLevel->id,
+                'major'              => 'Teknik Sipil',
+                'diploma_number'     => 'IJZ-2013-00123',
+                'experience_years'   => 8,
+                'photo'              => UploadedFile::fake()->image('expert_photo.jpg'),
+                'diploma'            => UploadedFile::fake()->create('expert_diploma.pdf', 100, 'application/pdf'),
+            ]);
+
+        $expert->assertStatus(201)
+            ->assertJsonPath('result.name', 'Ir. Rina Kartika')
+            ->assertJsonPath('result.education_level_id', $educationLevel->id)
+            ->assertJsonPath('result.education_level.name', $educationLevel->name)
+            ->assertJsonPath('result.certificate_path', null);
+
+        $expertId = (int) $expert->json('result.id');
+        $oldPhoto = $expert->json('result.photo_path');
+        $oldDiploma = $expert->json('result.diploma_path');
+
+        $this->assertStringStartsWith('vendor/tenaga-ahli/', $oldPhoto);
+        Storage::disk('local')->assertExists($oldPhoto);
+        Storage::disk('local')->assertExists($oldDiploma);
+
+        // Update photo & add optional certificate -> old photo deleted
+        $updateExpert = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/expert/{$expertId}", [
+                'name'               => 'Ir. Rina Kartika M.T.',
+                'birth_place'        => 'Bandung',
+                'birth_date'         => '1990-05-15',
+                'position'           => 'Lead Civil Engineer',
+                'npwp_number'        => '01.555.666.7-888.000',
+                'ktp_number'         => '3273012345670001',
+                'address'            => 'Jl. Dago No. 10, Bandung',
+                'education_level_id' => $educationLevel->id,
+                'major'              => 'Teknik Sipil',
+                'diploma_number'     => 'IJZ-2013-00123',
+                'experience_years'   => 10,
+                'photo'              => UploadedFile::fake()->image('expert_photo_new.jpg'),
+                'certificate'        => UploadedFile::fake()->create('expert_cert.pdf', 100, 'application/pdf'),
+            ]);
+
+        $updateExpert->assertStatus(201)
+            ->assertJsonPath('result.experience_years', 10);
+
+        $newPhoto = $updateExpert->json('result.photo_path');
+        $certPath = $updateExpert->json('result.certificate_path');
+        Storage::disk('local')->assertMissing($oldPhoto);
+        Storage::disk('local')->assertExists($newPhoto);
+        Storage::disk('local')->assertExists($certPath);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/expert/{$expertId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('tenaga-ahli-ir-rina-kartika-mt.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> all files deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/expert?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/expert/{$expertId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPhoto);
+        Storage::disk('local')->assertMissing($oldDiploma);
+        Storage::disk('local')->assertMissing($certPath);
+        $this->assertNotNull(VendorExpert::withTrashed()->find($expertId));
     }
 }

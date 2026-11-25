@@ -306,6 +306,140 @@ components:
           type: string
           format: date-time
 
+    VendorDirector:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Agus Pratama
+        ktp_number:
+          type: string
+          example: "3171012345670002"
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        position:
+          type: string
+          example: Direktur Utama
+        is_pic:
+          type: boolean
+          example: true
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EducationLevel:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        name:
+          type: string
+          example: D4/S1
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorExpert:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Ir. Rina Kartika
+        birth_place:
+          type: string
+          example: Bandung
+        birth_date:
+          type: string
+          format: date
+          example: "1990-05-15"
+        position:
+          type: string
+          example: Tenaga Ahli Sipil
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        ktp_number:
+          type: string
+          example: "3273012345670001"
+        address:
+          type: string
+          example: Jl. Dago No. 10, Bandung
+        education_level_id:
+          type: integer
+          example: 7
+        education_level:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 7
+            name:
+              type: string
+              example: D4/S1
+        major:
+          type: string
+          example: Teknik Sipil
+        diploma_number:
+          type: string
+          example: IJZ-2013-00123
+        experience_years:
+          type: integer
+          example: 8
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/photo_abc123.jpg
+        diploma_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/diploma_abc123.pdf
+        certificate_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/certificate_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -478,6 +612,12 @@ tags:
     description: Manage company owners (pemilik PT) under the authenticated vendor
   - name: Vendor Commissioners
     description: Manage company commissioners (komisaris) under the authenticated vendor
+  - name: Vendor Directors
+    description: Manage company board of directors (direksi) under the authenticated vendor
+  - name: Vendor Experts
+    description: Manage company experts (tenaga ahli) under the authenticated vendor
+  - name: Master Education Level
+    description: Master education levels (pendidikan terakhir)
   - name: Master Region
     description: Master provinces and cities (with filter city by province_id)
 
@@ -492,9 +632,12 @@ x-tagGroups:
       - Vendor Team Users
       - Vendor Owners
       - Vendor Commissioners
+      - Vendor Directors
+      - Vendor Experts
   - name: Master Data
     tags:
       - Master Region
+      - Master Education Level
 
 paths:
   /api/vendor/auth/register:
@@ -1361,6 +1504,360 @@ paths:
     get:
       tags: [Vendor Commissioners]
       summary: Download all 3 commissioner files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/director:
+    get:
+      tags: [Vendor Directors]
+      summary: List company directors (direksi)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor directors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar direksi
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorDirector'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Directors]
+      summary: Create new company director (direksi)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, position, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                is_pic:
+                  type: boolean
+                  default: false
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor director created
+
+  /api/vendor/director/{id}:
+    get:
+      tags: [Vendor Directors]
+      summary: Get vendor director detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor director detail
+    post:
+      tags: [Vendor Directors]
+      summary: Update vendor director
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, position]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                is_pic:
+                  type: boolean
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor director updated
+    delete:
+      tags: [Vendor Directors]
+      summary: Delete vendor director
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor director deleted
+
+  /api/vendor/director/{id}/file/{type}:
+    get:
+      tags: [Vendor Directors]
+      summary: Download/view director file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/director/{id}/download-zip:
+    get:
+      tags: [Vendor Directors]
+      summary: Download all 3 director files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/education-level:
+    get:
+      tags: [Master Education Level]
+      summary: List education levels
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of education levels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list education level
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EducationLevel'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/education-level/{id}:
+    get:
+      tags: [Master Education Level]
+      summary: Get education level detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Education level detail
+
+  /api/vendor/expert:
+    get:
+      tags: [Vendor Experts]
+      summary: List company experts (tenaga ahli)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor experts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar tenaga ahli
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorExpert'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Experts]
+      summary: Create new company expert (tenaga ahli)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, birth_place, birth_date, position, npwp_number, ktp_number, address, education_level_id, major, diploma_number, experience_years, photo, diploma]
+              properties:
+                name:
+                  type: string
+                birth_place:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+                position:
+                  type: string
+                npwp_number:
+                  type: string
+                ktp_number:
+                  type: string
+                address:
+                  type: string
+                education_level_id:
+                  type: integer
+                major:
+                  type: string
+                diploma_number:
+                  type: string
+                experience_years:
+                  type: integer
+                photo:
+                  type: string
+                  format: binary
+                diploma:
+                  type: string
+                  format: binary
+                certificate:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor expert created
+
+  /api/vendor/expert/{id}:
+    get:
+      tags: [Vendor Experts]
+      summary: Get vendor expert detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor expert detail
+    post:
+      tags: [Vendor Experts]
+      summary: Update vendor expert
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, birth_place, birth_date, position, npwp_number, ktp_number, address, education_level_id, major, diploma_number, experience_years]
+              properties:
+                name:
+                  type: string
+                birth_place:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+                position:
+                  type: string
+                npwp_number:
+                  type: string
+                ktp_number:
+                  type: string
+                address:
+                  type: string
+                education_level_id:
+                  type: integer
+                major:
+                  type: string
+                diploma_number:
+                  type: string
+                experience_years:
+                  type: integer
+                photo:
+                  type: string
+                  format: binary
+                diploma:
+                  type: string
+                  format: binary
+                certificate:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor expert updated
+    delete:
+      tags: [Vendor Experts]
+      summary: Delete vendor expert
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor expert deleted
+
+  /api/vendor/expert/{id}/file/{type}:
+    get:
+      tags: [Vendor Experts]
+      summary: Download/view expert file (photo, diploma, certificate)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, diploma, certificate]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/expert/{id}/download-zip:
+    get:
+      tags: [Vendor Experts]
+      summary: Download expert files (photo, diploma, certificate) as a ZIP archive
       parameters:
         - $ref: '#/components/parameters/PathIntegerId'
       responses:
