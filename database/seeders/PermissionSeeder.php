@@ -673,6 +673,30 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "vendor_expert_delete"
             ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "read",
+                "permission" => "vendor_financial_read"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "create",
+                "permission" => "vendor_financial_create"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "update",
+                "permission" => "vendor_financial_update"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "delete",
+                "permission" => "vendor_financial_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

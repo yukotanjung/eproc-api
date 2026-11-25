@@ -10,6 +10,7 @@ use App\Models\Vendor;
 use App\Models\VendorCommissioner;
 use App\Models\VendorDirector;
 use App\Models\VendorExpert;
+use App\Models\VendorFinancial;
 use App\Models\VendorOwner;
 use App\Models\VendorUser;
 use App\Notifications\VendorEmailVerification;
@@ -703,5 +704,86 @@ class VendorModuleTest extends ApiTestCase
         Storage::disk('local')->assertMissing($oldDiploma);
         Storage::disk('local')->assertMissing($certPath);
         $this->assertNotNull(VendorExpert::withTrashed()->find($expertId));
+    }
+
+    public function test_vendor_and_admin_can_manage_financial_data(): void
+    {
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '44.333.222.1-000.000',
+            'company_name' => 'PT Keuangan Nusantara',
+            'phone'        => '0214443332',
+            'pic'          => 'Surya Darma',
+            'email'        => 'surya@keuangan.co.id',
+            'address'      => 'Jl. Thamrin',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'surya@keuangan.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'surya@keuangan.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'surya@keuangan.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $financial = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/vendor/financial', [
+                'report_date'            => '2025-12-31',
+                'fixed_assets'           => 1500000000,
+                'current_assets'         => 750000000,
+                'other_assets'           => 100000000,
+                'long_term_liabilities'  => 300000000,
+                'short_term_liabilities' => 200000000,
+                'capital'                => 1000000000,
+                'net_worth'              => 1850000000,
+            ]);
+
+        $financial->assertStatus(201)
+            ->assertJsonPath('result.report_date', '2025-12-31')
+            ->assertJsonPath('result.net_worth', 1850000000);
+
+        $financialId = (int) $financial->json('result.id');
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson("/api/vendor/financial/{$financialId}", [
+                'report_date'            => '2025-12-31',
+                'fixed_assets'           => 1600000000,
+                'current_assets'         => 800000000,
+                'other_assets'           => 100000000,
+                'long_term_liabilities'  => 300000000,
+                'short_term_liabilities' => 200000000,
+                'capital'                => 1000000000,
+                'net_worth'              => 2000000000,
+            ])
+            ->assertStatus(201)
+            ->assertJsonPath('result.net_worth', 2000000000);
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/vendor/financial?all=true')
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->deleteJson("/api/vendor/financial/{$financialId}")
+            ->assertStatus(201);
+
+        $this->assertNotNull(VendorFinancial::withTrashed()->find($financialId));
     }
 }

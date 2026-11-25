@@ -440,6 +440,54 @@ components:
           type: string
           format: date-time
 
+    VendorFinancial:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        report_date:
+          type: string
+          format: date
+          example: "2025-12-31"
+        fixed_assets:
+          type: number
+          format: float
+          example: 1500000000
+        current_assets:
+          type: number
+          format: float
+          example: 750000000
+        other_assets:
+          type: number
+          format: float
+          example: 100000000
+        long_term_liabilities:
+          type: number
+          format: float
+          example: 300000000
+        short_term_liabilities:
+          type: number
+          format: float
+          example: 200000000
+        capital:
+          type: number
+          format: float
+          example: 1000000000
+        net_worth:
+          type: number
+          format: float
+          example: 1850000000
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -616,6 +664,8 @@ tags:
     description: Manage company board of directors (direksi) under the authenticated vendor
   - name: Vendor Experts
     description: Manage company experts (tenaga ahli) under the authenticated vendor
+  - name: Vendor Financials
+    description: Manage company financial statements (data keuangan) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
@@ -634,6 +684,7 @@ x-tagGroups:
       - Vendor Commissioners
       - Vendor Directors
       - Vendor Experts
+      - Vendor Financials
   - name: Master Data
     tags:
       - Master Region
@@ -1868,3 +1919,112 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  /api/vendor/financial:
+    get:
+      tags: [Vendor Financials]
+      summary: List company financial data (data keuangan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor financials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data keuangan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorFinancial'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Financials]
+      summary: Create financial data (data keuangan)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_date, fixed_assets, current_assets, other_assets, long_term_liabilities, short_term_liabilities, capital, net_worth]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                fixed_assets:
+                  type: number
+                current_assets:
+                  type: number
+                other_assets:
+                  type: number
+                long_term_liabilities:
+                  type: number
+                short_term_liabilities:
+                  type: number
+                capital:
+                  type: number
+                net_worth:
+                  type: number
+      responses:
+        '201':
+          description: Vendor financial created
+
+  /api/vendor/financial/{id}:
+    get:
+      tags: [Vendor Financials]
+      summary: Get vendor financial detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor financial detail
+    post:
+      tags: [Vendor Financials]
+      summary: Update vendor financial data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_date, fixed_assets, current_assets, other_assets, long_term_liabilities, short_term_liabilities, capital, net_worth]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                fixed_assets:
+                  type: number
+                current_assets:
+                  type: number
+                other_assets:
+                  type: number
+                long_term_liabilities:
+                  type: number
+                short_term_liabilities:
+                  type: number
+                capital:
+                  type: number
+                net_worth:
+                  type: number
+      responses:
+        '201':
+          description: Vendor financial updated
+    delete:
+      tags: [Vendor Financials]
+      summary: Delete vendor financial data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor financial deleted

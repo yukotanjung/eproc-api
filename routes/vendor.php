@@ -7,6 +7,7 @@ use App\Http\Controllers\Vendor\VendorAuthController;
 use App\Http\Controllers\Vendor\VendorCommissionerController;
 use App\Http\Controllers\Vendor\VendorDirectorController;
 use App\Http\Controllers\Vendor\VendorExpertController;
+use App\Http\Controllers\Vendor\VendorFinancialController;
 use App\Http\Controllers\Vendor\VendorOwnerController;
 use App\Http\Controllers\Vendor\VendorProfileController;
 use Illuminate\Support\Facades\Route;
@@ -97,6 +98,14 @@ Route::prefix('vendor')->group(function () {
             Route::delete('/{id}', [VendorExpertController::class, 'destroy']);
             Route::get('/{id}/file/{type}', [VendorExpertController::class, 'downloadFile']);
             Route::get('/{id}/download-zip', [VendorExpertController::class, 'downloadZip']);
+        });
+
+        Route::prefix('financial')->group(function () {
+            Route::get('/', [VendorFinancialController::class, 'index']);
+            Route::post('/', [VendorFinancialController::class, 'store']);
+            Route::get('/{id}', [VendorFinancialController::class, 'show']);
+            Route::post('/{id}', [VendorFinancialController::class, 'update']);
+            Route::delete('/{id}', [VendorFinancialController::class, 'destroy']);
         });
     });
 });

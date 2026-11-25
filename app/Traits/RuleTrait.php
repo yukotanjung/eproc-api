@@ -898,6 +898,27 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorFinancialController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'report_date'            => 'required|date_format:Y-m-d',
+                        'fixed_assets'           => 'required|numeric|min:0',
+                        'current_assets'         => 'required|numeric|min:0',
+                        'other_assets'           => 'required|numeric|min:0',
+                        'long_term_liabilities'  => 'required|numeric|min:0',
+                        'short_term_liabilities' => 'required|numeric|min:0',
+                        'capital'                => 'required|numeric|min:0',
+                        'net_worth'              => 'required|numeric',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -1125,6 +1146,27 @@ trait RuleTrait
                         'photo'              => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
                         'diploma'            => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                         'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorFinancialController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'report_date'            => 'required|date_format:Y-m-d',
+                        'fixed_assets'           => 'required|numeric|min:0',
+                        'current_assets'         => 'required|numeric|min:0',
+                        'other_assets'           => 'required|numeric|min:0',
+                        'long_term_liabilities'  => 'required|numeric|min:0',
+                        'short_term_liabilities' => 'required|numeric|min:0',
+                        'capital'                => 'required|numeric|min:0',
+                        'net_worth'              => 'required|numeric',
                     ];
                 }
                 break;
