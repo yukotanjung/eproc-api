@@ -92,17 +92,17 @@ return [
     |
     */
     'sources' => [
-        // [
-        //     'title' => 'API v1',
-        //     'slug' => 'v1',
-        //     'url' => '/openapi/v1.yaml',
-        // ],
-        // [
-        //     'title' => 'API v2',
-        //     'slug' => 'v2',
-        //     'url' => '/openapi/v2.yaml',
-        //     'default' => true,
-        // ],
+        [
+            'title'   => 'Eproc Admin API',
+            'slug'    => 'admin',
+            'file'    => resource_path('openapi/openapi.yaml'),
+            'default' => true,
+        ],
+        [
+            'title' => 'Eproc Vendor API',
+            'slug'  => 'vendor',
+            'file'  => resource_path('openapi/vendor-openapi.yaml'),
+        ],
     ],
 
     /*

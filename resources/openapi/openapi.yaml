@@ -1482,6 +1482,177 @@ components:
           type: string
           format: date-time
 
+    Province:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: DKI Jakarta
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        province_id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: Kota Administrasi Jakarta Selatan
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+
+    VendorUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        username:
+          type: string
+          nullable: true
+          example: budisantoso
+        email:
+          type: string
+          format: email
+          example: budi@majubersama.co.id
+        phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        photo_url:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+          example: true
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        npwp:
+          type: string
+          example: "01.234.567.8-901.000"
+        company_name:
+          type: string
+          example: PT Maju Bersama Sejahtera
+        phone:
+          type: string
+          nullable: true
+          example: "0215551234"
+        pic:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        address:
+          type: string
+          nullable: true
+          example: Jl. Jend. Sudirman Kav. 52-53
+        province_id:
+          type: integer
+          nullable: true
+          example: 11
+        city_id:
+          type: integer
+          nullable: true
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+        users_count:
+          type: integer
+          example: 2
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+        city:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            province_id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: Kota Administrasi Jakarta Selatan
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/VendorUser'
+
     # Procurement HPS Schemas
     ProcurementHpsItem:
       type: object
@@ -1723,6 +1894,12 @@ tags:
     description: Master national holidays management for working day calculation
   - name: Unit
     description: Master unit of measurement (satuan) management
+  - name: Province
+    description: Master province management
+  - name: City
+    description: Master city management (with filter by province_id)
+  - name: Vendor
+    description: Vendor company and vendor users management
   - name: Procurement
     description: Procurement package management (daftar pekerjaan/pengadaan)
   - name: Schedule
@@ -1764,6 +1941,9 @@ x-tagGroups:
       - Procurement Method
       - Procurement Method Stage
       - Holiday
+      - Province
+      - City
+      - Vendor
   - name: Procurement
     tags:
       - Procurement
@@ -6716,3 +6896,469 @@ paths:
           description: Validation error
         '403':
           description: Account not found
+
+  /api/province:
+    get:
+      tags: [Province]
+      summary: List provinces
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: Provinces retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list province
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Province'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Province]
+      summary: Create province
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  example: DKI Jakarta
+      responses:
+        '201':
+          description: Province created
+
+  /api/province/{id}:
+    get:
+      tags: [Province]
+      summary: Get province by ID
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Province detail
+    post:
+      tags: [Province]
+      summary: Update province
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Province updated
+    delete:
+      tags: [Province]
+      summary: Delete province
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Province deleted
+
+  /api/city:
+    get:
+      tags: [City]
+      summary: List cities (supports filter by province_id)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: province_id
+          in: query
+          description: Filter cities by province ID
+          schema:
+            type: integer
+        - name: filter[province_id]
+          in: query
+          description: Filter cities by province ID (alternative syntax)
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Cities retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list city
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/City'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [City]
+      summary: Create city
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [province_id, name]
+              properties:
+                province_id:
+                  type: integer
+                name:
+                  type: string
+      responses:
+        '201':
+          description: City created
+
+  /api/city/{id}:
+    get:
+      tags: [City]
+      summary: Get city by ID
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: City detail
+    post:
+      tags: [City]
+      summary: Update city
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [province_id, name]
+              properties:
+                province_id:
+                  type: integer
+                name:
+                  type: string
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: City updated
+    delete:
+      tags: [City]
+      summary: Delete city
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: City deleted
+
+  /api/vendor:
+    get:
+      tags: [Vendor]
+      summary: List vendors
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: province_id
+          in: query
+          schema:
+            type: integer
+        - name: city_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Vendors retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list vendor
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vendor'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor]
+      summary: Create vendor (and optional initial vendor user)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [npwp, company_name, pic, email]
+              properties:
+                npwp:
+                  type: string
+                company_name:
+                  type: string
+                phone:
+                  type: string
+                  nullable: true
+                pic:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                  nullable: true
+                province_id:
+                  type: integer
+                  nullable: true
+                city_id:
+                  type: integer
+                  nullable: true
+                is_active:
+                  type: boolean
+                  default: true
+                create_initial_user:
+                  type: boolean
+                  default: true
+                user_name:
+                  type: string
+                  nullable: true
+                user_email:
+                  type: string
+                  format: email
+                  nullable: true
+                username:
+                  type: string
+                  nullable: true
+                user_phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                callback_url:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Vendor created
+
+  /api/vendor/{id}:
+    get:
+      tags: [Vendor]
+      summary: Get vendor detail with its users
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor detail
+    post:
+      tags: [Vendor]
+      summary: Update vendor
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [npwp, company_name, pic, email]
+              properties:
+                npwp:
+                  type: string
+                company_name:
+                  type: string
+                phone:
+                  type: string
+                  nullable: true
+                pic:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                  nullable: true
+                province_id:
+                  type: integer
+                  nullable: true
+                city_id:
+                  type: integer
+                  nullable: true
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Vendor updated
+    delete:
+      tags: [Vendor]
+      summary: Delete vendor
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor deleted
+
+  /api/vendor/{id}/user:
+    get:
+      tags: [Vendor]
+      summary: List users belonging to a vendor
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+      responses:
+        '201':
+          description: Vendor users retrieved
+    post:
+      tags: [Vendor]
+      summary: Create new user for a vendor
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                is_active:
+                  type: boolean
+                  default: true
+                callback_url:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Vendor user created
+
+  /api/vendor/{id}/user/{userId}:
+    get:
+      tags: [Vendor]
+      summary: Get vendor user detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Vendor user detail
+    post:
+      tags: [Vendor]
+      summary: Update vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Vendor user updated
+    delete:
+      tags: [Vendor]
+      summary: Delete vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Vendor user deleted
+
+  /api/vendor/{id}/user/{userId}/resend-activation:
+    get:
+      tags: [Vendor]
+      summary: Resend account activation email for vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: callback_url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Activation email resent

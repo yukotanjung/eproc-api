@@ -658,6 +658,204 @@ trait RuleTrait
                     ];
                 }
                 break;
+
+            case 'ProvinceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name' => 'required|unique:provinces,name,NULL,id,deleted_at,NULL|string|max:150',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => ['required', 'string', 'max:150', new IsUniqueOtherRule('provinces', 'name', $params['own_id'])],
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'CityController':
+                if ($method == 'index') {
+                    return [
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'province_id' => 'integer|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'province_id' => 'required|integer|exists:provinces,id,deleted_at,NULL',
+                        'name'        => 'required|unique:cities,name,NULL,id,deleted_at,NULL|string|max:150',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'province_id' => 'required|integer|exists:provinces,id,deleted_at,NULL',
+                        'name'        => ['required', 'string', 'max:150', new IsUniqueOtherRule('cities', 'name', $params['own_id'])],
+                        'is_active'   => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorController':
+                if ($method == 'index' || $method == 'indexUsers') {
+                    return [
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'province_id' => 'integer|nullable',
+                        'city_id'     => 'integer|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'npwp'                => 'required|unique:vendors,npwp,NULL,id,deleted_at,NULL|string|max:50',
+                        'company_name'        => 'required|string|max:255',
+                        'phone'               => 'nullable|string|max:50',
+                        'pic'                 => 'required|string|max:150',
+                        'email'               => 'required|unique:vendors,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'address'             => 'nullable|string|max:1000',
+                        'province_id'         => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'             => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'is_active'           => 'nullable|boolean',
+                        'create_initial_user' => 'nullable|boolean',
+                        'user_name'           => 'nullable|string|max:150',
+                        'user_email'          => 'nullable|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'username'            => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'user_phone'          => 'nullable|string|max:50',
+                        'password'            => 'nullable|string|min:6',
+                        'callback_url'        => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'npwp'         => ['required', 'string', 'max:50', new IsUniqueOtherRule('vendors', 'npwp', $params['own_id'])],
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendors', 'email', $params['own_id'])],
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'storeUser') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'email'        => 'required|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'phone'        => 'nullable|string|max:50',
+                        'password'     => 'nullable|string|min:6',
+                        'is_active'    => 'nullable|boolean',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updateUser') {
+                    return [
+                        'name'      => 'required|string|max:150',
+                        'username'  => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'     => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'     => 'nullable|string|max:50',
+                        'password'  => 'nullable|string|min:6',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorAuthController':
+                if ($method == 'register') {
+                    return [
+                        'npwp'         => 'required|unique:vendors,npwp,NULL,id,deleted_at,NULL|string|max:50',
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => 'required|unique:vendors,email,NULL,id,deleted_at,NULL|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'name'         => 'nullable|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'user_email'   => 'nullable|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'user_phone'   => 'nullable|string|max:50',
+                        'password'     => 'required|string|min:6',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'verify') {
+                    return [
+                        'token' => 'required|string',
+                        'email' => 'nullable|email',
+                    ];
+                } elseif ($method == 'resendVerification') {
+                    return [
+                        'email'        => 'required|email',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'sendForgotPasswordLink') {
+                    return [
+                        'email' => 'required|email',
+                    ];
+                } elseif ($method == 'updateForgotPassword') {
+                    return [
+                        'email'    => 'required',
+                        'token'    => 'required',
+                        'password' => 'required|min:6',
+                    ];
+                }
+                break;
+
+            case 'VendorProfileController':
+                if ($method == 'updateProfile') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'        => 'nullable|string|max:50',
+                        'photo'        => 'nullable|mimes:jpeg,jpg,png,gif',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updatePassword') {
+                    return [
+                        'old_password' => 'required',
+                        'new_password' => 'required|min:6',
+                    ];
+                } elseif ($method == 'updateCompany') {
+                    return [
+                        'npwp'         => ['required', 'string', 'max:50', new IsUniqueOtherRule('vendors', 'npwp', $params['own_id'])],
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendors', 'email', $params['own_id'])],
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                    ];
+                } elseif ($method == 'indexUsers') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'storeUser') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'email'        => 'required|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'phone'        => 'nullable|string|max:50',
+                        'password'     => 'nullable|string|min:6',
+                        'is_active'    => 'nullable|boolean',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updateUser') {
+                    return [
+                        'name'      => 'required|string|max:150',
+                        'username'  => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'     => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'     => 'nullable|string|max:50',
+                        'password'  => 'nullable|string|min:6',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
         }
     }
 }

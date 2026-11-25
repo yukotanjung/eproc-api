@@ -505,6 +505,78 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "procurement_hps_delete"
             ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "read",
+                "permission" => "province_read"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "create",
+                "permission" => "province_create"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "update",
+                "permission" => "province_update"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "delete",
+                "permission" => "province_delete"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "read",
+                "permission" => "city_read"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "create",
+                "permission" => "city_create"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "update",
+                "permission" => "city_update"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "delete",
+                "permission" => "city_delete"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "read",
+                "permission" => "vendor_read"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "create",
+                "permission" => "vendor_create"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "update",
+                "permission" => "vendor_update"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "delete",
+                "permission" => "vendor_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

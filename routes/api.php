@@ -28,6 +28,9 @@ use App\Http\Controllers\ProcurementChecklistFileController;
 use App\Http\Controllers\ProcurementHpsController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\ProvinceController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\VendorController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -199,6 +202,37 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/', [UnitController::class, 'store'])->middleware('permission:unit_create');
         Route::post('/{id}', [UnitController::class, 'update'])->middleware('permission:unit_update');
         Route::delete('/{id}', [UnitController::class, 'destroy'])->middleware('permission:unit_delete');
+    });
+
+    Route::prefix('province')->group(function () {
+        Route::get('/', [ProvinceController::class, 'index'])->middleware('permission:province_read');
+        Route::get('/{id}', [ProvinceController::class, 'show'])->middleware('permission:province_read');
+        Route::post('/', [ProvinceController::class, 'store'])->middleware('permission:province_create');
+        Route::post('/{id}', [ProvinceController::class, 'update'])->middleware('permission:province_update');
+        Route::delete('/{id}', [ProvinceController::class, 'destroy'])->middleware('permission:province_delete');
+    });
+
+    Route::prefix('city')->group(function () {
+        Route::get('/', [CityController::class, 'index'])->middleware('permission:city_read');
+        Route::get('/{id}', [CityController::class, 'show'])->middleware('permission:city_read');
+        Route::post('/', [CityController::class, 'store'])->middleware('permission:city_create');
+        Route::post('/{id}', [CityController::class, 'update'])->middleware('permission:city_update');
+        Route::delete('/{id}', [CityController::class, 'destroy'])->middleware('permission:city_delete');
+    });
+
+    Route::prefix('vendor')->whereNumber('id')->group(function () {
+        Route::get('/', [VendorController::class, 'index'])->middleware('permission:vendor_read');
+        Route::get('/{id}', [VendorController::class, 'show'])->middleware('permission:vendor_read');
+        Route::post('/', [VendorController::class, 'store'])->middleware('permission:vendor_create');
+        Route::post('/{id}', [VendorController::class, 'update'])->middleware('permission:vendor_update');
+        Route::delete('/{id}', [VendorController::class, 'destroy'])->middleware('permission:vendor_delete');
+
+        Route::get('/{id}/user/{userId}/resend-activation', [VendorController::class, 'resendActivation'])->middleware('permission:vendor_update');
+        Route::get('/{id}/user', [VendorController::class, 'indexUsers'])->middleware('permission:vendor_read');
+        Route::post('/{id}/user', [VendorController::class, 'storeUser'])->middleware('permission:vendor_create');
+        Route::get('/{id}/user/{userId}', [VendorController::class, 'showUser'])->middleware('permission:vendor_read');
+        Route::post('/{id}/user/{userId}', [VendorController::class, 'updateUser'])->middleware('permission:vendor_update');
+        Route::delete('/{id}/user/{userId}', [VendorController::class, 'destroyUser'])->middleware('permission:vendor_delete');
     });
 
     Route::prefix('procurement')->group(function () {

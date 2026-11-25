@@ -79,7 +79,7 @@ class Authenticate implements AuthenticatesRequests
             $guards = [null];
         }
         foreach ($guards as $guard) {
-            if (in_array($guard, ['api']) && (empty($request->headers->get('Accept')) || $request->headers->get('Accept') === '*/*')) {
+            if (in_array($guard, ['api', 'vendor']) && (empty($request->headers->get('Accept')) || $request->headers->get('Accept') === '*/*')) {
                 $request->headers->set('Accept', 'application/json');
             }
             if ($this->auth->guard($guard)->check()) {

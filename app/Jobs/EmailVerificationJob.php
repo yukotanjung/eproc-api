@@ -20,7 +20,7 @@ class EmailVerificationJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(User $user, $name, $callbackUrl, $newEmail)
+    public function __construct($user, $name, $callbackUrl, $newEmail)
     {
         $this->user = $user;
         $this->name = $name;

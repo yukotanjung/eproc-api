@@ -1,0 +1,1002 @@
+openapi: 3.0.3
+info:
+  title: Eproc Vendor API
+  description: |
+    API documentation for the E-Procurement Vendor Portal.
+
+    **Authentication:** Use Bearer JWT token (from guard `vendor`) in the `Authorization` header:
+    `Authorization: Bearer <token>`
+
+    Obtain a token via `/api/vendor/auth/login`.
+  version: 1.0.0
+  contact:
+    name: Eproc Team
+
+servers:
+  - url: /
+    description: Current server
+  - url: http://localhost:8000
+    description: Local development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 100
+        per_page:
+          type: integer
+          example: 10
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: No data
+
+    ValidationError:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error Validation on npwp : The npwp field is required."
+        result:
+          type: object
+
+    Province:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: DKI Jakarta
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        province_id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: Kota Administrasi Jakarta Selatan
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        npwp:
+          type: string
+          example: "01.234.567.8-901.000"
+        company_name:
+          type: string
+          example: PT Maju Bersama Sejahtera
+        phone:
+          type: string
+          nullable: true
+          example: "0215551234"
+        pic:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        address:
+          type: string
+          nullable: true
+          example: Jl. Jend. Sudirman Kav. 52-53
+        province_id:
+          type: integer
+          nullable: true
+          example: 11
+        city_id:
+          type: integer
+          nullable: true
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+        city:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            province_id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: Kota Administrasi Jakarta Selatan
+
+    VendorUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        username:
+          type: string
+          nullable: true
+          example: budisantoso
+        email:
+          type: string
+          format: email
+          example: budi@majubersama.co.id
+        phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        photo_url:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+          example: true
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorRegisterRequest:
+      type: object
+      required: [npwp, company_name, pic, email, password]
+      properties:
+        npwp:
+          type: string
+          example: "01.234.567.8-901.000"
+        company_name:
+          type: string
+          example: PT Maju Bersama Sejahtera
+        phone:
+          type: string
+          nullable: true
+          example: "0215551234"
+        pic:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        address:
+          type: string
+          nullable: true
+          example: Jl. Jend. Sudirman Kav. 52-53
+        province_id:
+          type: integer
+          nullable: true
+          example: 11
+        city_id:
+          type: integer
+          nullable: true
+          example: 1
+        name:
+          type: string
+          nullable: true
+          description: Initial user full name (defaults to pic)
+          example: Budi Santoso
+        username:
+          type: string
+          nullable: true
+          example: budisantoso
+        user_email:
+          type: string
+          format: email
+          nullable: true
+          description: Initial user email (defaults to company email)
+        user_phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: secret123
+        callback_url:
+          type: string
+          nullable: true
+          description: Optional frontend verification URL (defaults to backend /api/vendor/auth/verify)
+          example: http://localhost:3000/vendor/verify
+
+    VendorLoginRequest:
+      type: object
+      required: [password]
+      properties:
+        login:
+          type: string
+          description: Email or username (can also pass `email` or `username` field)
+          example: info@majubersama.co.id
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        password:
+          type: string
+          format: password
+          example: secret123
+
+    VendorLoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Login successful
+        result:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            vendor_id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Budi Santoso
+            username:
+              type: string
+              nullable: true
+              example: budisantoso
+            email:
+              type: string
+              example: info@majubersama.co.id
+            phone:
+              type: string
+              nullable: true
+              example: "081234567890"
+            photo_url:
+              type: string
+              nullable: true
+            is_active:
+              type: boolean
+              example: true
+            last_login:
+              type: string
+              format: date-time
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            vendor:
+              $ref: '#/components/schemas/Vendor'
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+    AllParam:
+      name: all
+      in: query
+      schema:
+        type: boolean
+        default: false
+    SearchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+    PathIntegerId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Vendor Auth
+    description: Vendor registration, login, activation, and password recovery
+  - name: Vendor Profile
+    description: Authenticated vendor user profile and password management
+  - name: Vendor Company
+    description: Vendor company profile details (NPWP, address, PIC, province, city)
+  - name: Vendor Team Users
+    description: Manage multiple user accounts under the authenticated vendor
+  - name: Master Region
+    description: Master provinces and cities (with filter city by province_id)
+
+x-tagGroups:
+  - name: Authentication
+    tags:
+      - Vendor Auth
+      - Vendor Profile
+  - name: Organization
+    tags:
+      - Vendor Company
+      - Vendor Team Users
+  - name: Master Data
+    tags:
+      - Master Region
+
+paths:
+  /api/vendor/auth/register:
+    post:
+      tags: [Vendor Auth]
+      summary: Register new vendor and initial vendor user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorRegisterRequest'
+      responses:
+        '201':
+          description: Vendor registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success register vendor
+                  result:
+                    type: object
+                    properties:
+                      vendor:
+                        $ref: '#/components/schemas/Vendor'
+                      user:
+                        $ref: '#/components/schemas/VendorUser'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/vendor/auth/login:
+    post:
+      tags: [Vendor Auth]
+      summary: Vendor user login
+      description: Authenticates against `vendor_users` table, checks `is_active` status, updates `last_login`, and returns JWT token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorLoginRequest'
+      responses:
+        '201':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorLoginResponse'
+        '400':
+          description: Invalid credentials
+        '403':
+          description: Account or vendor is inactive
+
+  /api/vendor/auth/me:
+    get:
+      tags: [Vendor Auth]
+      summary: Get current authenticated vendor user
+      responses:
+        '201':
+          description: Current vendor user profile and company info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User profile
+                  result:
+                    $ref: '#/components/schemas/VendorUser'
+
+  /api/vendor/auth/logout:
+    get:
+      tags: [Vendor Auth]
+      summary: Logout vendor user
+      responses:
+        '201':
+          description: Logged out successfully
+
+  /api/vendor/auth/verify:
+    get:
+      tags: [Vendor Auth]
+      summary: Verify vendor account via email link
+      description: Clicking the verification link activates the vendor user (`is_active = true`, `email_verified_at = now()`) so the user can immediately log in.
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+            format: email
+      responses:
+        '201':
+          description: Account verified and activated
+        '400':
+          description: Verification link invalid or expired
+    post:
+      tags: [Vendor Auth]
+      summary: Verify vendor account via token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '201':
+          description: Account verified and activated
+        '400':
+          description: Verification link invalid or expired
+
+  /api/vendor/auth/resend-verification:
+    post:
+      tags: [Vendor Auth]
+      summary: Resend email verification link
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Verification email sent
+        '400':
+          description: Account already verified
+
+  /api/vendor/auth/forgot_password/send:
+    post:
+      tags: [Vendor Auth]
+      summary: Send forgot password link to vendor user email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Reset link sent
+
+  /api/vendor/auth/forgot_password/check_token:
+    post:
+      tags: [Vendor Auth]
+      summary: Verify forgot password reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token]
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Token is valid
+
+  /api/vendor/auth/forgot_password/update_password:
+    post:
+      tags: [Vendor Auth]
+      summary: Reset vendor user password with token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password]
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password updated
+
+  /api/vendor/province:
+    get:
+      tags: [Master Region]
+      summary: List provinces
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of provinces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list province
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Province'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/province/{id}:
+    get:
+      tags: [Master Region]
+      summary: Get province detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Province detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Province'
+
+  /api/vendor/city:
+    get:
+      tags: [Master Region]
+      summary: List cities (supports filter by province_id)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: province_id
+          in: query
+          description: Filter cities by province ID
+          schema:
+            type: integer
+        - name: filter[province_id]
+          in: query
+          description: Filter cities by province ID (alternative syntax)
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: List of cities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list city
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/City'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/city/{id}:
+    get:
+      tags: [Master Region]
+      summary: Get city detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: City detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/City'
+
+  /api/vendor/profile:
+    get:
+      tags: [Vendor Profile]
+      summary: Get authenticated vendor user profile and company info
+      responses:
+        '201':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get profile
+                  result:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/VendorUser'
+                      vendor:
+                        $ref: '#/components/schemas/Vendor'
+
+  /api/vendor/profile/update-profile:
+    post:
+      tags: [Vendor Profile]
+      summary: Update personal vendor user profile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Profile updated
+
+  /api/vendor/profile/update-password:
+    post:
+      tags: [Vendor Profile]
+      summary: Update personal vendor user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password:
+                  type: string
+                  format: password
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password updated
+
+  /api/vendor/company:
+    get:
+      tags: [Vendor Company]
+      summary: Get authenticated vendor company details
+      responses:
+        '201':
+          description: Company details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get vendor company
+                  result:
+                    $ref: '#/components/schemas/Vendor'
+    post:
+      tags: [Vendor Company]
+      summary: Update authenticated vendor company details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [npwp, company_name, pic, email]
+              properties:
+                npwp:
+                  type: string
+                company_name:
+                  type: string
+                phone:
+                  type: string
+                  nullable: true
+                pic:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                  nullable: true
+                province_id:
+                  type: integer
+                  nullable: true
+                city_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '201':
+          description: Company details updated
+
+  /api/vendor/user:
+    get:
+      tags: [Vendor Team Users]
+      summary: List users belonging to the authenticated vendor
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list vendor user
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorUser'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Team Users]
+      summary: Create new user for the authenticated vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                  minLength: 6
+                is_active:
+                  type: boolean
+                  default: true
+                callback_url:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Vendor user created
+
+  /api/vendor/user/{id}:
+    get:
+      tags: [Vendor Team Users]
+      summary: Get vendor user detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor user detail
+    post:
+      tags: [Vendor Team Users]
+      summary: Update vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                  minLength: 6
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Vendor user updated
+    delete:
+      tags: [Vendor Team Users]
+      summary: Delete vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor user deleted
+
+  /api/vendor/user/{id}/resend-activation:
+    get:
+      tags: [Vendor Team Users]
+      summary: Resend account activation email for vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: callback_url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Activation email resent
