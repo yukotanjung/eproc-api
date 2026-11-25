@@ -180,7 +180,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -919,6 +919,30 @@ trait RuleTrait
                 }
                 break;
 
+            case 'VendorTaxController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
             case 'VendorAuthController':
                 if ($method == 'register') {
                     return [
@@ -1167,6 +1191,30 @@ trait RuleTrait
                         'short_term_liabilities' => 'required|numeric|min:0',
                         'capital'                => 'required|numeric|min:0',
                         'net_worth'              => 'required|numeric',
+                    ];
+                }
+                break;
+
+            case 'VendorTaxController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;

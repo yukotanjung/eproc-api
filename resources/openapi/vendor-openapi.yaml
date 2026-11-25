@@ -488,6 +488,71 @@ components:
           type: string
           format: date-time
 
+    TaxType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: PPh Pasal 21
+        is_spt:
+          type: boolean
+          example: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorTax:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        report_date:
+          type: string
+          format: date
+          example: "2025-12-31"
+        tax_id:
+          type: integer
+          example: 1
+        tax:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: PPh Pasal 21
+            is_spt:
+              type: boolean
+              example: true
+        receipt_number:
+          type: string
+          example: BPE-2025-00123
+        receipt_path:
+          type: string
+          nullable: true
+          example: vendor/pajak/receipt_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
     VendorRegisterRequest:
       type: object
       required: [npwp, company_name, pic, email, password]
@@ -666,10 +731,14 @@ tags:
     description: Manage company experts (tenaga ahli) under the authenticated vendor
   - name: Vendor Financials
     description: Manage company financial statements (data keuangan) under the authenticated vendor
+  - name: Vendor Taxes
+    description: Manage company tax reports (manajemen pajak) under the authenticated vendor
   - name: Master Education Level
     description: Master education levels (pendidikan terakhir)
   - name: Master Region
     description: Master provinces and cities (with filter city by province_id)
+  - name: Master Tax Type
+    description: Master tax types (jenis pajak)
 
 x-tagGroups:
   - name: Authentication
@@ -685,10 +754,12 @@ x-tagGroups:
       - Vendor Directors
       - Vendor Experts
       - Vendor Financials
+      - Vendor Taxes
   - name: Master Data
     tags:
       - Master Region
       - Master Education Level
+      - Master Tax Type
 
 paths:
   /api/vendor/auth/register:
@@ -2028,3 +2099,162 @@ paths:
       responses:
         '201':
           description: Vendor financial deleted
+
+  /api/vendor/tax-type:
+    get:
+      tags: [Master Tax Type]
+      summary: List master tax types (jenis pajak)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of tax types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list tax
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaxType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/tax-type/{id}:
+    get:
+      tags: [Master Tax Type]
+      summary: Get master tax type detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Tax type detail
+
+  /api/vendor/tax:
+    get:
+      tags: [Vendor Taxes]
+      summary: List company tax reports (manajemen pajak)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor tax reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data pajak
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorTax'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Taxes]
+      summary: Create tax report (manajemen pajak)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [report_date, tax_id, receipt_number, receipt_file]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                tax_id:
+                  type: integer
+                receipt_number:
+                  type: string
+                receipt_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor tax created
+
+  /api/vendor/tax/{id}:
+    get:
+      tags: [Vendor Taxes]
+      summary: Get vendor tax detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor tax detail
+    post:
+      tags: [Vendor Taxes]
+      summary: Update vendor tax report
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [report_date, tax_id, receipt_number]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                tax_id:
+                  type: integer
+                receipt_number:
+                  type: string
+                receipt_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor tax updated
+    delete:
+      tags: [Vendor Taxes]
+      summary: Delete vendor tax report
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor tax deleted
+
+  /api/vendor/tax/{id}/file:
+    get:
+      tags: [Vendor Taxes]
+      summary: Download/view tax receipt file
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/tax/{id}/download-zip:
+    get:
+      tags: [Vendor Taxes]
+      summary: Download tax receipt file as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary

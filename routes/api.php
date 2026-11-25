@@ -35,6 +35,7 @@ use App\Http\Controllers\VendorCommissionerController;
 use App\Http\Controllers\VendorDirectorController;
 use App\Http\Controllers\VendorExpertController;
 use App\Http\Controllers\VendorOwnerController;
+use App\Http\Controllers\VendorTaxController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -269,6 +270,14 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}/expert/{expertId}', [VendorExpertController::class, 'destroy'])->middleware('permission:vendor_expert_delete');
         Route::get('/{id}/expert/{expertId}/file/{type}', [VendorExpertController::class, 'downloadFile'])->middleware('permission:vendor_expert_read');
         Route::get('/{id}/expert/{expertId}/download-zip', [VendorExpertController::class, 'downloadZip'])->middleware('permission:vendor_expert_read');
+
+        Route::get('/{id}/tax', [VendorTaxController::class, 'index'])->middleware('permission:vendor_tax_read');
+        Route::post('/{id}/tax', [VendorTaxController::class, 'store'])->middleware('permission:vendor_tax_create');
+        Route::get('/{id}/tax/{taxId}', [VendorTaxController::class, 'show'])->middleware('permission:vendor_tax_read');
+        Route::post('/{id}/tax/{taxId}', [VendorTaxController::class, 'update'])->middleware('permission:vendor_tax_update');
+        Route::delete('/{id}/tax/{taxId}', [VendorTaxController::class, 'destroy'])->middleware('permission:vendor_tax_delete');
+        Route::get('/{id}/tax/{taxId}/file', [VendorTaxController::class, 'downloadFile'])->middleware('permission:vendor_tax_read');
+        Route::get('/{id}/tax/{taxId}/download-zip', [VendorTaxController::class, 'downloadZip'])->middleware('permission:vendor_tax_read');
     });
 
     Route::prefix('procurement')->group(function () {

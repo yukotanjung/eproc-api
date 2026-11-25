@@ -3,6 +3,7 @@
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\EducationLevelController;
 use App\Http\Controllers\ProvinceController;
+use App\Http\Controllers\TaxController;
 use App\Http\Controllers\Vendor\VendorAuthController;
 use App\Http\Controllers\Vendor\VendorCommissionerController;
 use App\Http\Controllers\Vendor\VendorDirectorController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Vendor\VendorExpertController;
 use App\Http\Controllers\Vendor\VendorFinancialController;
 use App\Http\Controllers\Vendor\VendorOwnerController;
 use App\Http\Controllers\Vendor\VendorProfileController;
+use App\Http\Controllers\Vendor\VendorTaxController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('vendor')->group(function () {
@@ -37,6 +39,8 @@ Route::prefix('vendor')->group(function () {
         Route::get('/city/{id}', [CityController::class, 'show']);
         Route::get('/education-level', [EducationLevelController::class, 'index']);
         Route::get('/education-level/{id}', [EducationLevelController::class, 'show']);
+        Route::get('/tax-type', [TaxController::class, 'index']);
+        Route::get('/tax-type/{id}', [TaxController::class, 'show']);
     });
 
     Route::middleware(['auth:vendor', 'throttle:600,1'])->group(function () {
@@ -106,6 +110,16 @@ Route::prefix('vendor')->group(function () {
             Route::get('/{id}', [VendorFinancialController::class, 'show']);
             Route::post('/{id}', [VendorFinancialController::class, 'update']);
             Route::delete('/{id}', [VendorFinancialController::class, 'destroy']);
+        });
+
+        Route::prefix('tax')->group(function () {
+            Route::get('/', [VendorTaxController::class, 'index']);
+            Route::post('/', [VendorTaxController::class, 'store']);
+            Route::get('/{id}', [VendorTaxController::class, 'show']);
+            Route::post('/{id}', [VendorTaxController::class, 'update']);
+            Route::delete('/{id}', [VendorTaxController::class, 'destroy']);
+            Route::get('/{id}/file', [VendorTaxController::class, 'downloadFile']);
+            Route::get('/{id}/download-zip', [VendorTaxController::class, 'downloadZip']);
         });
     });
 });

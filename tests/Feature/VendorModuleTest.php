@@ -6,12 +6,14 @@ use App\Models\City;
 use App\Models\EducationLevel;
 use App\Models\PasswordActivate;
 use App\Models\Province;
+use App\Models\Tax;
 use App\Models\Vendor;
 use App\Models\VendorCommissioner;
 use App\Models\VendorDirector;
 use App\Models\VendorExpert;
 use App\Models\VendorFinancial;
 use App\Models\VendorOwner;
+use App\Models\VendorTax;
 use App\Models\VendorUser;
 use App\Notifications\VendorEmailVerification;
 use Illuminate\Http\UploadedFile;
@@ -785,5 +787,107 @@ class VendorModuleTest extends ApiTestCase
             ->assertStatus(201);
 
         $this->assertNotNull(VendorFinancial::withTrashed()->find($financialId));
+    }
+
+    public function test_vendor_and_admin_can_manage_tax_reports_with_file_uploads(): void
+    {
+        Storage::fake('local');
+        Notification::fake();
+
+        $province = Province::firstOrFail();
+        $city = City::where('province_id', $province->id)->firstOrFail();
+        $taxType = Tax::create([
+            'name'      => 'SPT Tahunan Test',
+            'is_spt'    => true,
+            'is_active' => true,
+        ]);
+
+        $this->getJson('/api/vendor/tax-type?all=true')
+            ->assertStatus(201)
+            ->assertJsonFragment(['id' => $taxType->id, 'name' => 'SPT Tahunan Test']);
+
+        $reg = $this->postJson('/api/vendor/auth/register', [
+            'npwp'         => '33.222.111.0-999.000',
+            'company_name' => 'PT Pajak Nusantara',
+            'phone'        => '0213332221',
+            'pic'          => 'Dian Pertiwi',
+            'email'        => 'dian@pajak.co.id',
+            'address'      => 'Jl. Merdeka',
+            'province_id'  => $province->id,
+            'city_id'      => $city->id,
+            'password'     => 'Secret123!',
+        ]);
+        $reg->assertStatus(201);
+        $vendorId = (int) $reg->json('result.vendor.id');
+
+        $activation = PasswordActivate::where('email', 'dian@pajak.co.id')
+            ->where('active', 1)
+            ->firstOrFail();
+
+        $this->getJson('/api/vendor/auth/verify?' . http_build_query([
+            'token' => $activation->token,
+            'email' => 'dian@pajak.co.id',
+        ]))->assertStatus(201);
+
+        $login = $this->postJson('/api/vendor/auth/login', [
+            'email'    => 'dian@pajak.co.id',
+            'password' => 'Secret123!',
+        ])->assertStatus(201);
+
+        $token = $login->json('result.token');
+
+        $tax = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post('/api/vendor/tax', [
+                'report_date'    => '2025-03-31',
+                'tax_id'         => $taxType->id,
+                'receipt_number' => 'BPE-2025-001',
+                'receipt_file'   => UploadedFile::fake()->create('spt_2025.pdf', 100, 'application/pdf'),
+            ]);
+
+        $tax->assertStatus(201)
+            ->assertJsonPath('result.tax_id', $taxType->id)
+            ->assertJsonPath('result.tax.name', 'SPT Tahunan Test')
+            ->assertJsonPath('result.receipt_number', 'BPE-2025-001');
+
+        $taxId = (int) $tax->json('result.id');
+        $oldPath = $tax->json('result.receipt_path');
+
+        $this->assertStringStartsWith('vendor/pajak/', $oldPath);
+        Storage::disk('local')->assertExists($oldPath);
+
+        // Update file -> old file deleted
+        $updateTax = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->post("/api/vendor/tax/{$taxId}", [
+                'report_date'    => '2025-04-30',
+                'tax_id'         => $taxType->id,
+                'receipt_number' => 'BPE-2025-002',
+                'receipt_file'   => UploadedFile::fake()->create('spt_2025_rev.pdf', 120, 'application/pdf'),
+            ]);
+
+        $updateTax->assertStatus(201)
+            ->assertJsonPath('result.receipt_number', 'BPE-2025-002');
+
+        $newPath = $updateTax->json('result.receipt_path');
+        Storage::disk('local')->assertMissing($oldPath);
+        Storage::disk('local')->assertExists($newPath);
+
+        // Download zip
+        $zipResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->get("/api/vendor/tax/{$taxId}/download-zip");
+        $zipResponse->assertStatus(200);
+        $this->assertStringContainsString('pajak-bpe-2025-002.zip', (string) $zipResponse->headers->get('content-disposition'));
+
+        // Admin read & delete -> file deleted
+        $this->actingAsApiUser()
+            ->getJson("/api/vendor/{$vendorId}/tax?all=true")
+            ->assertStatus(201)
+            ->assertJsonCount(1, 'result');
+
+        $this->actingAsApiUser()
+            ->deleteJson("/api/vendor/{$vendorId}/tax/{$taxId}")
+            ->assertStatus(201);
+
+        Storage::disk('local')->assertMissing($newPath);
+        $this->assertNotNull(VendorTax::withTrashed()->find($taxId));
     }
 }
