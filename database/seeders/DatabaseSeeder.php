@@ -21,6 +21,9 @@ class DatabaseSeeder extends Seeder
             JobFieldSeeder::class,
             ProcurementMethodSeeder::class,
             UnitSeeder::class,
+            ProvinceCitySeeder::class,
+            EducationLevelSeeder::class,
+            BusinessTypeSeeder::class,
         ]);
     }
 }

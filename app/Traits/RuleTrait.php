@@ -159,7 +159,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -180,7 +180,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -245,7 +245,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -266,7 +266,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -304,7 +304,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -323,7 +323,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -367,7 +367,7 @@ trait RuleTrait
                     return [
                         'page'         => 'integer|min:1|nullable',
                         'page_size'    => 'integer|min:1|nullable',
-                        'all'          => 'boolean|nullable',
+                        'all'          => 'nullable',
                         'job_field_id' => 'integer|nullable',
                         'job_type_id'  => 'integer|nullable',
                     ];
@@ -655,6 +655,834 @@ trait RuleTrait
                     return [
                         'email' => 'required',
                         'token' => 'required',
+                    ];
+                }
+                break;
+
+            case 'ProvinceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name' => 'required|unique:provinces,name,NULL,id,deleted_at,NULL|string|max:150',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'      => ['required', 'string', 'max:150', new IsUniqueOtherRule('provinces', 'name', $params['own_id'])],
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'CityController':
+                if ($method == 'index') {
+                    return [
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'province_id' => 'integer|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'province_id' => 'required|integer|exists:provinces,id,deleted_at,NULL',
+                        'name'        => 'required|unique:cities,name,NULL,id,deleted_at,NULL|string|max:150',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'province_id' => 'required|integer|exists:provinces,id,deleted_at,NULL',
+                        'name'        => ['required', 'string', 'max:150', new IsUniqueOtherRule('cities', 'name', $params['own_id'])],
+                        'is_active'   => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorController':
+                if ($method == 'index' || $method == 'indexUsers') {
+                    return [
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'province_id' => 'integer|nullable',
+                        'city_id'     => 'integer|nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'npwp'                => 'required|unique:vendors,npwp,NULL,id,deleted_at,NULL|string|max:50',
+                        'company_name'        => 'required|string|max:255',
+                        'phone'               => 'nullable|string|max:50',
+                        'pic'                 => 'required|string|max:150',
+                        'email'               => 'required|unique:vendors,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'address'             => 'nullable|string|max:1000',
+                        'province_id'         => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'             => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'is_active'           => 'nullable|boolean',
+                        'create_initial_user' => 'nullable|boolean',
+                        'user_name'           => 'nullable|string|max:150',
+                        'user_email'          => 'nullable|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'username'            => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'user_phone'          => 'nullable|string|max:50',
+                        'password'            => 'nullable|string|min:6',
+                        'callback_url'        => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'npwp'         => ['required', 'string', 'max:50', new IsUniqueOtherRule('vendors', 'npwp', $params['own_id'])],
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendors', 'email', $params['own_id'])],
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'is_active'    => 'nullable|boolean',
+                    ];
+                } elseif ($method == 'storeUser') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'email'        => 'required|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'phone'        => 'nullable|string|max:50',
+                        'password'     => 'nullable|string|min:6',
+                        'is_active'    => 'nullable|boolean',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updateUser') {
+                    return [
+                        'name'      => 'required|string|max:150',
+                        'username'  => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'     => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'     => 'nullable|string|max:50',
+                        'password'  => 'nullable|string|min:6',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorOwnerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorCommissionerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorDirectorController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExpertController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorFinancialController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'report_date'            => 'required|date_format:Y-m-d',
+                        'fixed_assets'           => 'required|numeric|min:0',
+                        'current_assets'         => 'required|numeric|min:0',
+                        'other_assets'           => 'required|numeric|min:0',
+                        'long_term_liabilities'  => 'required|numeric|min:0',
+                        'short_term_liabilities' => 'required|numeric|min:0',
+                        'capital'                => 'required|numeric|min:0',
+                        'net_worth'              => 'required|numeric',
+                    ];
+                }
+                break;
+
+            case 'VendorTaxController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorLegalController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorLicenseController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'license_type'   => 'required|string|in:SIUP,SIUJK,SBU',
+                        'license_number' => 'required|string|max:100',
+                        'issued_date'    => 'required|date_format:Y-m-d',
+                        'expired_date'   => 'required|date_format:Y-m-d|after_or_equal:issued_date',
+                        'issuing_agency' => 'required|string|max:150',
+                        'file'           => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'license_type'   => 'required|string|in:SIUP,SIUJK,SBU',
+                        'license_number' => 'required|string|max:100',
+                        'issued_date'    => 'required|date_format:Y-m-d',
+                        'expired_date'   => 'required|date_format:Y-m-d|after_or_equal:issued_date',
+                        'issuing_agency' => 'required|string|max:150',
+                        'file'           => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorEquipmentController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExperienceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorAuthController':
+                if ($method == 'register') {
+                    return [
+                        'npwp'         => 'required|unique:vendors,npwp,NULL,id,deleted_at,NULL|string|max:50',
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => 'required|unique:vendors,email,NULL,id,deleted_at,NULL|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                        'name'         => 'nullable|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'user_email'   => 'nullable|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'user_phone'   => 'nullable|string|max:50',
+                        'password'     => 'required|string|min:6',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'verify') {
+                    return [
+                        'token' => 'required|string',
+                        'email' => 'nullable|email',
+                    ];
+                } elseif ($method == 'resendVerification') {
+                    return [
+                        'email'        => 'required|email',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'sendForgotPasswordLink') {
+                    return [
+                        'email' => 'required|email',
+                    ];
+                } elseif ($method == 'updateForgotPassword') {
+                    return [
+                        'email'    => 'required',
+                        'token'    => 'required',
+                        'password' => 'required|min:6',
+                    ];
+                }
+                break;
+
+            case 'VendorProfileController':
+                if ($method == 'updateProfile') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'        => 'nullable|string|max:50',
+                        'photo'        => 'nullable|mimes:jpeg,jpg,png,gif',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updatePassword') {
+                    return [
+                        'old_password' => 'required',
+                        'new_password' => 'required|min:6',
+                    ];
+                } elseif ($method == 'updateCompany') {
+                    return [
+                        'npwp'         => ['required', 'string', 'max:50', new IsUniqueOtherRule('vendors', 'npwp', $params['own_id'])],
+                        'company_name' => 'required|string|max:255',
+                        'phone'        => 'nullable|string|max:50',
+                        'pic'          => 'required|string|max:150',
+                        'email'        => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendors', 'email', $params['own_id'])],
+                        'address'      => 'nullable|string|max:1000',
+                        'province_id'  => 'nullable|integer|exists:provinces,id,deleted_at,NULL',
+                        'city_id'      => 'nullable|integer|exists:cities,id,deleted_at,NULL',
+                    ];
+                } elseif ($method == 'indexUsers') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'storeUser') {
+                    return [
+                        'name'         => 'required|string|max:150',
+                        'username'     => 'nullable|unique:vendor_users,username,NULL,id,deleted_at,NULL|string|max:100',
+                        'email'        => 'required|unique:vendor_users,email,NULL,id,deleted_at,NULL|string|email|max:150',
+                        'phone'        => 'nullable|string|max:50',
+                        'password'     => 'nullable|string|min:6',
+                        'is_active'    => 'nullable|boolean',
+                        'callback_url' => 'nullable|string|max:255',
+                    ];
+                } elseif ($method == 'updateUser') {
+                    return [
+                        'name'      => 'required|string|max:150',
+                        'username'  => ['nullable', 'string', 'max:100', new IsUniqueOtherRule('vendor_users', 'username', $params['own_id'])],
+                        'email'     => ['required', 'string', 'email', 'max:150', new IsUniqueOtherRule('vendor_users', 'email', $params['own_id'])],
+                        'phone'     => 'nullable|string|max:50',
+                        'password'  => 'nullable|string|min:6',
+                        'is_active' => 'nullable|boolean',
+                    ];
+                }
+                break;
+
+            case 'VendorOwnerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'address'     => 'required|string|max:1000',
+                        'percentage'  => 'required|numeric|min:0|max:100',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorCommissionerController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorDirectorController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'        => 'required|string|max:150',
+                        'ktp_number'  => 'required|string|max:50',
+                        'npwp_number' => 'required|string|max:50',
+                        'position'    => 'required|string|max:150',
+                        'is_pic'      => 'nullable|boolean',
+                        'photo'       => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'npwp'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'ktp'         => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExpertController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'name'               => 'required|string|max:150',
+                        'birth_place'        => 'required|string|max:150',
+                        'birth_date'         => 'required|date_format:Y-m-d',
+                        'position'           => 'required|string|max:150',
+                        'npwp_number'        => 'required|string|max:50',
+                        'ktp_number'         => 'required|string|max:50',
+                        'address'            => 'required|string|max:1000',
+                        'education_level_id' => 'required|integer|exists:education_levels,id,deleted_at,NULL',
+                        'major'              => 'required|string|max:150',
+                        'diploma_number'     => 'required|string|max:100',
+                        'experience_years'   => 'required|integer|min:0|max:100',
+                        'photo'              => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                        'diploma'            => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'certificate'        => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorFinancialController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store' || $method == 'update') {
+                    return [
+                        'report_date'            => 'required|date_format:Y-m-d',
+                        'fixed_assets'           => 'required|numeric|min:0',
+                        'current_assets'         => 'required|numeric|min:0',
+                        'other_assets'           => 'required|numeric|min:0',
+                        'long_term_liabilities'  => 'required|numeric|min:0',
+                        'short_term_liabilities' => 'required|numeric|min:0',
+                        'capital'                => 'required|numeric|min:0',
+                        'net_worth'              => 'required|numeric',
+                    ];
+                }
+                break;
+
+            case 'VendorTaxController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'report_date'    => 'required|date_format:Y-m-d',
+                        'tax_id'         => 'required|integer|exists:taxes,id,deleted_at,NULL',
+                        'receipt_number' => 'required|string|max:100',
+                        'receipt_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorLegalController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'establishment_date'        => 'required|date_format:Y-m-d',
+                        'establishment_deed_number' => 'required|string|max:100',
+                        'establishment_notary'      => 'required|string|max:150',
+                        'establishment_deed_file'   => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'amendment_date'            => 'nullable|date_format:Y-m-d',
+                        'amendment_deed_number'     => 'nullable|string|max:100',
+                        'amendment_notary'          => 'nullable|string|max:150',
+                        'amendment_deed_file'       => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorLicenseController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'license_type'   => 'required|string|in:SIUP,SIUJK,SBU',
+                        'license_number' => 'required|string|max:100',
+                        'issued_date'    => 'required|date_format:Y-m-d',
+                        'expired_date'   => 'required|date_format:Y-m-d|after_or_equal:issued_date',
+                        'issuing_agency' => 'required|string|max:150',
+                        'file'           => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'license_type'   => 'required|string|in:SIUP,SIUJK,SBU',
+                        'license_number' => 'required|string|max:100',
+                        'issued_date'    => 'required|date_format:Y-m-d',
+                        'expired_date'   => 'required|date_format:Y-m-d|after_or_equal:issued_date',
+                        'issuing_agency' => 'required|string|max:150',
+                        'file'           => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorEquipmentController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'required|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'equipment_type'   => 'required|string|max:150',
+                        'brand'            => 'required|string|max:150',
+                        'quantity'         => 'required|integer|min:1',
+                        'capacity'         => 'required|string|max:100',
+                        'manufacture_year' => 'required|integer|min:1900|max:2100',
+                        'condition'        => 'required|string|in:Baik,Rusak Ringan,Rusak Berat',
+                        'location'         => 'required|string|max:255',
+                        'photo'            => 'nullable|file|mimes:jpeg,jpg,png|max:5120',
+                    ];
+                }
+                break;
+
+            case 'VendorExperienceController':
+                if ($method == 'index') {
+                    return [
+                        'page'      => 'integer|min:1|nullable',
+                        'page_size' => 'integer|min:1|nullable',
+                        'all'       => 'nullable',
+                    ];
+                } elseif ($method == 'store') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'required|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                    ];
+                } elseif ($method == 'update') {
+                    return [
+                        'job_name'          => 'required|string|max:255',
+                        'contract_number'   => 'required|string|max:100',
+                        'contract_value'    => 'required|numeric|min:0',
+                        'job_type_id'       => 'required|integer|exists:job_types,id,deleted_at,NULL',
+                        'client_name'       => 'required|string|max:255',
+                        'location'          => 'required|string|max:255',
+                        'address'           => 'required|string|max:1000',
+                        'contract_date'     => 'required|date_format:Y-m-d',
+                        'contract_end_date' => 'required|date_format:Y-m-d|after_or_equal:contract_date',
+                        'contract_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
+                        'handover_date'     => 'required|date_format:Y-m-d',
+                        'handover_number'   => 'required|string|max:100',
+                        'handover_file'     => 'nullable|file|mimes:jpeg,jpg,png,pdf|max:5120',
                     ];
                 }
                 break;

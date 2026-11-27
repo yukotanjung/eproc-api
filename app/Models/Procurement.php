@@ -12,6 +12,7 @@ class Procurement extends Model
     use HasFactory, ModelTrait, SoftDeletes;
 
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_PUBLISHED = 'published';
     public const STATUS_CANCELLED = 'cancelled';
 
     public $incrementing = true;

@@ -1,0 +1,3140 @@
+openapi: 3.0.3
+info:
+  title: Eproc Vendor API
+  description: |
+    API documentation for the E-Procurement Vendor Portal.
+
+    **Authentication:** Use Bearer JWT token (from guard `vendor`) in the `Authorization` header:
+    `Authorization: Bearer <token>`
+
+    Obtain a token via `/api/vendor/auth/login`.
+  version: 1.0.0
+  contact:
+    name: Eproc Team
+
+servers:
+  - url: /
+    description: Current server
+  - url: http://localhost:8000
+    description: Local development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 100
+        per_page:
+          type: integer
+          example: 10
+        current_page:
+          type: integer
+          example: 1
+        last_page:
+          type: integer
+          example: 10
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: No data
+
+    ValidationError:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error Validation on npwp : The npwp field is required."
+        result:
+          type: object
+
+    Province:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: DKI Jakarta
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    City:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        province_id:
+          type: integer
+          example: 11
+        name:
+          type: string
+          example: Kota Administrasi Jakarta Selatan
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+
+    Vendor:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        npwp:
+          type: string
+          example: "01.234.567.8-901.000"
+        company_name:
+          type: string
+          example: PT Maju Bersama Sejahtera
+        phone:
+          type: string
+          nullable: true
+          example: "0215551234"
+        pic:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        address:
+          type: string
+          nullable: true
+          example: Jl. Jend. Sudirman Kav. 52-53
+        province_id:
+          type: integer
+          nullable: true
+          example: 11
+        city_id:
+          type: integer
+          nullable: true
+          example: 1
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        province:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: DKI Jakarta
+        city:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            province_id:
+              type: integer
+              example: 11
+            name:
+              type: string
+              example: Kota Administrasi Jakarta Selatan
+
+    VendorUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        username:
+          type: string
+          nullable: true
+          example: budisantoso
+        email:
+          type: string
+          format: email
+          example: budi@majubersama.co.id
+        phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        photo_url:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+          example: true
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorOwner:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        ktp_number:
+          type: string
+          example: "3171012345670001"
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        address:
+          type: string
+          example: Jl. Sudirman No. 10, Jakarta Selatan
+        percentage:
+          type: number
+          format: float
+          example: 60.0
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/pemilik/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorCommissioner:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Hendra Wijaya
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        position:
+          type: string
+          example: Komisaris Utama
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/komisaris/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorDirector:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Agus Pratama
+        ktp_number:
+          type: string
+          example: "3171012345670002"
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        position:
+          type: string
+          example: Direktur Utama
+        is_pic:
+          type: boolean
+          example: true
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/photo_abc123.jpg
+        npwp_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/npwp_abc123.pdf
+        ktp_path:
+          type: string
+          nullable: true
+          example: vendor/direksi/ktp_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    EducationLevel:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 7
+        name:
+          type: string
+          example: D4/S1
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorExpert:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Ir. Rina Kartika
+        birth_place:
+          type: string
+          example: Bandung
+        birth_date:
+          type: string
+          format: date
+          example: "1990-05-15"
+        position:
+          type: string
+          example: Tenaga Ahli Sipil
+        npwp_number:
+          type: string
+          example: "01.234.567.8-901.000"
+        ktp_number:
+          type: string
+          example: "3273012345670001"
+        address:
+          type: string
+          example: Jl. Dago No. 10, Bandung
+        education_level_id:
+          type: integer
+          example: 7
+        education_level:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 7
+            name:
+              type: string
+              example: D4/S1
+        major:
+          type: string
+          example: Teknik Sipil
+        diploma_number:
+          type: string
+          example: IJZ-2013-00123
+        experience_years:
+          type: integer
+          example: 8
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/photo_abc123.jpg
+        diploma_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/diploma_abc123.pdf
+        certificate_path:
+          type: string
+          nullable: true
+          example: vendor/tenaga-ahli/certificate_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorFinancial:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        report_date:
+          type: string
+          format: date
+          example: "2025-12-31"
+        fixed_assets:
+          type: number
+          format: float
+          example: 1500000000
+        current_assets:
+          type: number
+          format: float
+          example: 750000000
+        other_assets:
+          type: number
+          format: float
+          example: 100000000
+        long_term_liabilities:
+          type: number
+          format: float
+          example: 300000000
+        short_term_liabilities:
+          type: number
+          format: float
+          example: 200000000
+        capital:
+          type: number
+          format: float
+          example: 1000000000
+        net_worth:
+          type: number
+          format: float
+          example: 1850000000
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    TaxType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: PPh Pasal 21
+        is_spt:
+          type: boolean
+          example: true
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorTax:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        report_date:
+          type: string
+          format: date
+          example: "2025-12-31"
+        tax_id:
+          type: integer
+          example: 1
+        tax:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: PPh Pasal 21
+            is_spt:
+              type: boolean
+              example: true
+        receipt_number:
+          type: string
+          example: BPE-2025-00123
+        receipt_path:
+          type: string
+          nullable: true
+          example: vendor/pajak/receipt_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorLegal:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        establishment_date:
+          type: string
+          format: date
+          example: "2020-01-15"
+        establishment_deed_number:
+          type: string
+          example: AHU-00123.AH.01.01.TAHUN 2020
+        establishment_notary:
+          type: string
+          example: Notaris Andi SH, M.Kn
+        establishment_deed_path:
+          type: string
+          nullable: true
+          example: vendor/hukum/akta_pendirian.pdf
+        amendment_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2023-06-10"
+        amendment_deed_number:
+          type: string
+          nullable: true
+          example: AHU-00456.AH.01.02.TAHUN 2023
+        amendment_notary:
+          type: string
+          nullable: true
+          example: Notaris Budi SH, M.Kn
+        amendment_deed_path:
+          type: string
+          nullable: true
+          example: vendor/hukum/akta_perubahan.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorLicense:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        license_type:
+          type: string
+          enum: [SIUP, SIUJK, SBU]
+          example: SIUP
+        license_number:
+          type: string
+          example: SIUP-2025-00123
+        issued_date:
+          type: string
+          format: date
+          example: "2025-01-10"
+        expired_date:
+          type: string
+          format: date
+          example: "2030-01-10"
+        issuing_agency:
+          type: string
+          example: DPMPTSP DKI Jakarta
+        file_path:
+          type: string
+          nullable: true
+          example: vendor/perizinan/siup_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorEquipment:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        equipment_type:
+          type: string
+          example: Excavator
+        brand:
+          type: string
+          example: Komatsu
+        quantity:
+          type: integer
+          example: 2
+        capacity:
+          type: string
+          example: 20 Ton
+        manufacture_year:
+          type: integer
+          example: 2022
+        condition:
+          type: string
+          enum: [Baik, Rusak Ringan, Rusak Berat]
+          example: Baik
+        location:
+          type: string
+          example: Gudang Bekasi
+        photo_path:
+          type: string
+          nullable: true
+          example: vendor/peralatan/photo_abc123.jpg
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    JobType:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Pekerjaan Konstruksi
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        vendor_id:
+          type: integer
+          example: 1
+        job_name:
+          type: string
+          example: Pembangunan Gedung Kantor
+        contract_number:
+          type: string
+          example: KTR-2025-001
+        contract_value:
+          type: number
+          format: float
+          example: 2500000000
+        job_type_id:
+          type: integer
+          example: 1
+        job_type:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Pekerjaan Konstruksi
+        client_name:
+          type: string
+          example: Kementerian PUPR
+        location:
+          type: string
+          example: Jakarta Selatan
+        address:
+          type: string
+          example: Jl. Pattimura No. 20
+        contract_date:
+          type: string
+          format: date
+          example: "2025-01-10"
+        contract_end_date:
+          type: string
+          format: date
+          example: "2025-12-10"
+        contract_file_path:
+          type: string
+          nullable: true
+          example: vendor/pengalaman/kontrak_abc123.pdf
+        handover_date:
+          type: string
+          format: date
+          example: "2025-12-15"
+        handover_number:
+          type: string
+          example: BAST-2025-001
+        handover_file_path:
+          type: string
+          nullable: true
+          example: vendor/pengalaman/bast_abc123.pdf
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    VendorRegisterRequest:
+      type: object
+      required: [npwp, company_name, pic, email, password]
+      properties:
+        npwp:
+          type: string
+          example: "01.234.567.8-901.000"
+        company_name:
+          type: string
+          example: PT Maju Bersama Sejahtera
+        phone:
+          type: string
+          nullable: true
+          example: "0215551234"
+        pic:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        address:
+          type: string
+          nullable: true
+          example: Jl. Jend. Sudirman Kav. 52-53
+        province_id:
+          type: integer
+          nullable: true
+          example: 11
+        city_id:
+          type: integer
+          nullable: true
+          example: 1
+        name:
+          type: string
+          nullable: true
+          description: Initial user full name (defaults to pic)
+          example: Budi Santoso
+        username:
+          type: string
+          nullable: true
+          example: budisantoso
+        user_email:
+          type: string
+          format: email
+          nullable: true
+          description: Initial user email (defaults to company email)
+        user_phone:
+          type: string
+          nullable: true
+          example: "081234567890"
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: secret123
+        callback_url:
+          type: string
+          nullable: true
+          description: Optional frontend verification URL (defaults to backend /api/vendor/auth/verify)
+          example: http://localhost:3000/vendor/verify
+
+    VendorLoginRequest:
+      type: object
+      required: [password]
+      properties:
+        login:
+          type: string
+          description: Email or username (can also pass `email` or `username` field)
+          example: info@majubersama.co.id
+        email:
+          type: string
+          format: email
+          example: info@majubersama.co.id
+        password:
+          type: string
+          format: password
+          example: secret123
+
+    VendorLoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Login successful
+        result:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            vendor_id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Budi Santoso
+            username:
+              type: string
+              nullable: true
+              example: budisantoso
+            email:
+              type: string
+              example: info@majubersama.co.id
+            phone:
+              type: string
+              nullable: true
+              example: "081234567890"
+            photo_url:
+              type: string
+              nullable: true
+            is_active:
+              type: boolean
+              example: true
+            last_login:
+              type: string
+              format: date-time
+            token:
+              type: string
+              example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            vendor:
+              $ref: '#/components/schemas/Vendor'
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSizeParam:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 10
+    AllParam:
+      name: all
+      in: query
+      schema:
+        type: boolean
+        default: false
+    SearchParam:
+      name: search
+      in: query
+      schema:
+        type: string
+    PathIntegerId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Vendor Auth
+    description: Vendor registration, login, activation, and password recovery
+  - name: Vendor Profile
+    description: Authenticated vendor user profile and password management
+  - name: Vendor Company
+    description: Vendor company profile details (NPWP, address, PIC, province, city)
+  - name: Vendor Team Users
+    description: Manage multiple user accounts under the authenticated vendor
+  - name: Vendor Owners
+    description: Manage company owners (pemilik PT) under the authenticated vendor
+  - name: Vendor Commissioners
+    description: Manage company commissioners (komisaris) under the authenticated vendor
+  - name: Vendor Directors
+    description: Manage company board of directors (direksi) under the authenticated vendor
+  - name: Vendor Experts
+    description: Manage company experts (tenaga ahli) under the authenticated vendor
+  - name: Vendor Financials
+    description: Manage company financial statements (data keuangan) under the authenticated vendor
+  - name: Vendor Taxes
+    description: Manage company tax reports (manajemen pajak) under the authenticated vendor
+  - name: Vendor Legals
+    description: Manage company legal deeds (data hukum pendirian & perubahan) under the authenticated vendor
+  - name: Vendor Licenses
+    description: Manage company licenses (perizinan SIUP, SIUJK, SBU) under the authenticated vendor
+  - name: Vendor Equipments
+    description: Manage company equipment (peralatan) under the authenticated vendor
+  - name: Vendor Experiences
+    description: Manage company work experiences (pengalaman kerja) under the authenticated vendor
+  - name: Master Education Level
+    description: Master education levels (pendidikan terakhir)
+  - name: Master Region
+    description: Master provinces and cities (with filter city by province_id)
+  - name: Master Tax Type
+    description: Master tax types (jenis pajak)
+  - name: Master Job Type
+    description: Master job types (jenis pekerjaan)
+
+x-tagGroups:
+  - name: Authentication
+    tags:
+      - Vendor Auth
+      - Vendor Profile
+  - name: Organization
+    tags:
+      - Vendor Company
+      - Vendor Team Users
+      - Vendor Owners
+      - Vendor Commissioners
+      - Vendor Directors
+      - Vendor Experts
+      - Vendor Financials
+      - Vendor Taxes
+      - Vendor Legals
+      - Vendor Licenses
+      - Vendor Equipments
+      - Vendor Experiences
+  - name: Master Data
+    tags:
+      - Master Region
+      - Master Education Level
+      - Master Tax Type
+      - Master Job Type
+
+paths:
+  /api/vendor/auth/register:
+    post:
+      tags: [Vendor Auth]
+      summary: Register new vendor and initial vendor user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorRegisterRequest'
+      responses:
+        '201':
+          description: Vendor registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success register vendor
+                  result:
+                    type: object
+                    properties:
+                      vendor:
+                        $ref: '#/components/schemas/Vendor'
+                      user:
+                        $ref: '#/components/schemas/VendorUser'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/vendor/auth/login:
+    post:
+      tags: [Vendor Auth]
+      summary: Vendor user login
+      description: Authenticates against `vendor_users` table, checks `is_active` status, updates `last_login`, and returns JWT token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorLoginRequest'
+      responses:
+        '201':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VendorLoginResponse'
+        '400':
+          description: Invalid credentials
+        '403':
+          description: Account or vendor is inactive
+
+  /api/vendor/auth/me:
+    get:
+      tags: [Vendor Auth]
+      summary: Get current authenticated vendor user
+      responses:
+        '201':
+          description: Current vendor user profile and company info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User profile
+                  result:
+                    $ref: '#/components/schemas/VendorUser'
+
+  /api/vendor/auth/logout:
+    get:
+      tags: [Vendor Auth]
+      summary: Logout vendor user
+      responses:
+        '201':
+          description: Logged out successfully
+
+  /api/vendor/auth/verify:
+    get:
+      tags: [Vendor Auth]
+      summary: Verify vendor account via email link
+      description: Clicking the verification link activates the vendor user (`is_active = true`, `email_verified_at = now()`) so the user can immediately log in.
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: false
+          schema:
+            type: string
+            format: email
+      responses:
+        '201':
+          description: Account verified and activated
+        '400':
+          description: Verification link invalid or expired
+    post:
+      tags: [Vendor Auth]
+      summary: Verify vendor account via token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      responses:
+        '201':
+          description: Account verified and activated
+        '400':
+          description: Verification link invalid or expired
+
+  /api/vendor/auth/resend-verification:
+    post:
+      tags: [Vendor Auth]
+      summary: Resend email verification link
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Verification email sent
+        '400':
+          description: Account already verified
+
+  /api/vendor/auth/forgot_password/send:
+    post:
+      tags: [Vendor Auth]
+      summary: Send forgot password link to vendor user email
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Reset link sent
+
+  /api/vendor/auth/forgot_password/check_token:
+    post:
+      tags: [Vendor Auth]
+      summary: Verify forgot password reset token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token]
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+      responses:
+        '201':
+          description: Token is valid
+
+  /api/vendor/auth/forgot_password/update_password:
+    post:
+      tags: [Vendor Auth]
+      summary: Reset vendor user password with token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, password]
+              properties:
+                email:
+                  type: string
+                token:
+                  type: string
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password updated
+
+  /api/vendor/province:
+    get:
+      tags: [Master Region]
+      summary: List provinces
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of provinces
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list province
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Province'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/province/{id}:
+    get:
+      tags: [Master Region]
+      summary: Get province detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Province detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/Province'
+
+  /api/vendor/city:
+    get:
+      tags: [Master Region]
+      summary: List cities (supports filter by province_id)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+        - name: province_id
+          in: query
+          description: Filter cities by province ID
+          schema:
+            type: integer
+        - name: filter[province_id]
+          in: query
+          description: Filter cities by province ID (alternative syntax)
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: List of cities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list city
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/City'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/city/{id}:
+    get:
+      tags: [Master Region]
+      summary: Get city detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: City detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success
+                  result:
+                    $ref: '#/components/schemas/City'
+
+  /api/vendor/profile:
+    get:
+      tags: [Vendor Profile]
+      summary: Get authenticated vendor user profile and company info
+      responses:
+        '201':
+          description: Profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get profile
+                  result:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/VendorUser'
+                      vendor:
+                        $ref: '#/components/schemas/Vendor'
+
+  /api/vendor/profile/update-profile:
+    post:
+      tags: [Vendor Profile]
+      summary: Update personal vendor user profile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                callback_url:
+                  type: string
+      responses:
+        '201':
+          description: Profile updated
+
+  /api/vendor/profile/update-password:
+    post:
+      tags: [Vendor Profile]
+      summary: Update personal vendor user password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password:
+                  type: string
+                  format: password
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 6
+      responses:
+        '201':
+          description: Password updated
+
+  /api/vendor/company:
+    get:
+      tags: [Vendor Company]
+      summary: Get authenticated vendor company details
+      responses:
+        '201':
+          description: Company details retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get vendor company
+                  result:
+                    $ref: '#/components/schemas/Vendor'
+    post:
+      tags: [Vendor Company]
+      summary: Update authenticated vendor company details
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [npwp, company_name, pic, email]
+              properties:
+                npwp:
+                  type: string
+                company_name:
+                  type: string
+                phone:
+                  type: string
+                  nullable: true
+                pic:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                address:
+                  type: string
+                  nullable: true
+                province_id:
+                  type: integer
+                  nullable: true
+                city_id:
+                  type: integer
+                  nullable: true
+      responses:
+        '201':
+          description: Company details updated
+
+  /api/vendor/user:
+    get:
+      tags: [Vendor Team Users]
+      summary: List users belonging to the authenticated vendor
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list vendor user
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorUser'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Team Users]
+      summary: Create new user for the authenticated vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                  minLength: 6
+                is_active:
+                  type: boolean
+                  default: true
+                callback_url:
+                  type: string
+                  nullable: true
+      responses:
+        '201':
+          description: Vendor user created
+
+  /api/vendor/user/{id}:
+    get:
+      tags: [Vendor Team Users]
+      summary: Get vendor user detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor user detail
+    post:
+      tags: [Vendor Team Users]
+      summary: Update vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email]
+              properties:
+                name:
+                  type: string
+                username:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                password:
+                  type: string
+                  format: password
+                  nullable: true
+                  minLength: 6
+                is_active:
+                  type: boolean
+      responses:
+        '201':
+          description: Vendor user updated
+    delete:
+      tags: [Vendor Team Users]
+      summary: Delete vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor user deleted
+
+  /api/vendor/user/{id}/resend-activation:
+    get:
+      tags: [Vendor Team Users]
+      summary: Resend account activation email for vendor user
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: callback_url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Activation email resent
+
+  /api/vendor/owner:
+    get:
+      tags: [Vendor Owners]
+      summary: List company owners (pemilik PT)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor owners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar pemilik perusahaan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorOwner'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Owners]
+      summary: Create new company owner (pemilik PT)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, address, percentage, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                address:
+                  type: string
+                percentage:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor owner created
+
+  /api/vendor/owner/{id}:
+    get:
+      tags: [Vendor Owners]
+      summary: Get vendor owner detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor owner detail
+    post:
+      tags: [Vendor Owners]
+      summary: Update vendor owner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, address, percentage]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                address:
+                  type: string
+                percentage:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor owner updated
+    delete:
+      tags: [Vendor Owners]
+      summary: Delete vendor owner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor owner deleted
+
+  /api/vendor/owner/{id}/file/{type}:
+    get:
+      tags: [Vendor Owners]
+      summary: Download/view owner file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/owner/{id}/download-zip:
+    get:
+      tags: [Vendor Owners]
+      summary: Download all 3 owner files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/commissioner:
+    get:
+      tags: [Vendor Commissioners]
+      summary: List company commissioners (komisaris)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor commissioners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar komisaris
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorCommissioner'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Commissioners]
+      summary: Create new company commissioner (komisaris)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, npwp_number, position, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor commissioner created
+
+  /api/vendor/commissioner/{id}:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Get vendor commissioner detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor commissioner detail
+    post:
+      tags: [Vendor Commissioners]
+      summary: Update vendor commissioner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, npwp_number, position]
+              properties:
+                name:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor commissioner updated
+    delete:
+      tags: [Vendor Commissioners]
+      summary: Delete vendor commissioner
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor commissioner deleted
+
+  /api/vendor/commissioner/{id}/file/{type}:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Download/view commissioner file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/commissioner/{id}/download-zip:
+    get:
+      tags: [Vendor Commissioners]
+      summary: Download all 3 commissioner files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/director:
+    get:
+      tags: [Vendor Directors]
+      summary: List company directors (direksi)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor directors
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar direksi
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorDirector'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Directors]
+      summary: Create new company director (direksi)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, position, photo, npwp, ktp]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                is_pic:
+                  type: boolean
+                  default: false
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor director created
+
+  /api/vendor/director/{id}:
+    get:
+      tags: [Vendor Directors]
+      summary: Get vendor director detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor director detail
+    post:
+      tags: [Vendor Directors]
+      summary: Update vendor director
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, ktp_number, npwp_number, position]
+              properties:
+                name:
+                  type: string
+                ktp_number:
+                  type: string
+                npwp_number:
+                  type: string
+                position:
+                  type: string
+                is_pic:
+                  type: boolean
+                photo:
+                  type: string
+                  format: binary
+                npwp:
+                  type: string
+                  format: binary
+                ktp:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor director updated
+    delete:
+      tags: [Vendor Directors]
+      summary: Delete vendor director
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor director deleted
+
+  /api/vendor/director/{id}/file/{type}:
+    get:
+      tags: [Vendor Directors]
+      summary: Download/view director file (photo, npwp, ktp)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, npwp, ktp]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/director/{id}/download-zip:
+    get:
+      tags: [Vendor Directors]
+      summary: Download all 3 director files (photo, npwp, ktp) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/education-level:
+    get:
+      tags: [Master Education Level]
+      summary: List education levels
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of education levels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list education level
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EducationLevel'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/education-level/{id}:
+    get:
+      tags: [Master Education Level]
+      summary: Get education level detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Education level detail
+
+  /api/vendor/expert:
+    get:
+      tags: [Vendor Experts]
+      summary: List company experts (tenaga ahli)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor experts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar tenaga ahli
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorExpert'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Experts]
+      summary: Create new company expert (tenaga ahli)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, birth_place, birth_date, position, npwp_number, ktp_number, address, education_level_id, major, diploma_number, experience_years, photo, diploma]
+              properties:
+                name:
+                  type: string
+                birth_place:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+                position:
+                  type: string
+                npwp_number:
+                  type: string
+                ktp_number:
+                  type: string
+                address:
+                  type: string
+                education_level_id:
+                  type: integer
+                major:
+                  type: string
+                diploma_number:
+                  type: string
+                experience_years:
+                  type: integer
+                photo:
+                  type: string
+                  format: binary
+                diploma:
+                  type: string
+                  format: binary
+                certificate:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor expert created
+
+  /api/vendor/expert/{id}:
+    get:
+      tags: [Vendor Experts]
+      summary: Get vendor expert detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor expert detail
+    post:
+      tags: [Vendor Experts]
+      summary: Update vendor expert
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, birth_place, birth_date, position, npwp_number, ktp_number, address, education_level_id, major, diploma_number, experience_years]
+              properties:
+                name:
+                  type: string
+                birth_place:
+                  type: string
+                birth_date:
+                  type: string
+                  format: date
+                position:
+                  type: string
+                npwp_number:
+                  type: string
+                ktp_number:
+                  type: string
+                address:
+                  type: string
+                education_level_id:
+                  type: integer
+                major:
+                  type: string
+                diploma_number:
+                  type: string
+                experience_years:
+                  type: integer
+                photo:
+                  type: string
+                  format: binary
+                diploma:
+                  type: string
+                  format: binary
+                certificate:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor expert updated
+    delete:
+      tags: [Vendor Experts]
+      summary: Delete vendor expert
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor expert deleted
+
+  /api/vendor/expert/{id}/file/{type}:
+    get:
+      tags: [Vendor Experts]
+      summary: Download/view expert file (photo, diploma, certificate)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [photo, diploma, certificate]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/expert/{id}/download-zip:
+    get:
+      tags: [Vendor Experts]
+      summary: Download expert files (photo, diploma, certificate) as a ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/financial:
+    get:
+      tags: [Vendor Financials]
+      summary: List company financial data (data keuangan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor financials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data keuangan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorFinancial'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Financials]
+      summary: Create financial data (data keuangan)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_date, fixed_assets, current_assets, other_assets, long_term_liabilities, short_term_liabilities, capital, net_worth]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                fixed_assets:
+                  type: number
+                current_assets:
+                  type: number
+                other_assets:
+                  type: number
+                long_term_liabilities:
+                  type: number
+                short_term_liabilities:
+                  type: number
+                capital:
+                  type: number
+                net_worth:
+                  type: number
+      responses:
+        '201':
+          description: Vendor financial created
+
+  /api/vendor/financial/{id}:
+    get:
+      tags: [Vendor Financials]
+      summary: Get vendor financial detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor financial detail
+    post:
+      tags: [Vendor Financials]
+      summary: Update vendor financial data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_date, fixed_assets, current_assets, other_assets, long_term_liabilities, short_term_liabilities, capital, net_worth]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                fixed_assets:
+                  type: number
+                current_assets:
+                  type: number
+                other_assets:
+                  type: number
+                long_term_liabilities:
+                  type: number
+                short_term_liabilities:
+                  type: number
+                capital:
+                  type: number
+                net_worth:
+                  type: number
+      responses:
+        '201':
+          description: Vendor financial updated
+    delete:
+      tags: [Vendor Financials]
+      summary: Delete vendor financial data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor financial deleted
+
+  /api/vendor/tax-type:
+    get:
+      tags: [Master Tax Type]
+      summary: List master tax types (jenis pajak)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of tax types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list tax
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaxType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/tax-type/{id}:
+    get:
+      tags: [Master Tax Type]
+      summary: Get master tax type detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Tax type detail
+
+  /api/vendor/tax:
+    get:
+      tags: [Vendor Taxes]
+      summary: List company tax reports (manajemen pajak)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor tax reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data pajak
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorTax'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Taxes]
+      summary: Create tax report (manajemen pajak)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [report_date, tax_id, receipt_number, receipt_file]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                tax_id:
+                  type: integer
+                receipt_number:
+                  type: string
+                receipt_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor tax created
+
+  /api/vendor/tax/{id}:
+    get:
+      tags: [Vendor Taxes]
+      summary: Get vendor tax detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor tax detail
+    post:
+      tags: [Vendor Taxes]
+      summary: Update vendor tax report
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [report_date, tax_id, receipt_number]
+              properties:
+                report_date:
+                  type: string
+                  format: date
+                tax_id:
+                  type: integer
+                receipt_number:
+                  type: string
+                receipt_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor tax updated
+    delete:
+      tags: [Vendor Taxes]
+      summary: Delete vendor tax report
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor tax deleted
+
+  /api/vendor/tax/{id}/file:
+    get:
+      tags: [Vendor Taxes]
+      summary: Download/view tax receipt file
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/tax/{id}/download-zip:
+    get:
+      tags: [Vendor Taxes]
+      summary: Download tax receipt file as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/legal:
+    get:
+      tags: [Vendor Legals]
+      summary: List company legal data (data hukum)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor legals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data hukum
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorLegal'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Legals]
+      summary: Create company legal data (akta pendirian & perubahan opsional)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [establishment_date, establishment_deed_number, establishment_notary, establishment_deed_file]
+              properties:
+                establishment_date:
+                  type: string
+                  format: date
+                establishment_deed_number:
+                  type: string
+                establishment_notary:
+                  type: string
+                establishment_deed_file:
+                  type: string
+                  format: binary
+                amendment_date:
+                  type: string
+                  format: date
+                amendment_deed_number:
+                  type: string
+                amendment_notary:
+                  type: string
+                amendment_deed_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor legal created
+
+  /api/vendor/legal/{id}:
+    get:
+      tags: [Vendor Legals]
+      summary: Get vendor legal detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor legal detail
+    post:
+      tags: [Vendor Legals]
+      summary: Update vendor legal data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [establishment_date, establishment_deed_number, establishment_notary]
+              properties:
+                establishment_date:
+                  type: string
+                  format: date
+                establishment_deed_number:
+                  type: string
+                establishment_notary:
+                  type: string
+                establishment_deed_file:
+                  type: string
+                  format: binary
+                amendment_date:
+                  type: string
+                  format: date
+                amendment_deed_number:
+                  type: string
+                amendment_notary:
+                  type: string
+                amendment_deed_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor legal updated
+    delete:
+      tags: [Vendor Legals]
+      summary: Delete vendor legal data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor legal deleted
+
+  /api/vendor/legal/{id}/file/{type}:
+    get:
+      tags: [Vendor Legals]
+      summary: Download/view legal deed file (establishment or amendment)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [establishment, amendment]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/legal/{id}/download-zip:
+    get:
+      tags: [Vendor Legals]
+      summary: Download legal deed files as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/license/types:
+    get:
+      tags: [Vendor Licenses]
+      summary: Get available license types dropdown (SIUP, SIUJK, SBU)
+      responses:
+        '201':
+          description: List of license types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar jenis perizinan
+                  result:
+                    type: array
+                    items:
+                      type: string
+                      enum: [SIUP, SIUJK, SBU]
+
+  /api/vendor/license:
+    get:
+      tags: [Vendor Licenses]
+      summary: List company licenses (perizinan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor licenses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data perizinan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorLicense'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Licenses]
+      summary: Create company license (perizinan)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [license_type, license_number, issued_date, expired_date, issuing_agency, file]
+              properties:
+                license_type:
+                  type: string
+                  enum: [SIUP, SIUJK, SBU]
+                license_number:
+                  type: string
+                issued_date:
+                  type: string
+                  format: date
+                expired_date:
+                  type: string
+                  format: date
+                issuing_agency:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor license created
+
+  /api/vendor/license/{id}:
+    get:
+      tags: [Vendor Licenses]
+      summary: Get vendor license detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor license detail
+    post:
+      tags: [Vendor Licenses]
+      summary: Update vendor license data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [license_type, license_number, issued_date, expired_date, issuing_agency]
+              properties:
+                license_type:
+                  type: string
+                  enum: [SIUP, SIUJK, SBU]
+                license_number:
+                  type: string
+                issued_date:
+                  type: string
+                  format: date
+                expired_date:
+                  type: string
+                  format: date
+                issuing_agency:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor license updated
+    delete:
+      tags: [Vendor Licenses]
+      summary: Delete vendor license data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor license deleted
+
+  /api/vendor/license/{id}/file:
+    get:
+      tags: [Vendor Licenses]
+      summary: Download/view license file
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/license/{id}/download-zip:
+    get:
+      tags: [Vendor Licenses]
+      summary: Download license file as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+  /api/vendor/equipment/conditions:
+    get:
+      tags: [Vendor Equipments]
+      summary: Get available equipment conditions dropdown
+      responses:
+        '201':
+          description: List of equipment conditions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar kondisi peralatan
+                  result:
+                    type: array
+                    items:
+                      type: string
+                      enum: [Baik, Rusak Ringan, Rusak Berat]
+
+  /api/vendor/equipment:
+    get:
+      tags: [Vendor Equipments]
+      summary: List company equipments (peralatan)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor equipments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar data peralatan
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorEquipment'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Equipments]
+      summary: Create company equipment (peralatan)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [equipment_type, brand, quantity, capacity, manufacture_year, condition, location, photo]
+              properties:
+                equipment_type:
+                  type: string
+                brand:
+                  type: string
+                quantity:
+                  type: integer
+                capacity:
+                  type: string
+                manufacture_year:
+                  type: integer
+                condition:
+                  type: string
+                  enum: [Baik, Rusak Ringan, Rusak Berat]
+                location:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor equipment created
+
+  /api/vendor/equipment/{id}:
+    get:
+      tags: [Vendor Equipments]
+      summary: Get vendor equipment detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor equipment detail
+    post:
+      tags: [Vendor Equipments]
+      summary: Update vendor equipment data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [equipment_type, brand, quantity, capacity, manufacture_year, condition, location]
+              properties:
+                equipment_type:
+                  type: string
+                brand:
+                  type: string
+                quantity:
+                  type: integer
+                capacity:
+                  type: string
+                manufacture_year:
+                  type: integer
+                condition:
+                  type: string
+                  enum: [Baik, Rusak Ringan, Rusak Berat]
+                location:
+                  type: string
+                photo:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor equipment updated
+    delete:
+      tags: [Vendor Equipments]
+      summary: Delete vendor equipment data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor equipment deleted
+
+  /api/vendor/equipment/{id}/file:
+    get:
+      tags: [Vendor Equipments]
+      summary: Download/view equipment photo
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: Binary image response
+
+  /api/vendor/job-type:
+    get:
+      tags: [Master Job Type]
+      summary: List master job types (jenis pekerjaan)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of job types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Success get list job type
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/JobType'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+
+  /api/vendor/job-type/{id}:
+    get:
+      tags: [Master Job Type]
+      summary: Get master job type detail
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Job type detail
+
+  /api/vendor/experience:
+    get:
+      tags: [Vendor Experiences]
+      summary: List company work experiences (pengalaman kerja)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/PageSizeParam'
+        - $ref: '#/components/parameters/AllParam'
+        - $ref: '#/components/parameters/SearchParam'
+      responses:
+        '201':
+          description: List of vendor experiences
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Berhasil mengambil daftar pengalaman kerja
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VendorExperience'
+                  paginate:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      tags: [Vendor Experiences]
+      summary: Create company work experience (pengalaman kerja)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [job_name, contract_number, contract_value, job_type_id, client_name, location, address, contract_date, contract_end_date, contract_file, handover_date, handover_number, handover_file]
+              properties:
+                job_name:
+                  type: string
+                contract_number:
+                  type: string
+                contract_value:
+                  type: number
+                job_type_id:
+                  type: integer
+                client_name:
+                  type: string
+                location:
+                  type: string
+                address:
+                  type: string
+                contract_date:
+                  type: string
+                  format: date
+                contract_end_date:
+                  type: string
+                  format: date
+                contract_file:
+                  type: string
+                  format: binary
+                handover_date:
+                  type: string
+                  format: date
+                handover_number:
+                  type: string
+                handover_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor experience created
+
+  /api/vendor/experience/{id}:
+    get:
+      tags: [Vendor Experiences]
+      summary: Get vendor experience detail
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor experience detail
+    post:
+      tags: [Vendor Experiences]
+      summary: Update vendor experience data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [job_name, contract_number, contract_value, job_type_id, client_name, location, address, contract_date, contract_end_date, handover_date, handover_number]
+              properties:
+                job_name:
+                  type: string
+                contract_number:
+                  type: string
+                contract_value:
+                  type: number
+                job_type_id:
+                  type: integer
+                client_name:
+                  type: string
+                location:
+                  type: string
+                address:
+                  type: string
+                contract_date:
+                  type: string
+                  format: date
+                contract_end_date:
+                  type: string
+                  format: date
+                contract_file:
+                  type: string
+                  format: binary
+                handover_date:
+                  type: string
+                  format: date
+                handover_number:
+                  type: string
+                handover_file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Vendor experience updated
+    delete:
+      tags: [Vendor Experiences]
+      summary: Delete vendor experience data
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '201':
+          description: Vendor experience deleted
+
+  /api/vendor/experience/{id}/file/{type}:
+    get:
+      tags: [Vendor Experiences]
+      summary: Download/view experience file (contract or handover)
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [contract, handover]
+      responses:
+        '200':
+          description: Binary file response
+
+  /api/vendor/experience/{id}/download-zip:
+    get:
+      tags: [Vendor Experiences]
+      summary: Download experience files (contract and handover) as ZIP archive
+      parameters:
+        - $ref: '#/components/parameters/PathIntegerId'
+      responses:
+        '200':
+          description: ZIP file download
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary

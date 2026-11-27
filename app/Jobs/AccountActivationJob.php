@@ -20,7 +20,7 @@ class AccountActivationJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(User $user, $callbackUrl)
+    public function __construct($user, $callbackUrl)
     {
         $this->user = $user;
         $this->callbackUrl = $callbackUrl;

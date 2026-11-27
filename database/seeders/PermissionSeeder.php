@@ -505,6 +505,318 @@ class PermissionSeeder extends Seeder
                 "action" => "delete",
                 "permission" => "procurement_hps_delete"
             ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "read",
+                "permission" => "province_read"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "create",
+                "permission" => "province_create"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "update",
+                "permission" => "province_update"
+            ],
+            [
+                "name" => "Manage Province",
+                "subject" => "province",
+                "action" => "delete",
+                "permission" => "province_delete"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "read",
+                "permission" => "city_read"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "create",
+                "permission" => "city_create"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "update",
+                "permission" => "city_update"
+            ],
+            [
+                "name" => "Manage City",
+                "subject" => "city",
+                "action" => "delete",
+                "permission" => "city_delete"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "read",
+                "permission" => "vendor_read"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "create",
+                "permission" => "vendor_create"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "update",
+                "permission" => "vendor_update"
+            ],
+            [
+                "name" => "Manage Vendor",
+                "subject" => "vendor",
+                "action" => "delete",
+                "permission" => "vendor_delete"
+            ],
+            [
+                "name" => "Manage Vendor Owner",
+                "subject" => "vendor_owner",
+                "action" => "read",
+                "permission" => "vendor_owner_read"
+            ],
+            [
+                "name" => "Manage Vendor Owner",
+                "subject" => "vendor_owner",
+                "action" => "create",
+                "permission" => "vendor_owner_create"
+            ],
+            [
+                "name" => "Manage Vendor Owner",
+                "subject" => "vendor_owner",
+                "action" => "update",
+                "permission" => "vendor_owner_update"
+            ],
+            [
+                "name" => "Manage Vendor Owner",
+                "subject" => "vendor_owner",
+                "action" => "delete",
+                "permission" => "vendor_owner_delete"
+            ],
+            [
+                "name" => "Manage Vendor Commissioner",
+                "subject" => "vendor_commissioner",
+                "action" => "read",
+                "permission" => "vendor_commissioner_read"
+            ],
+            [
+                "name" => "Manage Vendor Commissioner",
+                "subject" => "vendor_commissioner",
+                "action" => "create",
+                "permission" => "vendor_commissioner_create"
+            ],
+            [
+                "name" => "Manage Vendor Commissioner",
+                "subject" => "vendor_commissioner",
+                "action" => "update",
+                "permission" => "vendor_commissioner_update"
+            ],
+            [
+                "name" => "Manage Vendor Commissioner",
+                "subject" => "vendor_commissioner",
+                "action" => "delete",
+                "permission" => "vendor_commissioner_delete"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "read",
+                "permission" => "vendor_director_read"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "create",
+                "permission" => "vendor_director_create"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "update",
+                "permission" => "vendor_director_update"
+            ],
+            [
+                "name" => "Manage Vendor Director",
+                "subject" => "vendor_director",
+                "action" => "delete",
+                "permission" => "vendor_director_delete"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "read",
+                "permission" => "vendor_expert_read"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "create",
+                "permission" => "vendor_expert_create"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "update",
+                "permission" => "vendor_expert_update"
+            ],
+            [
+                "name" => "Manage Vendor Expert",
+                "subject" => "vendor_expert",
+                "action" => "delete",
+                "permission" => "vendor_expert_delete"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "read",
+                "permission" => "vendor_financial_read"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "create",
+                "permission" => "vendor_financial_create"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "update",
+                "permission" => "vendor_financial_update"
+            ],
+            [
+                "name" => "Manage Vendor Financial",
+                "subject" => "vendor_financial",
+                "action" => "delete",
+                "permission" => "vendor_financial_delete"
+            ],
+            [
+                "name" => "Manage Vendor Tax",
+                "subject" => "vendor_tax",
+                "action" => "read",
+                "permission" => "vendor_tax_read"
+            ],
+            [
+                "name" => "Manage Vendor Tax",
+                "subject" => "vendor_tax",
+                "action" => "create",
+                "permission" => "vendor_tax_create"
+            ],
+            [
+                "name" => "Manage Vendor Tax",
+                "subject" => "vendor_tax",
+                "action" => "update",
+                "permission" => "vendor_tax_update"
+            ],
+            [
+                "name" => "Manage Vendor Tax",
+                "subject" => "vendor_tax",
+                "action" => "delete",
+                "permission" => "vendor_tax_delete"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "read",
+                "permission" => "vendor_legal_read"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "create",
+                "permission" => "vendor_legal_create"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "update",
+                "permission" => "vendor_legal_update"
+            ],
+            [
+                "name" => "Manage Vendor Legal",
+                "subject" => "vendor_legal",
+                "action" => "delete",
+                "permission" => "vendor_legal_delete"
+            ],
+            [
+                "name" => "Manage Vendor License",
+                "subject" => "vendor_license",
+                "action" => "read",
+                "permission" => "vendor_license_read"
+            ],
+            [
+                "name" => "Manage Vendor License",
+                "subject" => "vendor_license",
+                "action" => "create",
+                "permission" => "vendor_license_create"
+            ],
+            [
+                "name" => "Manage Vendor License",
+                "subject" => "vendor_license",
+                "action" => "update",
+                "permission" => "vendor_license_update"
+            ],
+            [
+                "name" => "Manage Vendor License",
+                "subject" => "vendor_license",
+                "action" => "delete",
+                "permission" => "vendor_license_delete"
+            ],
+            [
+                "name" => "Manage Vendor Equipment",
+                "subject" => "vendor_equipment",
+                "action" => "read",
+                "permission" => "vendor_equipment_read"
+            ],
+            [
+                "name" => "Manage Vendor Equipment",
+                "subject" => "vendor_equipment",
+                "action" => "create",
+                "permission" => "vendor_equipment_create"
+            ],
+            [
+                "name" => "Manage Vendor Equipment",
+                "subject" => "vendor_equipment",
+                "action" => "update",
+                "permission" => "vendor_equipment_update"
+            ],
+            [
+                "name" => "Manage Vendor Equipment",
+                "subject" => "vendor_equipment",
+                "action" => "delete",
+                "permission" => "vendor_equipment_delete"
+            ],
+            [
+                "name" => "Manage Vendor Experience",
+                "subject" => "vendor_experience",
+                "action" => "read",
+                "permission" => "vendor_experience_read"
+            ],
+            [
+                "name" => "Manage Vendor Experience",
+                "subject" => "vendor_experience",
+                "action" => "create",
+                "permission" => "vendor_experience_create"
+            ],
+            [
+                "name" => "Manage Vendor Experience",
+                "subject" => "vendor_experience",
+                "action" => "update",
+                "permission" => "vendor_experience_update"
+            ],
+            [
+                "name" => "Manage Vendor Experience",
+                "subject" => "vendor_experience",
+                "action" => "delete",
+                "permission" => "vendor_experience_delete"
+            ],
         ];
 
         foreach ($permissions as $permission) {

@@ -180,7 +180,8 @@ class ProcurementScheduleService
 
         $effectiveStartDate = $cursorDate->toDateString();
         $holidaySet = StageSchedule::normalizeHolidaySet(Holiday::activeDateStrings());
-        $otherSchedules = $this->otherActiveSchedules((int) $procurement->id);
+        // Cross-procurement conflict check disabled during generate; keep otherActiveSchedules() intact.
+        $otherSchedules = collect();
 
         foreach ($targetStages as $stage) {
             [$slotStart, $slotEnd] = $this->findNextAvailableWindow(

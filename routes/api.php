@@ -28,6 +28,18 @@ use App\Http\Controllers\ProcurementChecklistFileController;
 use App\Http\Controllers\ProcurementHpsController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\HolidayController;
+use App\Http\Controllers\ProvinceController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\VendorCommissionerController;
+use App\Http\Controllers\VendorDirectorController;
+use App\Http\Controllers\VendorEquipmentController;
+use App\Http\Controllers\VendorExperienceController;
+use App\Http\Controllers\VendorExpertController;
+use App\Http\Controllers\VendorLegalController;
+use App\Http\Controllers\VendorLicenseController;
+use App\Http\Controllers\VendorOwnerController;
+use App\Http\Controllers\VendorTaxController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']); // Login account
@@ -201,12 +213,115 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::delete('/{id}', [UnitController::class, 'destroy'])->middleware('permission:unit_delete');
     });
 
+    Route::prefix('province')->group(function () {
+        Route::get('/', [ProvinceController::class, 'index'])->middleware('permission:province_read');
+        Route::get('/{id}', [ProvinceController::class, 'show'])->middleware('permission:province_read');
+        Route::post('/', [ProvinceController::class, 'store'])->middleware('permission:province_create');
+        Route::post('/{id}', [ProvinceController::class, 'update'])->middleware('permission:province_update');
+        Route::delete('/{id}', [ProvinceController::class, 'destroy'])->middleware('permission:province_delete');
+    });
+
+    Route::prefix('city')->group(function () {
+        Route::get('/', [CityController::class, 'index'])->middleware('permission:city_read');
+        Route::get('/{id}', [CityController::class, 'show'])->middleware('permission:city_read');
+        Route::post('/', [CityController::class, 'store'])->middleware('permission:city_create');
+        Route::post('/{id}', [CityController::class, 'update'])->middleware('permission:city_update');
+        Route::delete('/{id}', [CityController::class, 'destroy'])->middleware('permission:city_delete');
+    });
+
+    Route::prefix('vendor')->whereNumber('id')->group(function () {
+        Route::get('/', [VendorController::class, 'index'])->middleware('permission:vendor_read');
+        Route::get('/{id}', [VendorController::class, 'show'])->middleware('permission:vendor_read');
+        Route::post('/', [VendorController::class, 'store'])->middleware('permission:vendor_create');
+        Route::post('/{id}', [VendorController::class, 'update'])->middleware('permission:vendor_update');
+        Route::delete('/{id}', [VendorController::class, 'destroy'])->middleware('permission:vendor_delete');
+
+        Route::get('/{id}/user/{userId}/resend-activation', [VendorController::class, 'resendActivation'])->middleware('permission:vendor_update');
+        Route::get('/{id}/user', [VendorController::class, 'indexUsers'])->middleware('permission:vendor_read');
+        Route::post('/{id}/user', [VendorController::class, 'storeUser'])->middleware('permission:vendor_create');
+        Route::get('/{id}/user/{userId}', [VendorController::class, 'showUser'])->middleware('permission:vendor_read');
+        Route::post('/{id}/user/{userId}', [VendorController::class, 'updateUser'])->middleware('permission:vendor_update');
+        Route::delete('/{id}/user/{userId}', [VendorController::class, 'destroyUser'])->middleware('permission:vendor_delete');
+
+        Route::get('/{id}/owner', [VendorOwnerController::class, 'index'])->middleware('permission:vendor_owner_read');
+        Route::post('/{id}/owner', [VendorOwnerController::class, 'store'])->middleware('permission:vendor_owner_create');
+        Route::get('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'show'])->middleware('permission:vendor_owner_read');
+        Route::post('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'update'])->middleware('permission:vendor_owner_update');
+        Route::delete('/{id}/owner/{ownerId}', [VendorOwnerController::class, 'destroy'])->middleware('permission:vendor_owner_delete');
+        Route::get('/{id}/owner/{ownerId}/file/{type}', [VendorOwnerController::class, 'downloadFile'])->middleware('permission:vendor_owner_read');
+        Route::get('/{id}/owner/{ownerId}/download-zip', [VendorOwnerController::class, 'downloadZip'])->middleware('permission:vendor_owner_read');
+
+        Route::get('/{id}/commissioner', [VendorCommissionerController::class, 'index'])->middleware('permission:vendor_commissioner_read');
+        Route::post('/{id}/commissioner', [VendorCommissionerController::class, 'store'])->middleware('permission:vendor_commissioner_create');
+        Route::get('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'show'])->middleware('permission:vendor_commissioner_read');
+        Route::post('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'update'])->middleware('permission:vendor_commissioner_update');
+        Route::delete('/{id}/commissioner/{commissionerId}', [VendorCommissionerController::class, 'destroy'])->middleware('permission:vendor_commissioner_delete');
+        Route::get('/{id}/commissioner/{commissionerId}/file/{type}', [VendorCommissionerController::class, 'downloadFile'])->middleware('permission:vendor_commissioner_read');
+        Route::get('/{id}/commissioner/{commissionerId}/download-zip', [VendorCommissionerController::class, 'downloadZip'])->middleware('permission:vendor_commissioner_read');
+
+        Route::get('/{id}/director', [VendorDirectorController::class, 'index'])->middleware('permission:vendor_director_read');
+        Route::post('/{id}/director', [VendorDirectorController::class, 'store'])->middleware('permission:vendor_director_create');
+        Route::get('/{id}/director/{directorId}', [VendorDirectorController::class, 'show'])->middleware('permission:vendor_director_read');
+        Route::post('/{id}/director/{directorId}', [VendorDirectorController::class, 'update'])->middleware('permission:vendor_director_update');
+        Route::delete('/{id}/director/{directorId}', [VendorDirectorController::class, 'destroy'])->middleware('permission:vendor_director_delete');
+        Route::get('/{id}/director/{directorId}/file/{type}', [VendorDirectorController::class, 'downloadFile'])->middleware('permission:vendor_director_read');
+        Route::get('/{id}/director/{directorId}/download-zip', [VendorDirectorController::class, 'downloadZip'])->middleware('permission:vendor_director_read');
+
+        Route::get('/{id}/expert', [VendorExpertController::class, 'index'])->middleware('permission:vendor_expert_read');
+        Route::post('/{id}/expert', [VendorExpertController::class, 'store'])->middleware('permission:vendor_expert_create');
+        Route::get('/{id}/expert/{expertId}', [VendorExpertController::class, 'show'])->middleware('permission:vendor_expert_read');
+        Route::post('/{id}/expert/{expertId}', [VendorExpertController::class, 'update'])->middleware('permission:vendor_expert_update');
+        Route::delete('/{id}/expert/{expertId}', [VendorExpertController::class, 'destroy'])->middleware('permission:vendor_expert_delete');
+        Route::get('/{id}/expert/{expertId}/file/{type}', [VendorExpertController::class, 'downloadFile'])->middleware('permission:vendor_expert_read');
+        Route::get('/{id}/expert/{expertId}/download-zip', [VendorExpertController::class, 'downloadZip'])->middleware('permission:vendor_expert_read');
+
+        Route::get('/{id}/tax', [VendorTaxController::class, 'index'])->middleware('permission:vendor_tax_read');
+        Route::post('/{id}/tax', [VendorTaxController::class, 'store'])->middleware('permission:vendor_tax_create');
+        Route::get('/{id}/tax/{taxId}', [VendorTaxController::class, 'show'])->middleware('permission:vendor_tax_read');
+        Route::post('/{id}/tax/{taxId}', [VendorTaxController::class, 'update'])->middleware('permission:vendor_tax_update');
+        Route::delete('/{id}/tax/{taxId}', [VendorTaxController::class, 'destroy'])->middleware('permission:vendor_tax_delete');
+        Route::get('/{id}/tax/{taxId}/file', [VendorTaxController::class, 'downloadFile'])->middleware('permission:vendor_tax_read');
+        Route::get('/{id}/tax/{taxId}/download-zip', [VendorTaxController::class, 'downloadZip'])->middleware('permission:vendor_tax_read');
+
+        Route::get('/{id}/legal', [VendorLegalController::class, 'index'])->middleware('permission:vendor_legal_read');
+        Route::post('/{id}/legal', [VendorLegalController::class, 'store'])->middleware('permission:vendor_legal_create');
+        Route::get('/{id}/legal/{legalId}', [VendorLegalController::class, 'show'])->middleware('permission:vendor_legal_read');
+        Route::post('/{id}/legal/{legalId}', [VendorLegalController::class, 'update'])->middleware('permission:vendor_legal_update');
+        Route::delete('/{id}/legal/{legalId}', [VendorLegalController::class, 'destroy'])->middleware('permission:vendor_legal_delete');
+        Route::get('/{id}/legal/{legalId}/file/{type}', [VendorLegalController::class, 'downloadFile'])->middleware('permission:vendor_legal_read');
+        Route::get('/{id}/legal/{legalId}/download-zip', [VendorLegalController::class, 'downloadZip'])->middleware('permission:vendor_legal_read');
+
+        Route::get('/{id}/license', [VendorLicenseController::class, 'index'])->middleware('permission:vendor_license_read');
+        Route::post('/{id}/license', [VendorLicenseController::class, 'store'])->middleware('permission:vendor_license_create');
+        Route::get('/{id}/license/{licenseId}', [VendorLicenseController::class, 'show'])->middleware('permission:vendor_license_read');
+        Route::post('/{id}/license/{licenseId}', [VendorLicenseController::class, 'update'])->middleware('permission:vendor_license_update');
+        Route::delete('/{id}/license/{licenseId}', [VendorLicenseController::class, 'destroy'])->middleware('permission:vendor_license_delete');
+        Route::get('/{id}/license/{licenseId}/file', [VendorLicenseController::class, 'downloadFile'])->middleware('permission:vendor_license_read');
+        Route::get('/{id}/license/{licenseId}/download-zip', [VendorLicenseController::class, 'downloadZip'])->middleware('permission:vendor_license_read');
+
+        Route::get('/{id}/equipment', [VendorEquipmentController::class, 'index'])->middleware('permission:vendor_equipment_read');
+        Route::post('/{id}/equipment', [VendorEquipmentController::class, 'store'])->middleware('permission:vendor_equipment_create');
+        Route::get('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'show'])->middleware('permission:vendor_equipment_read');
+        Route::post('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'update'])->middleware('permission:vendor_equipment_update');
+        Route::delete('/{id}/equipment/{equipmentId}', [VendorEquipmentController::class, 'destroy'])->middleware('permission:vendor_equipment_delete');
+        Route::get('/{id}/equipment/{equipmentId}/file', [VendorEquipmentController::class, 'downloadFile'])->middleware('permission:vendor_equipment_read');
+
+        Route::get('/{id}/experience', [VendorExperienceController::class, 'index'])->middleware('permission:vendor_experience_read');
+        Route::post('/{id}/experience', [VendorExperienceController::class, 'store'])->middleware('permission:vendor_experience_create');
+        Route::get('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'show'])->middleware('permission:vendor_experience_read');
+        Route::post('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'update'])->middleware('permission:vendor_experience_update');
+        Route::delete('/{id}/experience/{experienceId}', [VendorExperienceController::class, 'destroy'])->middleware('permission:vendor_experience_delete');
+        Route::get('/{id}/experience/{experienceId}/file/{type}', [VendorExperienceController::class, 'downloadFile'])->middleware('permission:vendor_experience_read');
+        Route::get('/{id}/experience/{experienceId}/download-zip', [VendorExperienceController::class, 'downloadZip'])->middleware('permission:vendor_experience_read');
+    });
+
     Route::prefix('procurement')->group(function () {
         Route::get('/', [ProcurementController::class, 'index'])->middleware('permission:procurement_read');
         Route::get('/{id}', [ProcurementController::class, 'show'])->middleware('permission:procurement_read');
         Route::post('/', [ProcurementController::class, 'store'])->middleware('permission:procurement_create');
         Route::post('/{id}', [ProcurementController::class, 'update'])->middleware('permission:procurement_update');
         Route::delete('/{id}', [ProcurementController::class, 'destroy'])->middleware('permission:procurement_delete');
+        Route::post('/{id}/publish', [ProcurementController::class, 'publish'])->middleware('permission:procurement_update');
         Route::post('/{id}/cancel', [ProcurementController::class, 'cancel'])->middleware('permission:procurement_cancel');
 
         Route::get('/{id}/schedule', [ProcurementScheduleController::class, 'index'])->middleware('permission:procurement_read');

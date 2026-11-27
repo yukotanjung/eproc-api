@@ -168,6 +168,36 @@ class ProcurementController extends Controller
         }
     }
 
+    public function publish(Request $request, $id)
+    {
+        try {
+            $data = Procurement::find($id);
+            if (!$data) {
+                return $this->invalidResponse('No data');
+            }
+            if ($data->status === Procurement::STATUS_CANCELLED) {
+                return $this->errorValidateResponse('Cancelled procurement cannot be published');
+            }
+            if ($data->status === Procurement::STATUS_PUBLISHED) {
+                return $this->errorValidateResponse('Procurement is already published');
+            }
+
+            DB::beginTransaction();
+
+            $data->update([
+                'status' => Procurement::STATUS_PUBLISHED,
+            ]);
+
+            $data->load(['jobType', 'qualification', 'fundingSource', 'procurementMethod']);
+
+            DB::commit();
+            return $this->baseResponse('Success publish procurement', $data->toApiArray());
+        } catch (Exception $e) {
+            DB::rollBack();
+            return $this->invalidResponse($e->getMessage());
+        }
+    }
+
     public function cancel(Request $request, $id)
     {
         try {
