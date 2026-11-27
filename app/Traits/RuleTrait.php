@@ -159,7 +159,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -245,7 +245,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -323,7 +323,7 @@ trait RuleTrait
                     return [
                         'page'      => 'integer|min:1|nullable',
                         'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'boolean|nullable',
+                        'all'       => 'nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -367,7 +367,7 @@ trait RuleTrait
                     return [
                         'page'         => 'integer|min:1|nullable',
                         'page_size'    => 'integer|min:1|nullable',
-                        'all'          => 'boolean|nullable',
+                        'all'          => 'nullable',
                         'job_field_id' => 'integer|nullable',
                         'job_type_id'  => 'integer|nullable',
                     ];

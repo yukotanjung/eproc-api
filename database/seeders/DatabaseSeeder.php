@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             UnitSeeder::class,
             ProvinceCitySeeder::class,
             EducationLevelSeeder::class,
+            BusinessTypeSeeder::class,
         ]);
     }
 }

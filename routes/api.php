@@ -321,6 +321,7 @@ Route::middleware(['auth:api', 'throttle:600,1'])->group(function () {
         Route::post('/', [ProcurementController::class, 'store'])->middleware('permission:procurement_create');
         Route::post('/{id}', [ProcurementController::class, 'update'])->middleware('permission:procurement_update');
         Route::delete('/{id}', [ProcurementController::class, 'destroy'])->middleware('permission:procurement_delete');
+        Route::post('/{id}/publish', [ProcurementController::class, 'publish'])->middleware('permission:procurement_update');
         Route::post('/{id}/cancel', [ProcurementController::class, 'cancel'])->middleware('permission:procurement_cancel');
 
         Route::get('/{id}/schedule', [ProcurementScheduleController::class, 'index'])->middleware('permission:procurement_read');
