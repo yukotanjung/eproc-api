@@ -17,7 +17,7 @@ class ProcurementJobSubFieldController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         return $this->baseResponse(
@@ -35,11 +35,11 @@ class ProcurementJobSubFieldController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $ids = Procurement::normalizeIds($request->input('job_sub_field_ids', []));
@@ -50,7 +50,7 @@ class ProcurementJobSubFieldController extends Controller
                     ->count();
 
                 if ($matchingTypeCount !== count($ids)) {
-                    return $this->errorValidateResponse('Selected job sub fields must match procurement job type');
+                    return $this->errorValidateResponse('Sub bidang pekerjaan yang dipilih harus sesuai dengan jenis pekerjaan pengadaan.');
                 }
             }
 
@@ -64,7 +64,7 @@ class ProcurementJobSubFieldController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan sub bidang pekerjaan pengadaan.');
         }
     }
 
@@ -73,11 +73,11 @@ class ProcurementJobSubFieldController extends Controller
         try {
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $exists = $procurement->jobSubFields()
@@ -85,7 +85,7 @@ class ProcurementJobSubFieldController extends Controller
                 ->exists();
 
             if (!$exists) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data sub bidang pekerjaan tidak ditemukan.');
             }
 
             DB::beginTransaction();
@@ -98,7 +98,7 @@ class ProcurementJobSubFieldController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus sub bidang pekerjaan pengadaan.');
         }
     }
 

@@ -270,7 +270,7 @@ class ProcurementHpsTest extends ApiTestCase
                 'unit_price' => 500000,
             ])
             ->assertStatus(400)
-            ->assertJsonPath('message', 'Cannot update cancelled procurement');
+            ->assertJsonPath('message', 'Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
 
         $this->actingAsApiUser()
             ->postJson("/api/procurement/{$procurement->id}/hps/{$item['id']}", [
@@ -280,12 +280,12 @@ class ProcurementHpsTest extends ApiTestCase
                 'unit_price' => 10000000,
             ])
             ->assertStatus(400)
-            ->assertJsonPath('message', 'Cannot update cancelled procurement');
+            ->assertJsonPath('message', 'Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
 
         $this->actingAsApiUser()
             ->deleteJson("/api/procurement/{$procurement->id}/hps/{$item['id']}")
             ->assertStatus(400)
-            ->assertJsonPath('message', 'Cannot update cancelled procurement');
+            ->assertJsonPath('message', 'Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
     }
 
     public function test_enforces_hps_permissions_and_cleanup_on_delete_procurement(): void

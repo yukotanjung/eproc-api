@@ -22,7 +22,7 @@ class ProcurementScheduleController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         return $this->baseResponse(
@@ -38,7 +38,7 @@ class ProcurementScheduleController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             $save = $request->has('save') ? filter_var($request->save, FILTER_VALIDATE_BOOLEAN) : false;
@@ -47,7 +47,7 @@ class ProcurementScheduleController extends Controller
                 $authUser = auth('api')->user();
                 $user = $authUser ? User::with('roles.permissions')->find($authUser->id) : null;
                 if (!$user || !$user->hasPermission('procurement_update')) {
-                    return $this->invalidResponse('Your request is not allowed');
+                    return $this->invalidResponse('Anda tidak memiliki akses untuk melakukan permintaan ini.');
                 }
             }
 
@@ -63,7 +63,7 @@ class ProcurementScheduleController extends Controller
         } catch (DomainException $e) {
             return $this->errorValidateResponse($e->getMessage());
         } catch (Exception $e) {
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal membuat jadwal pengadaan.');
         }
     }
 
@@ -74,7 +74,7 @@ class ProcurementScheduleController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             $result = $this->scheduleService->save($procurement, $request->input('schedules', []));
@@ -83,7 +83,7 @@ class ProcurementScheduleController extends Controller
         } catch (DomainException $e) {
             return $this->errorValidateResponse($e->getMessage());
         } catch (Exception $e) {
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan jadwal pengadaan.');
         }
     }
 
@@ -94,7 +94,7 @@ class ProcurementScheduleController extends Controller
             ->find($id);
 
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         return $this->baseResponse('Success get public procurement schedule', [

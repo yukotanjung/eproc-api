@@ -51,7 +51,7 @@ class EducationLevelController extends Controller
             return $this->baseResponse('Success create education level', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data jenjang pendidikan.');
         }
     }
 
@@ -67,7 +67,7 @@ class EducationLevelController extends Controller
                 'updated_at' => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data jenjang pendidikan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -87,10 +87,10 @@ class EducationLevelController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update education level', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jenjang pendidikan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data jenjang pendidikan.');
         }
     }
 
@@ -106,10 +106,10 @@ class EducationLevelController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete education level', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data jenjang pendidikan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data jenjang pendidikan.');
         }
     }
 }

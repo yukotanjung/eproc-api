@@ -100,7 +100,7 @@ class Authenticate implements AuthenticatesRequests
      */
     protected function unauthenticated($request, array $guards)
     {
-        throw new AuthenticationException('Unauthenticated.', $guards, $request->expectsJson() ? null : $this->redirectTo($request));
+        throw new AuthenticationException('Sesi tidak valid atau telah berakhir. Silakan masuk kembali.', $guards, $request->expectsJson() ? null : $this->redirectTo($request));
     }
 
     /**

@@ -78,7 +78,7 @@ class UserController extends Controller
             return $this->baseResponse('Success create user', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal menyimpan data pengguna.");
         }
     }
     public function resendActivation(User $user, Request $request)
@@ -89,7 +89,7 @@ class UserController extends Controller
             return $this->baseResponse('Success resend', ["name" => $user->name]);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal mengirim ulang email aktivasi.");
         }
     }
 
@@ -115,7 +115,7 @@ class UserController extends Controller
             ];
             return $this->baseResponse('Success', $result);
         } else {
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data pengguna tidak ditemukan.");
         }
     }
 
@@ -134,10 +134,10 @@ class UserController extends Controller
                 DB::commit();
                 return $this->baseResponse("Success delete user", null);
             }
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data pengguna tidak ditemukan.");
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal menghapus data pengguna.");
         }
     }
 
@@ -177,10 +177,10 @@ class UserController extends Controller
                 }
                 return $this->baseResponse("Success update user", $data);
             }
-            return $this->invalidResponse("No data");
+            return $this->invalidResponse("Data pengguna tidak ditemukan.");
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui data pengguna.");
         }
     }
 
@@ -199,7 +199,7 @@ class UserController extends Controller
             if ($user) {
 
                 if (!Hash::check($request->old_password, $user->password)) {
-                    return $this->invalidResponse('The old password you entered is incorrect.');
+                    return $this->invalidResponse('Kata sandi lama yang Anda masukkan salah.');
                 }
 
                 $user->password = Hash::make($request->new_password);
@@ -211,12 +211,12 @@ class UserController extends Controller
 
             }
 
-            return $this->invalidResponse('No account found');
+            return $this->invalidResponse('Akun tidak ditemukan.');
 
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui kata sandi.");
         }
     }
 
@@ -264,11 +264,11 @@ class UserController extends Controller
                 return $this->baseResponse("Success update profile", $user);
             }
 
-            return $this->invalidResponse("Account not found");
+            return $this->invalidResponse("Akun tidak ditemukan.");
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui profil.");
         }
     }
 
@@ -292,11 +292,11 @@ class UserController extends Controller
                 return $this->baseResponse("Success update notification", $user);
             }
 
-            return $this->invalidResponse("Account not found");
+            return $this->invalidResponse("Akun tidak ditemukan.");
 
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, "Gagal memperbarui perangkat notifikasi.");
         }
     }
 

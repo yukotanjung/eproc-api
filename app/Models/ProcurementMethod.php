@@ -39,7 +39,30 @@ class ProcurementMethod extends Model
 
     public function scopeFilter($query)
     {
-        return $this->filter_model($query, $this);
+        $grammar = $query->getGrammar();
+        $nameCol = $grammar->wrap('name');
+        $descriptionCol = $grammar->wrap('description');
+
+        $nameFilter = request()->input('filter.name');
+        if ($nameFilter !== null && $nameFilter !== '') {
+            $query->whereRaw("LOWER({$nameCol}) LIKE ?", ['%' . mb_strtolower((string) $nameFilter) . '%']);
+        }
+
+        $descriptionFilter = request()->input('filter.description');
+        if ($descriptionFilter !== null && $descriptionFilter !== '') {
+            $query->whereRaw("LOWER({$descriptionCol}) LIKE ?", ['%' . mb_strtolower((string) $descriptionFilter) . '%']);
+        }
+
+        $search = request()->input('search');
+        if ($search !== null && $search !== '') {
+            $needle = '%' . mb_strtolower((string) $search) . '%';
+            $query->where(function ($q) use ($nameCol, $descriptionCol, $needle) {
+                $q->whereRaw("LOWER({$nameCol}) LIKE ?", [$needle])
+                    ->orWhereRaw("LOWER({$descriptionCol}) LIKE ?", [$needle]);
+            });
+        }
+
+        return $query;
     }
 
     public function scopeOrder($query)

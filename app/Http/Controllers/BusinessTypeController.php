@@ -53,7 +53,7 @@ class BusinessTypeController extends Controller
             return $this->baseResponse('Success create business type', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data bentuk usaha.');
         }
     }
 
@@ -70,7 +70,7 @@ class BusinessTypeController extends Controller
                 'updated_at'  => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data bentuk usaha tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -91,10 +91,10 @@ class BusinessTypeController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update business type', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data bentuk usaha tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data bentuk usaha.');
         }
     }
 
@@ -110,10 +110,10 @@ class BusinessTypeController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete business type', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data bentuk usaha tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data bentuk usaha.');
         }
     }
 }

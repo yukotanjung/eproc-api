@@ -33,7 +33,7 @@ class HolidayController extends Controller
             if ($input_error = $this->check_input_validation()) return $this->errorResponses($input_error);
 
             if (Holiday::whereDate('holiday_date', $request->holiday_date)->exists()) {
-                return $this->errorValidateResponse('Holiday date already exists');
+                return $this->errorValidateResponse('Tanggal libur sudah terdaftar.');
             }
 
             DB::beginTransaction();
@@ -49,7 +49,7 @@ class HolidayController extends Controller
             return $this->baseResponse('Success create holiday', $result->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data hari libur.');
         }
     }
 
@@ -60,7 +60,7 @@ class HolidayController extends Controller
             return $this->baseResponse('Success', $data->toApiArray());
         }
 
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data hari libur tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -70,7 +70,7 @@ class HolidayController extends Controller
 
             $data = Holiday::find($id);
             if (!$data) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data hari libur tidak ditemukan.');
             }
 
             $duplicate = Holiday::whereDate('holiday_date', $request->holiday_date)
@@ -78,7 +78,7 @@ class HolidayController extends Controller
                 ->exists();
 
             if ($duplicate) {
-                return $this->errorValidateResponse('Holiday date already exists');
+                return $this->errorValidateResponse('Tanggal libur sudah terdaftar.');
             }
 
             DB::beginTransaction();
@@ -94,7 +94,7 @@ class HolidayController extends Controller
             return $this->baseResponse('Success update holiday', $data->fresh()->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data hari libur.');
         }
     }
 
@@ -103,7 +103,7 @@ class HolidayController extends Controller
         try {
             $data = Holiday::find($id);
             if (!$data) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data hari libur tidak ditemukan.');
             }
 
             DB::beginTransaction();
@@ -113,7 +113,7 @@ class HolidayController extends Controller
             return $this->baseResponse('Success delete holiday', null);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data hari libur.');
         }
     }
 }

@@ -125,4 +125,30 @@ class ProcurementMethodTest extends ApiTestCase
             ],
         ])->assertStatus(400);
     }
+
+    public function test_can_filter_methods_by_name_case_insensitively(): void
+    {
+        $this->actingAsApiUser()->postJson('/api/procurement-method', [
+            'name'        => 'Tender Khusus Uji',
+            'description' => 'Metode kompetisi unik',
+        ])->assertStatus(201);
+
+        $this->actingAsApiUser()->postJson('/api/procurement-method', [
+            'name'        => 'Penunjukan Uji',
+            'description' => 'Metode penunjukan',
+        ])->assertStatus(201);
+
+        $response = $this->actingAsApiUser()
+            ->getJson('/api/procurement-method?all=true&filter[name]=khusus uji');
+
+        $response->assertStatus(201)
+            ->assertJsonCount(1, 'result')
+            ->assertJsonPath('result.0.name', 'Tender Khusus Uji');
+
+        $noMatch = $this->actingAsApiUser()
+            ->getJson('/api/procurement-method?all=true&filter[name]=kompetisi unik');
+
+        $noMatch->assertStatus(201)
+            ->assertJsonCount(0, 'result');
+    }
 }

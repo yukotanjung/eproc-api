@@ -54,7 +54,7 @@ class IsUniqueOtherRule implements Rule
         if (!empty($this->message)) {
             return $this->message;
         } else {
-            return "Error, {$this->value} is already exist, please select or input others.";
+            return "Data '{$this->value}' sudah digunakan, silakan gunakan nilai lain.";
         }
     }
 }

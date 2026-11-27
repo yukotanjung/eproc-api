@@ -53,7 +53,7 @@ class FundingSourceController extends Controller
             return $this->baseResponse('Success create funding source', $result);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data sumber dana.');
         }
     }
 
@@ -70,7 +70,7 @@ class FundingSourceController extends Controller
                 'updated_at'  => $data->updated_at,
             ]);
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data sumber dana tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -91,10 +91,10 @@ class FundingSourceController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update funding source', $data);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data sumber dana tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data sumber dana.');
         }
     }
 
@@ -110,10 +110,10 @@ class FundingSourceController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete funding source', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data sumber dana tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data sumber dana.');
         }
     }
 }

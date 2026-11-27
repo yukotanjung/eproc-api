@@ -22,7 +22,7 @@ class ProcurementChecklistFileController extends Controller
 
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         app(ProcurementScheduleService::class)->getOrderedSchedules($procurement);
@@ -48,7 +48,7 @@ class ProcurementChecklistFileController extends Controller
     {
         $procurement = Procurement::find($id);
         if (!$procurement) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data pengadaan tidak ditemukan.');
         }
 
         $item = $procurement->checklistFiles()
@@ -56,7 +56,7 @@ class ProcurementChecklistFileController extends Controller
             ->find($checklistFileId);
 
         if (!$item) {
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data berkas checklist tidak ditemukan.');
         }
 
         return $this->baseResponse('Success get procurement checklist file', $item->toApiArray());
@@ -71,22 +71,22 @@ class ProcurementChecklistFileController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             app(ProcurementScheduleService::class)->getOrderedSchedules($procurement);
 
             $schedule = $procurement->schedules()->find((int) $request->input('procurement_schedule_id'));
             if (!$schedule) {
-                return $this->errorValidateResponse('Invalid procurement schedule for this procurement');
+                return $this->errorValidateResponse('Tahapan jadwal tidak valid untuk pengadaan ini.');
             }
 
             if (!(bool) $schedule->requires_file) {
-                return $this->errorValidateResponse('Selected schedule stage does not require file upload');
+                return $this->errorValidateResponse('Tahapan jadwal yang dipilih tidak memerlukan unggahan berkas.');
             }
 
             $isRequired = $request->has('is_required') && $request->input('is_required') !== null
@@ -115,7 +115,7 @@ class ProcurementChecklistFileController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan berkas checklist pengadaan.');
         }
     }
 
@@ -128,16 +128,16 @@ class ProcurementChecklistFileController extends Controller
 
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $checklistFile = $procurement->checklistFiles()->find($checklistFileId);
             if (!$checklistFile) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data berkas checklist tidak ditemukan.');
             }
 
             $targetScheduleId = $request->filled('procurement_schedule_id')
@@ -146,11 +146,11 @@ class ProcurementChecklistFileController extends Controller
 
             $schedule = $procurement->schedules()->find($targetScheduleId);
             if (!$schedule) {
-                return $this->errorValidateResponse('Invalid procurement schedule for this procurement');
+                return $this->errorValidateResponse('Tahapan jadwal tidak valid untuk pengadaan ini.');
             }
 
             if (!(bool) $schedule->requires_file) {
-                return $this->errorValidateResponse('Selected schedule stage does not require file upload');
+                return $this->errorValidateResponse('Tahapan jadwal yang dipilih tidak memerlukan unggahan berkas.');
             }
 
             $updates = [
@@ -177,7 +177,7 @@ class ProcurementChecklistFileController extends Controller
             );
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui berkas checklist pengadaan.');
         }
     }
 
@@ -186,16 +186,16 @@ class ProcurementChecklistFileController extends Controller
         try {
             $procurement = Procurement::find($id);
             if (!$procurement) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data pengadaan tidak ditemukan.');
             }
 
             if ($procurement->isCancelled()) {
-                return $this->errorValidateResponse('Cannot update cancelled procurement');
+                return $this->errorValidateResponse('Pengadaan yang sudah dibatalkan tidak dapat diperbarui.');
             }
 
             $checklistFile = $procurement->checklistFiles()->find($checklistFileId);
             if (!$checklistFile) {
-                return $this->invalidResponse('No data');
+                return $this->invalidResponse('Data berkas checklist tidak ditemukan.');
             }
 
             DB::beginTransaction();
@@ -205,7 +205,7 @@ class ProcurementChecklistFileController extends Controller
             return $this->baseResponse('Success delete procurement checklist file', null);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus berkas checklist pengadaan.');
         }
     }
 }

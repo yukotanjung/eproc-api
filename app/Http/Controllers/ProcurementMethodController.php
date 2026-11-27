@@ -67,7 +67,7 @@ class ProcurementMethodController extends Controller
             return $this->baseResponse('Success create procurement method', $result->toApiArray($request->has('stages')));
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan metode pengadaan.');
         }
     }
 
@@ -80,7 +80,7 @@ class ProcurementMethodController extends Controller
         if ($data) {
             return $this->baseResponse('Success', $data->toApiArray(true));
         }
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -121,10 +121,10 @@ class ProcurementMethodController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success update procurement method', $data->toApiArray($request->has('stages')));
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui metode pengadaan.');
         }
     }
 
@@ -141,10 +141,10 @@ class ProcurementMethodController extends Controller
                 DB::commit();
                 return $this->baseResponse('Success delete procurement method', null);
             }
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus metode pengadaan.');
         }
     }
 }

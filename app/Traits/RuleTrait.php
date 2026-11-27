@@ -46,6 +46,13 @@ trait RuleTrait
             }
         }
 
+        if (request()->has('all')) {
+            $rawAll = request()->input('all');
+            if (is_string($rawAll) && in_array(strtolower($rawAll), ['true', 'false'], true)) {
+                request()->merge(['all' => strtolower($rawAll) === 'true']);
+            }
+        }
+
         $datas = request()->all();
         $validator = Validator::make($datas, $this->rules_lists($controller, $method, $custom_var), $this->custom_messages());
         if ($validator->fails()) return $validator->getMessageBag();
@@ -55,8 +62,12 @@ trait RuleTrait
     private function custom_messages()
     {
         $customMessages = [
-            'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, and one of the following symbols: @$!%*?&',
-            'new_password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, and one of the following symbols: @$!%*?&',
+            'password.regex'            => 'Kata sandi harus mengandung minimal satu huruf besar, satu huruf kecil, dan salah satu simbol berikut: @$!%*?&.',
+            'new_password.regex'        => 'Kata sandi baru harus mengandung minimal satu huruf besar, satu huruf kecil, dan salah satu simbol berikut: @$!%*?&.',
+            'start_time.regex'          => 'Format waktu mulai tidak valid (gunakan HH:MM atau HH:MM:SS).',
+            'end_time.regex'            => 'Format waktu selesai tidak valid (gunakan HH:MM atau HH:MM:SS).',
+            'schedules.*.start_at.regex' => 'Format waktu mulai jadwal tidak valid (gunakan YYYY-MM-DD HH:MM).',
+            'schedules.*.end_at.regex'   => 'Format waktu selesai jadwal tidak valid (gunakan YYYY-MM-DD HH:MM).',
         ];
         return $customMessages;
     }
@@ -390,9 +401,12 @@ trait RuleTrait
             case 'ProcurementMethodController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -469,9 +483,12 @@ trait RuleTrait
             case 'ProcurementController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [
@@ -613,9 +630,12 @@ trait RuleTrait
             case 'UnitController':
                 if ($method == 'index') {
                     return [
-                        'page'      => 'integer|min:1|nullable',
-                        'page_size' => 'integer|min:1|nullable',
-                        'all'       => 'nullable',
+                        'page'        => 'integer|min:1|nullable',
+                        'page_size'   => 'integer|min:1|nullable',
+                        'all'         => 'nullable',
+                        'search'      => 'string|nullable',
+                        'filter'      => 'array|nullable',
+                        'filter.name' => 'string|nullable',
                     ];
                 } elseif ($method == 'store') {
                     return [

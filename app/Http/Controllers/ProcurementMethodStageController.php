@@ -19,7 +19,7 @@ class ProcurementMethodStageController extends Controller
     public function index(Request $request, $id)
     {
         $method = ProcurementMethod::find($id);
-        if (!$method) return $this->invalidResponse('No data');
+        if (!$method) return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
 
         $result = $this->listPayload((int) $method->id);
 
@@ -32,7 +32,7 @@ class ProcurementMethodStageController extends Controller
             if ($input_error = $this->check_input_validation()) return $this->errorResponses($input_error);
 
             $method = ProcurementMethod::find($id);
-            if (!$method) return $this->invalidResponse('No data');
+            if (!$method) return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
 
             DB::beginTransaction();
 
@@ -73,7 +73,7 @@ class ProcurementMethodStageController extends Controller
             return $this->baseResponse('Success create procurement method stage', $result->fresh()->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan tahapan metode pengadaan.');
         }
     }
 
@@ -83,7 +83,7 @@ class ProcurementMethodStageController extends Controller
             if ($input_error = $this->check_input_validation()) return $this->errorResponses($input_error);
 
             $data = ProcurementMethodStage::where('procurement_method_id', $id)->find($stageId);
-            if (!$data) return $this->invalidResponse('No data');
+            if (!$data) return $this->invalidResponse('Data tahapan metode pengadaan tidak ditemukan.');
 
             DB::beginTransaction();
 
@@ -124,7 +124,7 @@ class ProcurementMethodStageController extends Controller
             return $this->baseResponse('Success update procurement method stage', $data->fresh()->toApiArray());
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui tahapan metode pengadaan.');
         }
     }
 
@@ -132,7 +132,7 @@ class ProcurementMethodStageController extends Controller
     {
         try {
             $data = ProcurementMethodStage::where('procurement_method_id', $id)->find($stageId);
-            if (!$data) return $this->invalidResponse('No data');
+            if (!$data) return $this->invalidResponse('Data tahapan metode pengadaan tidak ditemukan.');
 
             DB::beginTransaction();
 
@@ -152,7 +152,7 @@ class ProcurementMethodStageController extends Controller
             return $this->baseResponse('Success delete procurement method stage', null);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus tahapan metode pengadaan.');
         }
     }
 
@@ -162,7 +162,7 @@ class ProcurementMethodStageController extends Controller
             if ($input_error = $this->check_input_validation()) return $this->errorResponses($input_error);
 
             $method = ProcurementMethod::find($id);
-            if (!$method) return $this->invalidResponse('No data');
+            if (!$method) return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
 
             $incoming = array_map('intval', $request->stage_ids);
 
@@ -173,7 +173,7 @@ class ProcurementMethodStageController extends Controller
             sort($sortedIncoming);
 
             if ($sortedCurrent !== $sortedIncoming) {
-                return $this->errorValidateResponse('stage_ids must contain exactly all stage ids of this procurement method');
+                return $this->errorValidateResponse('Daftar ID tahapan harus memuat seluruh tahapan pada metode pengadaan ini.');
             }
 
             DB::beginTransaction();
@@ -183,7 +183,7 @@ class ProcurementMethodStageController extends Controller
             return $this->baseResponse('Success reorder procurement method stage', $this->listPayload((int) $method->id));
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal mengubah urutan tahapan metode pengadaan.');
         }
     }
 
@@ -193,7 +193,7 @@ class ProcurementMethodStageController extends Controller
             if ($input_error = $this->check_input_validation()) return $this->errorResponses($input_error);
 
             $method = ProcurementMethod::find($id);
-            if (!$method) return $this->invalidResponse('No data');
+            if (!$method) return $this->invalidResponse('Data metode pengadaan tidak ditemukan.');
 
             $stages = ProcurementMethodStage::where('procurement_method_id', $method->id)
                 ->where('is_active', true)
@@ -209,7 +209,7 @@ class ProcurementMethodStageController extends Controller
                 ),
             ]);
         } catch (Exception $e) {
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal membuat pratinjau jadwal metode pengadaan.');
         }
     }
 

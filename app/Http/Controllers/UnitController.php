@@ -65,7 +65,7 @@ class UnitController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menyimpan data satuan.');
         }
     }
 
@@ -83,7 +83,7 @@ class UnitController extends Controller
             ]);
         }
 
-        return $this->invalidResponse('No data');
+        return $this->invalidResponse('Data satuan tidak ditemukan.');
     }
 
     public function update(Request $request, $id)
@@ -117,10 +117,10 @@ class UnitController extends Controller
                 ]);
             }
 
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data satuan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal memperbarui data satuan.');
         }
     }
 
@@ -136,10 +136,10 @@ class UnitController extends Controller
                 return $this->baseResponse('Success delete unit', null);
             }
 
-            return $this->invalidResponse('No data');
+            return $this->invalidResponse('Data satuan tidak ditemukan.');
         } catch (Exception $e) {
             DB::rollBack();
-            return $this->invalidResponse($e->getMessage());
+            return $this->failedActionResponse($e, 'Gagal menghapus data satuan.');
         }
     }
 }

@@ -26,6 +26,6 @@ class ExistsInTable implements Rule
 
     public function message()
     {
-        return 'ID is invalid.';
+        return 'ID tidak valid atau tidak ditemukan.';
     }
 }

@@ -47,28 +47,50 @@ abstract class Controller
         return response()->json($response, $code);
     }
 
-    function errorResponses($result = [], $message = "Failed")
+    function errorResponses($result = [], $message = "Gagal memproses permintaan.")
     {
         if (is_string($result)) {
             $message = $result;
             $result = [];
-        } else {
-            $tmp = $result;
-            $message = $tmp->first();
-            if (!empty($tmp)) {
-                if (count($tmp) > 0) {
-                    foreach ($tmp as $key => $value) {
-                        $message = "Error Validation on " . $key . " : " . $value[0];
-                        break;
-                    }
+        } elseif (is_object($result) && method_exists($result, 'first')) {
+            $firstMessage = $result->first();
+            if (!empty($firstMessage)) {
+                $message = $firstMessage;
+            }
+        } elseif (is_array($result) && !empty($result)) {
+            foreach ($result as $value) {
+                $firstMessage = is_array($value) ? ($value[0] ?? null) : $value;
+                if (!empty($firstMessage) && is_string($firstMessage)) {
+                    $message = $firstMessage;
+                    break;
                 }
             }
         }
+
         return response()->json([
             "status" => false,
             "message" => $message,
             "result" => $result
         ], 400);
+    }
+
+    function failedActionResponse(\Throwable $e, string $defaultMessage = "Gagal memproses data.", int $code = 403)
+    {
+        if ($e instanceof \Illuminate\Validation\ValidationException) {
+            return $this->errorResponses($e->validator->getMessageBag());
+        }
+
+        if ($e instanceof \Illuminate\Database\QueryException) {
+            $raw = strtolower($e->getMessage());
+            if (str_contains($raw, 'ora-00001') || str_contains($raw, 'unique')) {
+                return $this->invalidResponse($defaultMessage . ' Data sudah terdaftar di sistem.', $code);
+            }
+            if (str_contains($raw, 'ora-02292') || str_contains($raw, 'ora-02291') || str_contains($raw, 'foreign key')) {
+                return $this->invalidResponse($defaultMessage . ' Data masih digunakan oleh data lain.', $code);
+            }
+        }
+
+        return $this->invalidResponse($defaultMessage, $code);
     }
 
     public function pagination($data)
